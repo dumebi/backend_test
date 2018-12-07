@@ -63,18 +63,7 @@ contract Token is ERC20Interface {
         _;
     }
 
-    // Constructor
-    constructor() public {
-        symbol = "";
-        name = "";
-        _totalSupply = 0;
-        rate = 0;
-        currency = "";
-        owner = msg.sender;
-        balances[owner] = _totalSupply;
-    }
-
-    function createToken(string memory _symbol, string memory _name, uint256 _supply, uint8 _rate, string memory _currency) public {
+    constructor(string memory _symbol, string memory _name, uint256 _supply, uint8 _rate, string memory _currency) public {
         symbol = _symbol;
         name = _name;
         _totalSupply = _supply;
