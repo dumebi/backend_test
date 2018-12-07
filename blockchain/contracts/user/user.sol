@@ -26,12 +26,12 @@ contract SterlingUser {
   // events
   event LogAddUser(
     uint indexed _id,
-    address indexed useraddress
+    address indexed _useraddress
     );
 
   event LogUpdateUser(
     uint indexed _id,
-    address indexed useraddress
+    address indexed _useraddress
     );
 
   // Post User
@@ -96,8 +96,8 @@ contract SterlingUser {
     return userIds;
   }
 
-  // gets the number of deals
-  function getNoOfDeals() public view returns(uint) {
+  // gets the number of users
+  function getNoOfUsers() public view returns(uint) {
     return userCounter;
   }
 }
