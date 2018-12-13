@@ -17,7 +17,7 @@ contract Authorizer is Ownable{
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyAuthorizer() {
-        require(isAuthorizer(msg.sender), "You are not listed as an authorizer, thus cannot authorize this transaction.");
+        require(isAuthorizer(msg.sender), "You are not listed as an authorizer.");
         _;
     }
     
@@ -25,13 +25,13 @@ contract Authorizer is Ownable{
     /**
      * @dev Allows the current owner to add an authorizer.
      */
-    function addAuthorizer(address _authorizer) public onlyOwner {
+    function addAuthorizer(address _user) public onlyOwner {
+        
+        uint authorizerId = authorizers.push(_user) - 1;
+        addrToAuthorizer[_user] = authorizerId;
+        validAuthorizer[_user] = true;
 
-        uint authorizerId = authorizers.push(_authorizer) - 1;
-        addrToAuthorizer[_authorizer] = authorizerId;
-        validAuthorizer[_authorizer] = true;
-
-        emit NewAuthorizer(_authorizer);
+        emit NewAuthorizer(_user);
     }
     
     
@@ -45,25 +45,25 @@ contract Authorizer is Ownable{
     /**
      * @return true if `msg.sender` is the owner of the contract.
      */
-    function isAuthorizer(address _input) public view returns (bool) {
-        return validAuthorizer[_input] == true;
+    function isAuthorizer(address _user) public view returns (bool) {
+        return validAuthorizer[_user] == true;
     }
 
     /**
      * @dev Allows the current owner to remove an authorizer.
-     * @notice All authorizing activities 
+     * @notice All ng activities 
      */
-    function removeAuthorizer(address _authorizer) public onlyOwner {
-
-        uint authorizerId = addrToAuthorizer[_authorizer];
+    function removeAuthorizer(address _user) public onlyOwner {
+        
+        uint authorizerId = addrToAuthorizer[_user];
         delete authorizers[authorizerId];
 
-        validAuthorizer[_authorizer] = false;
-        delete addrToAuthorizer[_authorizer];
+        validAuthorizer[_user] = false;
+        addrToAuthorizer[_user] = authorizers.length + 1;
 
-        emit AuthorizerRemoved(_authorizer);
+        emit AuthorizerRemoved(_user);
     }
-
+    
 
 }
 
