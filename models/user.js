@@ -15,12 +15,11 @@ const UserType = Object.freeze({
 
 const UserGroup = Object.freeze({
   EntryLevel: 'ET',
-  SeniorExe: 'SE',
-  AssitBankOfficer: 'ABO',
-  SenoirBankOfficer: 'SBO',
-  AssitManager: 'AMG',
+  SeniorExec: 'SE',
+  AssetBankOfficer: 'ABO',
+  SeniorBankOfficer: 'SBO',
+  AssetManager: 'AMG',
   Manager: 'MG',
-
 })
 
 const UserSchema = new Schema(
@@ -30,26 +29,23 @@ const UserSchema = new Schema(
       unique: true,
       dropDups: true
     },
-    user_type: {
+    userType: {
       type: Schema.Types.String,
       enum: Object.values(UserType),
       default: UserType.USER,
       required: true
     },
-    user_group: {
+    userGroup: {
       type: Schema.Types.String,
       enum: Object.values(UserGroup),
       default: UserType.ET,
       required: true
     },
-    staff_id: {
+    staffId: {
       type: Schema.Types.String,
       unique: true,
       required: true,
       dropDups: true
-    },
-    fullname: {
-      type: Schema.Types.String
     },
     email: {
       type: Schema.Types.String,
@@ -57,11 +53,17 @@ const UserSchema = new Schema(
       required: true,
       dropDups: true
     },
+    lienPeriod: {type: Schema.Types.Number},
+    fullname: { type: Schema.Types.String },
+    accountNo: { type: Schema.Types.String },
+    beneficiary: { type: Schema.Types.String },
     mnemonic: { type: Schema.Types.String },
     address: { type: Schema.Types.String },
     publicKey: { type: Schema.Types.String },
     privateKey: { type: Schema.Types.String },
     password: { type: Schema.Types.String },
+    workflow: { type: Schema.Types.String },
+    status: { type: Schema.Types.String },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
