@@ -10,7 +10,17 @@ const bcrypt = require('bcrypt-nodejs')
 const UserType = Object.freeze({
   USER: 'User',
   ADMIN: 'Admin',
-  HR: 'HR'
+  AUTHORIZER: 'Authorizer'
+})
+
+const UserGroup = Object.freeze({
+  EntryLevel: 'ET',
+  SeniorExe: 'SE',
+  AssitBankOfficer: 'ABO',
+  SenoirBankOfficer: 'SBO',
+  AssitManager: 'AMG',
+  Manager: 'MG',
+
 })
 
 const UserSchema = new Schema(
@@ -26,15 +36,31 @@ const UserSchema = new Schema(
       default: UserType.USER,
       required: true
     },
-    token: { type: Schema.Types.String },
+    user_group: {
+      type: Schema.Types.String,
+      enum: Object.values(UserGroup),
+      default: UserType.ET,
+      required: true
+    },
+    staff_id: {
+      type: Schema.Types.String,
+      unique: true,
+      required: true,
+      dropDups: true
+    },
+    fullname: {
+      type: Schema.Types.String
+    },
     email: {
       type: Schema.Types.String,
       unique: true,
       required: true,
       dropDups: true
     },
+    mnemonic: { type: Schema.Types.String },
     address: { type: Schema.Types.String },
-    status: { type: Schema.Types.Number },
+    publicKey: { type: Schema.Types.String },
+    privateKey: { type: Schema.Types.String },
     password: { type: Schema.Types.String },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
@@ -54,6 +80,6 @@ UserSchema.statics.validateToken = function validateToken(token) {
   return bcrypt.compareSync(token, this.recover_token)
 }
 
-const User = model('User', UserSchema)
+const User = model('users', UserSchema)
 
 module.exports = User
