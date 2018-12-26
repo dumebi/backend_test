@@ -57,10 +57,10 @@ const UserSchema = new Schema(
       required: true,
       dropDups: true
     },
-    mnemonic: { type: Schema.Types.String },
-    address: { type: Schema.Types.String },
+    mnemonis: { type: Schema.Types.String },
     publicKey: { type: Schema.Types.String },
-    privateKey: { type: Schema.Types.String },
+    privatc: { type: Schema.Types.String },
+    addreseKey: { type: Schema.Types.String },
     password: { type: Schema.Types.String },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
