@@ -5,12 +5,10 @@
  */
 const { Schema, model } = require('mongoose')
 
-const LienSchema = new Schema(
+const AllocatedSchema = new Schema(
   {
     userId: {type: Schema.ObjectId, ref:'users', required:true},
-    startDate:{type :Date , required:true},
-    endDate:{type :Date , required:true},
-    lienDuration:{type: Number , required:true},
+    dueDate:{type :Date , required:true},
     amount:{type: Number , required:true},
     isMoved:{type: boolean , required:true, default:false},
     blockIndex:{type: Number , required:true},
@@ -19,6 +17,6 @@ const LienSchema = new Schema(
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-const Lien = model('liens', LienSchema)
+const Allocated = model('allocations', AllocatedSchema)
 
-module.exports = Lien
+module.exports = Allocated

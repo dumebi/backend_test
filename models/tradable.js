@@ -4,21 +4,20 @@
  * mnemonics : This is the user's account recorvery seed phrase, encrypted and backedup for  them.
  */
 const { Schema, model } = require('mongoose')
+const User = require('./user')
+const Transaction = require('./transaction')
 
-const LienSchema = new Schema(
+const TradableSchema = new Schema(
   {
     userId: {type: Schema.ObjectId, ref:'users', required:true},
-    startDate:{type :Date , required:true},
-    endDate:{type :Date , required:true},
-    lienDuration:{type: Number , required:true},
+    dateAdded:{type :Date , required:true},
     amount:{type: Number , required:true},
-    isMoved:{type: boolean , required:true, default:false},
     blockIndex:{type: Number , required:true},
     transactionId:{type: Schema.ObjectId, ref:'transactions', required:true},
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-const Lien = model('liens', LienSchema)
+const Tradable = model('tradables', TradableSchema)
 
-module.exports = Lien
+module.exports = Tradable
