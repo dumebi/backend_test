@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
 const randomstring = require('randomstring');
 const UserModel = require('../models/user');
-const emails = require('../helpers/emails');
-const { paramsNotValid } = require('../helpers/utils');
+const { sendUserSignupEmail, sendUserToken } = require('../helpers/emails');
+const {
+  paramsNotValid, sendMail, config, checkToken
+} = require('../helpers/utils');
 const Constants = require('../helpers/constants');
 const { getAsync, client } = require('../helpers/redis');
 
@@ -31,16 +33,6 @@ const UserController = {
         })
       }
       const NewUser = new UserModel();
-      // const bvnXML = `<?xml version= '1.0' encoding='UTF-8'?><IBSRequest><ReferenceID>8925909s0517</ReferenceID><RequestType>905</RequestType><Bvn>${req.body.bvn}</Bvn></IBSRequest>`
-
-      // const response = await axios.post('http://localhost:8000/v1/mall/users/bvn', { data: bvnXML }, {
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //     // '':''
-      //   }
-      // });
-      // console.log(response.data)
-      // if (response.data.status === 'success') {
       const details = {
         fname: req.body.fname,
         lname: req.body.lname,
@@ -57,17 +49,17 @@ const UserController = {
 
       const user = await UserModel.create(details);
 
-      const jwtToken = jwt.sign({ email: req.body.email, id: user._id }, utils.envConfig.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+      const jwtToken = jwt.sign({ email: req.body.email, id: user._id }, config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
       user.token = jwtToken;
       await user.save();
 
-      const userSignupEmailBody = emails.sendUserSignupEmail(user)
+      const userSignupEmailBody = sendUserSignupEmail(user)
       const mailparams = {
         email: user.email,
         body: userSignupEmailBody,
         subject: 'Welcome to AltMall'
       };
-      utils.sendMail(mailparams, (error, result) => {
+      sendMail(mailparams, (error, result) => {
         console.log(error)
         console.log(result)
       });
@@ -76,11 +68,9 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      await UserController.addUserOrUpdateCache(newUser)
+      await this.addUserOrUpdateCache(newUser)
 
       return res.status(Constants.OK).json({ status: 'success', message: 'User has been registered', data: newUser });
-      // }
-      // return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'BVN is not valid' });
     } catch (err) {
       console.log(err);
       return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'error occured' });
@@ -95,8 +85,6 @@ const UserController = {
      * @return {object} user
      */
   async login(req, res) {
-    // if (!req.body.email || !req.body.password) { return res.status(422).json({ status: 'failed', message: 'Some parameters were not supplied' }); }
-    // if (req.body.email.length === 0 || req.body.password.length === 0) { return res.status(422).json({ status: 'failed', message: 'Some parameters are empty' }); }
     try {
       if (paramsNotValid(req.body.email, req.body.password)) {
         return res.status(Constants.PRECONDITION_FAILED).json({
@@ -112,7 +100,7 @@ const UserController = {
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }
-      const jwtToken = jwt.sign({ email: req.body.email, id: user._id }, utils.envConfig.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+      const jwtToken = jwt.sign({ email: req.body.email, id: user._id }, config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
       user.token = jwtToken;
       await user.save();
       // Deep copy
@@ -120,7 +108,7 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      await UserController.addUserOrUpdateCache(newUser)
+      await this.addUserOrUpdateCache(newUser)
 
       return res.status(Constants.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (err) {
@@ -137,8 +125,6 @@ const UserController = {
      * @return {null}
      */
   async sendToken(req, res) {
-    // if (!req.body.email) { return res.status(422).json({ status: 'failed', message: 'Some parameters were not supplied' }); }
-    // if (req.body.email.length === 0) { return res.status(422).json({ status: 'failed', message: 'Some parameters are empty' }); }
     try {
       if (paramsNotValid(req.body.email)) {
         return res.status(Constants.PRECONDITION_FAILED).json({
@@ -157,13 +143,13 @@ const UserController = {
       user.recover_token = user.encrypt(token);
       await user.save();
 
-      const userTokenMailBody = emails.sendUserToken(user, token)
+      const userTokenMailBody = sendUserToken(user, token)
       const mailparams = {
         email: user.email,
         body: userTokenMailBody,
         subject: 'Recover your password'
       };
-      utils.sendMail(mailparams, (error, result) => {
+      sendMail(mailparams, (error, result) => {
         console.log(error)
         console.log(result)
       });
@@ -172,37 +158,6 @@ const UserController = {
       return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
-
-  // /**
-  //    * verify token sent to a user
-  //    * @param {string} email
-  //    * @param {string} token
-  //    *
-  //    * @return {object} user
-  //    */
-  // verifyToken: async (req, res) => {
-  //   // if (!req.body.email || !req.body.token) { return res.status(422).json({ status: 'failed', message: 'Some parameters were not supplied' }); }
-  //   // if (req.body.email.length === 0 || req.body.token.length === 0) { return res.status(422).json({ status: 'failed', message: 'Some parameters are empty' }); }
-  //   try {
-  //     if (paramsNotValid(req.body.email, req.body.token)) {
-  //       return res.status(Constants.PRECONDITION_FAILED).json({
-  //         status: 'failed',
-  //         message: "the user's id was not supplied"
-  //       })
-  //     }
-  //     const email = req.body.email;
-  //     const token = req.body.token;
-  //     const user = await UserModel.findOne({ email });
-  //     if (!user) { return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
-
-  //     if (!user.validateToken(token)) {
-  //       return res.json({ result: 'error', message: 'Wrong Token' });
-  //     }
-  //     return res.status(Constants.OK).json({ status: 'success', message: 'Correct token' });
-  //   } catch (err) {
-  //     return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
-  //   }
-  // },
 
   /**
      * reset user password
@@ -213,8 +168,6 @@ const UserController = {
      * @return {object} user
      */
   async resetPass(req, res) {
-    // if (!req.body.email) { return res.status(422).json({ status: 'failed', message: 'Some parameters were not supplied' }); }
-    // if (req.body.email.length === 0) { return res.status(422).json({ status: 'failed', message: 'Some parameters are empty' }); }
     try {
       if (paramsNotValid(req.body.email)) {
         return res.status(Constants.PRECONDITION_FAILED).json({
@@ -231,7 +184,7 @@ const UserController = {
       if (!user.validateToken(token)) {
         return res.json({ result: 'error', message: 'Wrong Token' });
       }
-      const jwtToken = jwt.sign({ key: req.body.email }, utils.envConfig.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+      const jwtToken = jwt.sign({ key: req.body.email }, config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
       user.password = user.encrypt(password);
       user.token = jwtToken;
 
@@ -241,7 +194,7 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      await UserController.addUserOrUpdateCache(newUser)
+      await this.addUserOrUpdateCache(newUser)
 
       return res.status(Constants.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (err) {
@@ -280,8 +233,6 @@ const UserController = {
      * @return {object} user
      */
   async one(req, res) {
-    // if (!req.params.id) { return res.status(422).json({ status: 'failed', message: 'Some parameters were not supplied' }); }
-    // if (req.params.id.length === 0) { return res.status(422).json({ status: 'failed', message: 'Some parameters are empty' }); }
     try {
       if (paramsNotValid(req.params.id)) {
         return res.status(Constants.PRECONDITION_FAILED).json({
@@ -307,8 +258,8 @@ const UserController = {
      */
   async token(req, res) {
     try {
-      const checkToken = await utils.checkToken(req);
-      const user = await UserModel.findById(checkToken.data.id);
+      const token = await checkToken(req);
+      const user = await UserModel.findById(token.data.id);
       if (user.email) {
         return res.status(Constants.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
@@ -325,22 +276,16 @@ const UserController = {
      */
   async update(req, res) {
     try {
-      // if (paramsNotValid(req.params.id)) {
-      //   return res.status(Constants.PRECONDITION_FAILED).json({
-      //     status: 'failed',
-      //     message: "the user's id was not supplied"
-      //   })
-      // }
-      delete req.body.password
-      const checkToken = await utils.checkToken(req);
-      if (checkToken.status === 'failed') {
-        return res.status(checkToken.data).json({
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
           status: 'failed',
-          message: checkToken.message
+          message: token.message
         })
       }
+      delete req.body.password
       const user = await UserModel.findByIdAndUpdate(
-        checkToken.data.id,
+        token.data.id,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )
@@ -350,7 +295,7 @@ const UserController = {
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
-        await UserController.addUserOrUpdateCache(newUser)
+        await this.addUserOrUpdateCache(newUser)
 
         return res.status(Constants.OK).json({
           status: 'success',
@@ -368,9 +313,9 @@ const UserController = {
 
   async addUserOrUpdateCache(user) {
     try {
-      const altmalusers = await getAsync('users');
-      if (altmalusers != null && JSON.parse(altmalusers).length > 0) {
-        const users = JSON.parse(altmalusers);
+      const sttpUsers = await getAsync('users');
+      if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
+        const users = JSON.parse(sttpUsers);
         users[user._id] = user
         await client.set('users', JSON.stringify(users));
       }
