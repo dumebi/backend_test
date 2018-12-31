@@ -1,0 +1,260 @@
+pragma solidity ^0.5.0;
+pragma experimental SMTChecker;
+
+import "./currency.sol";
+
+contract SIT is Currency {
+
+    event ApproveRequest(address _authorizer, uint _count,  string _reason); //Emit the authorizer's address that vote for approval
+    event RejectRequest(address _authorizer, uint _count,  string _reason); //Emit the authorizer's address that vote for rejection
+    event Authorized(uint _authorizedAmount, uint _rejectCount, uint _approveCount); // Emit the rejected vote count
+    event Rejected(uint _authorizedAmount, uint _rejectCount, uint _approveCount);// Emit the approve vote count 
+    event SitToTradable(address _tradable);// Emit the accounts that can trade their Sits
+    event SitToLien(address _tradable);// Emit the accounts whose SITs are still inLien trade their SITs
+    event SitToAllocated(address _tradable);// Emit the accounts whose SITs are still inLien trade their SITs
+    event SitToVesting(address _tradable);// Emit the accounts whose SITs are still inLien trade their SITs
+
+    modifier OnlyTradable () {
+        require(userToSitCat[msg.sender] == Categories.tradable, "Sorry, you are restricted from trading your SIT");
+        _;
+    }
+
+    modifier OnlyVerified () {
+        require(verifiedUsers[msg.sender], "Sorry, you are restricted from trading your SIT");
+        _;
+    }
+
+    enum Categories { tradable, onlien, allocated, vesting }
+
+    struct Offering {
+        uint price;
+        uint amount;
+    }
+
+    struct userSitInfo {
+        address user;
+        uint amount;
+    }
+
+    struct UserCatIds {
+        uint tradable;
+        uint onlien;
+        uint allocated;
+        uint vesting;
+    }
+
+    Offering[] public offerings;
+
+    mapping(address => bool) public verifiedUsers; // xchange
+    mapping(address => Offering[]) UserToSitForSale; //maps users who have put up their SIT for sale to an offering; xchange
+    mapping(address => address) beneficiary; //Incase of death, users SIT will be transfered 
+
+    mapping(uint => userSitInfo[]) sitCatToUsers; //groups users into different SIT category
+    // mapping(address => Categories) userToSitCat; // Address can be in any of the 4 cat of SIT
+    mapping(address => UserCatIds[]) userCatId; // Address can be in any of the 4 cat of SIT
+
+
+    uint transferLimit; //xchange
+    uint private SITForDistribution;
+    uint approveCount;
+    uint rejectCount;
+    bool activeRequest;
+    bool canMint;
+
+    constructor () internal {
+        activeRequest = false;
+        canMint = false;
+    }
+
+
+    function mint(address recipient, uint256 amount) public onlyOwner {
+
+        require(canMint == true, "Sorry, minting is not yet authorized");
+        require(recipient == _owner && amount == SITForDistribution, "You can only mint the authorized amount to the owner's account");
+        require(_totalSupply <= maxTotalSupply, "Cannot mint above the maximum supply"); // Overflow check
+
+        _totalSupply += amount;
+        balances[recipient] += amount;
+        emit Transfer(address(0), recipient, amount);
+    }
+
+    function distribute(address recipient, uint256 amount, Categories sitCat) public onlyOwner {
+
+        uint userIndex = userCatId[recipient][sitCat];
+
+        userSitInfo[uint(sitCat)].push
+
+
+        _totalSupply += amount;
+        balances[recipient] += amount;
+        emit Transfer(address(0), recipient, amount);
+    }
+
+    function withhold(address recipient, uint256 amount, uint sitCat) public onlyOwner {
+
+        userSitInfo[sitCat].
+
+        _totalSupply += amount;
+        balances[recipient] += amount;
+        emit Transfer(address(0), recipient, amount);
+    }
+
+    function setMaxSupply(uint _maxTotalSupply) public onlyOwner returns (bool success) {
+        maxTotalSupply = _maxTotalSupply;
+    }
+
+    function getMaxSupply() public onlyOwner returns (uint) {
+        return maxTotalSupply;
+    }
+
+    function verifyUser(uint _amount) public onlyOwner returns (bool success) {
+        verifiedUsers[user] = true;
+    }
+
+    function diableUser(address user) public onlyOwner returns (bool success) {
+        verifiedUsers[user] = false;
+    }
+
+    function verifyTransfer(address _from, address _to, uint256 _amount) public view returns (bool success){
+        return verifiedUsers[_from] == true && userToSitCat[_from] == Categories.tradable && verifiedUsers[_to] == true ;
+    }
+
+    function generateRequest(uint _amount) public onlyOwner returns (bool success) {
+        require(_totalSupply + _amount >= _totalSupply, "Your request amount would reduces the total supply, make a burn request instead.");
+        SITForDistribution = _amount;
+        activeRequest = true;
+    }
+
+    function getRequestValue () public onlyAuthorizer returns (uint) {
+        return SITForDistribution;
+    }
+
+    function authorizeGen(bool _approval, string memory _reason) public onlyAuthorizer returns(bool)  {
+
+        require(activeRequest == true, "There is no active request to authorize");
+        uint auth = authorizers.length / 2;
+
+        if (approveCount > auth) {
+            approveCount = 0;
+            activeRequest = false;
+            canMint = true;
+            emit Authorized(SITForDistribution, approveCount, rejectCount);
+            return true;
+        } else if(rejectCount > auth) {
+            approveCount = 0;
+            activeRequest = false;
+            canMint = false;
+            emit Rejected(SITForDistribution, approveCount, rejectCount);
+            return false;
+        }
+
+        if (_approval) {
+            approveCount++;
+            emit ApproveRequest(msg.sender, approveCount, _reason);
+            return true;
+        }else {
+            rejectCount++;
+            emit RejectRequest(msg.sender, rejectCount, _reason);
+            return false;
+        }
+
+    }
+
+    function addTradingAddress(address user) public onlyOwner returns (bool) {
+
+        Categories sitCat = userToSitCat[user]; // Get the current category of user
+
+        if (sitCat == Categories.tradable) { // if current category of user is tradable end the flow with true.
+            return true;
+        }
+
+        if (sitCat == Categories.onlien || sitCat == Categories.allocated || sitCat == Categories.vesting) {
+            uint arrayLen = sitCatToUsers[uint(Categories.sitCat)].length;// Get the length of the category array.
+
+            delete sitCatToUsers[uint(Categories.sitCat)][userCatId[user]]; // Remove user from the previous category
+            sitCatToUsers[uint(Categories.sitCat)][userCatId[user]] = sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+            delete sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+        }
+
+        uint userId = sitCatToUsers[uint(Categories.tradable)].push(UserCatIds(user)) - 1; // Push user to the new category
+        userCatId[user] = userId;
+        
+        emit SitToTradable(user);
+        return true;
+    }
+
+    function addlienAddress(address user) public onlyOwner returns (bool) {
+
+        Categories sitCat = userToSitCat[user]; // Get the current category of user
+
+        if (sitCat == Categories.onlien) { // if current category of user is tradable end the flow with true.
+            return true;
+        }
+
+        if (sitCat == Categories.tradable || sitCat == Categories.allocated || sitCat == Categories.vesting) {
+            uint arrayLen = sitCatToUsers[uint(Categories.sitCat)].length;// Get the length of the category array.
+
+            delete sitCatToUsers[uint(Categories.sitCat)][userCatId[user]]; // Remove user from the previous category
+            sitCatToUsers[uint(Categories.sitCat)][userCatId[user]] = sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+            delete sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+        }
+
+        uint userId = sitCatToUsers[uint(Categories.onlien)].push(user) - 1; // Push user to the new category
+        userCatId[user] = userId;
+        
+        emit SitToLien(user);
+        return true;
+    }
+
+    function addAllocatedAddress(address user) public onlyOwner  returns (bool) {
+
+        Categories sitCat = userToSitCat[user]; // Get the current category of user
+
+        if (sitCat == Categories.allocated) { // if current category of user is tradable end the flow with true.
+            return true;
+        }
+
+        if (sitCat == Categories.tradable || sitCat == Categories.onlien || sitCat == Categories.vesting) {
+            uint arrayLen = sitCatToUsers[uint(Categories.sitCat)].length;// Get the length of the category array.
+
+            delete sitCatToUsers[uint(Categories.sitCat)][userCatId[user]]; // Remove user from the previous category
+            sitCatToUsers[uint(Categories.sitCat)][userCatId[user]] = sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+            delete sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+        }
+
+        uint userId = sitCatToUsers[uint(Categories.allocated)].push(user) - 1; // Push user to the new category
+        userCatId[user] = userId;
+        
+        emit SitToAllocated(user);
+        return true;
+    }
+
+    function addVestingAddress(address user) public onlyOwner returns (bool) {
+
+        Categories sitCat = userToSitCat[user]; // Get the current category of user
+
+        if (sitCat == Categories.vesting) { // if current category of user is tradable end the flow with true.
+            return true;
+        }
+
+        if (sitCat == Categories.tradable || sitCat == Categories.onlien || sitCat == Categories.allocated) {
+            uint arrayLen = sitCatToUsers[uint(Categories.sitCat)].length;// Get the length of the category array.
+
+            delete sitCatToUsers[uint(Categories.sitCat)][userCatId[user]]; // Remove user from the previous category
+            sitCatToUsers[uint(Categories.sitCat)][userCatId[user]] = sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+            delete sitCatToUsers[uint(Categories.sitCat)][arrayLen - 1];
+        }
+
+        uint userId = sitCatToUsers[uint(Categories.vesting)].push(user) - 1; // Push user to the new category
+        userCatId[user] = userId;
+        
+        emit SitToVesting(user);
+        return true;
+    }
+
+    function addBeneficiaryAddress(address userAddr, address beneficiaryAddr) public onlyOwner returns (bool) {
+        beneficiary[userAddr] = beneficiaryAddr;
+        return true;
+    }
+
+}

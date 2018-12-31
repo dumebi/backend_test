@@ -15,21 +15,16 @@ const Employment = Object.freeze({
 })
 
 const UserGroup = Object.freeze({
-  EntryLevel: 'ET',
-  SeniorExec: 'SE',
-  AssetBankOfficer: 'ABO',
-  SeniorBankOfficer: 'SBO',
-  AssetManager: 'AMG',
-  Manager: 'MG',
+  ENTRYLEVEL: 'ET',
+  SENIOREXECUTIVE: 'SE',
+  ASSTBANKOFFICER: 'ABO',
+  SENIORBANKOFFICER: 'SBO',
+  ASSTMANAGER: 'AMG',
+  MANAGER: 'MG',
 })
 
 const UserSchema = new Schema(
   {
-    userId: {
-      type: Schema.Types.Number,
-      unique: true,
-      dropDups: true
-    },
     userType: {
       type: Schema.Types.ObjectId,
       ref: "roles",
@@ -37,14 +32,14 @@ const UserSchema = new Schema(
     },
     employmentStatus: {
       type: Schema.Types.String,
-      enum: Object.values(UserType),
+      enum: Object.values(Employment),
       default: Employment.EMPLOYED,
       required: true
     },
     userGroup: {
       type: Schema.Types.String,
       enum: Object.values(UserGroup),
-      default: UserType.ET,
+      default: UserGroup.ET,
       required: true
     },
     staffId: {
@@ -59,28 +54,32 @@ const UserSchema = new Schema(
       required: true,
       dropDups: true
     },
-    fullname: { type: Schema.Types.String },
-    isVesting : {type: Schema.Types.Boolean},
-    lienPeriod: {type: Schema.Types.Number},
+    fullname: { type: Schema.Types.String, required: true},
+    isVesting : {type: Schema.Types.Boolean, required: true},
+    lienPeriod: {type: Schema.Types.Number, required: true},
     accountNo: { type: Schema.Types.String },
     beneficiary: { type: Schema.Types.String },
-    mnemonic: { type: Schema.Types.String },
-    publicKey: { type: Schema.Types.String },
-    privateKey: { type: Schema.Types.String },
-    address: { type: Schema.Types.String },
-    addreseKey: { type: Schema.Types.String },
-    password: { type: Schema.Types.String },
-    workflow: { type: Schema.Types.String },
+    mnemonic: { type: Schema.Types.String, required: true},
+    publicKey: { type: Schema.Types.String, required: true},
+    privateKey: { type: Schema.Types.String, required: true},
+    address: { type: Schema.Types.String, required: true},
+    password: { type: Schema.Types.String,required: true},
+    workflow: { type: Schema.Types.Boolean, required: true},
     status: { type: Schema.Types.String },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-UserSchema.statics.Type = UserType
 UserSchema.statics.Type = UserGroup
 UserSchema.statics.Type = Employment
 
-UserSchema.statics.encrypt = function encrypt(password) {
+UserSchema.pre('save',function(next) {
+  let hashedPassword =  bcrypt.hashSync(this.password , bcrypt.genSaltSync(5), null)
+  this.password = hashedPassword;
+  next();
+});
+
+UserSchema.statics.encryptPassword = function encrypt(password) {
   return bcrypt.hashSync(password, bcrypt.genSaltSync(5), null)
 }
 

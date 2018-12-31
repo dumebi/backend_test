@@ -13,7 +13,7 @@ const RoleSchema = new Schema(
         {
             method : {required : true, type : String},
 
-            action : {required : true, tye: Array},
+            action : {required : true, type: Array},
 
             slug : String
 
