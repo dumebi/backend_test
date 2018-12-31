@@ -1,8 +1,10 @@
 const EthAccount = require("../libraries/ethUser.js");
-require("../helpers/connection.js").start();
 const validate = require("../helpers/validation.js");
 const secure = require("../helpers/encryption.js");
 const User = require("../models/user.js");
+// const Constants = require('../helpers/constants');
+// const { getAsync, client } = require('../helpers/redis');
+// const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
 
 
 
@@ -44,19 +46,22 @@ module.exports = {
             console.log("secure.decrypt >> ", secure.decrypt(user.privateKey))
 
             const savedUser = await user.save()
+            // newUser = JSON.parse(newUser) Ensure if there is a need to parse users
+            delete savedUser.password;
 
-            res.status(201).json({
-                success : true,
-                successMsg : "User created successfully",
-                responseData : savedUser
+            // await this.addUserOrUpdateCache(newUser) Ensure to know what this is for
+
+            res.status(Constants.OK).json({
+                status : true,
+                message : "User created successfully",
+                data : savedUser
             });
 
         } catch (error) {
             console.log("error >> ", error)
             let err = {
-                status : 500,
-                success : false,
-                errMsg : 'Could not create user',
+                status : false,
+                message : 'Could not create user',
                 devError : error
             }
             next(err)
@@ -64,25 +69,16 @@ module.exports = {
 
     },
 
-    fetchShareholders : async function(req, res, next) {
+    async addUserOrUpdateCache(user) {
         try {
-            const users = await User.find()
-            console.log("users >> ", users)
-            res.status(200).json({
-                success : true,
-                successMsg : "Users fetched successfully",
-                responseData : users
-            });
-        
-        } catch (error) {
-            let err = {
-                status : 500,
-                success : false,
-                errMsg : 'Could not fetch cities',
-                errCode : 'errDB',
-                devError : error
-            }
-            next(err);
+          const sttpUsers = await getAsync('users');
+          if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
+            const users = JSON.parse(sttpUsers);
+            users[user._id] = user
+            await client.set('users', JSON.stringify(users));
+          }
+        } catch (err) {
+          console.log(err)
         }
     }
 

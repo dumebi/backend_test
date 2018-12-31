@@ -1,14 +1,32 @@
-require("dotenv").config();
 const mongoose = require('mongoose');
+const utils = require('../helpers/utils');
 
 module.exports =  {
-    start : function () {
+    connectWithRetry : function () {
 
         mongoose.promise = global.promise;
-        mongoose.connect(process.env.MONGO_LAB_DEV_EXCHANGE).then(() => {
-            console.log("Connection to DB made successfully!")
-        }).catch((e) => {
-            console.log("An error occured while connecting to DB ; Error >> ", e)
-        })
+        mongoose
+            .connect(
+            utils.config.mongo,
+            {
+                keepAlive: true,
+                useNewUrlParser: true,
+                useCreateIndex: true,
+                useFindAndModify: false,
+                reconnectTries: Number.MAX_VALUE,
+                reconnectInterval: 500
+            }
+            )
+            .then(() => {
+            console.log('MongoDB is connected')
+            })
+            .catch((err) => {
+            console.log(err)
+            console.log('MongoDB connection unsuccessful, retry after 5 seconds.')
+            setTimeout(connectWithRetry, 5000)
+            })
     }
 }
+
+
+

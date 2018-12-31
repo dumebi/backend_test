@@ -5,11 +5,20 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const winston = require('winston');
 const cors = require('cors');
-
-// Routes Dependencies
-const usersRouter = require('./routes/users');
+const compression = require('compression');
+const flash = require('connect-flash');
+const redis = require('redis');
 
 const app = express();
+require('dotenv').config();
+require('./helpers/connection');
+
+const client = redis.createClient();
+client.on('connect', () => {
+  console.log('connected to redis server');
+})
+
+// redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
 //logger settings
 var logger = new (winston.Logger)({
@@ -28,14 +37,18 @@ var logger = new (winston.Logger)({
 });
 
 // Midelware stack
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+app.use(cors());
+app.use(compression());
+app.use(flash());
+app.use(logger('dev'));
 
-// Request Routes
-app.use('/users', usersRouter);
+
+/* Application Routes */
+app.use('/v1/', require('./routes'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
