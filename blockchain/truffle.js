@@ -15,6 +15,7 @@
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
+  contracts_build_directory: "./deployment",
   ganache: {
     host: 'localhost',
     port: 7545,
@@ -26,4 +27,16 @@ module.exports = {
     network_id: '4224',
     gas: 4612388
   },
-};
+  compilers: {
+    solc: {
+      version: "^0.5.0", // A version or constraint - Ex. "^0.5.0"
+                          // Can also be set to "native" to use a native solc
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 1   // Optimize for how many times you intend to run the code
+        }
+      }
+    }
+  }
+}
