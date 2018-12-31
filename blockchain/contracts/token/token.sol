@@ -1,10 +1,19 @@
-pragma solidity ^0.4.21;
+pragma solidity >=0.4.22 <0.6.0;
 
 // ERC Token Standard #20 Interface
 // https://github.com/ethereum/EIPs/issues/20
 contract ERC20Interface {
     // Get the total token supply
     function totalSupply() view public returns (uint256);
+
+    // Adds to total supply
+    function addTotalSupply(uint256 _volume) public;
+
+    // change the rate and currency of the exchange rate of this token
+    function changeRate(uint8 _newRate, string memory _newCurrency) public;
+
+    // Get the exchange rate and currency of this token
+    function exchangeRate() view public returns (uint8, string memory);
 
     // Get the account balance of another account with address _owner
     function balanceOf(address _owner) view public returns (uint256);
@@ -31,11 +40,13 @@ contract ERC20Interface {
 }
 
 
-contract Currency is ERC20Interface {
-    string public constant symbol;
-    string public constant name;
+contract Token is ERC20Interface {
+    string public symbol;
+    string public name;
     uint8 public constant decimals = 0;
-    uint256 totalSupply;
+    uint256 _totalSupply;
+    uint8 rate;
+    string currency;
 
     // Owner of this contract
     address public owner;
@@ -52,22 +63,40 @@ contract Currency is ERC20Interface {
         _;
     }
 
-    // Constructor
-    function Currency(_symbol, _name, _totalSupply) public {
+    constructor(string memory _symbol, string memory _name, uint256 _supply, uint8 _rate, string memory _currency) public {
         symbol = _symbol;
         name = _name;
-        totalSupply = _totalSupply;
+        _totalSupply = _supply;
+        rate = _rate;
+        currency = _currency;
         owner = msg.sender;
-        balances[owner] = _totalSupply;
+        balances[owner] = _supply;
     }
 
+    // What total number of this token in circulation
     function totalSupply() view public returns (uint256) {
         return _totalSupply;
+    }
+
+    // increase the total supply of this token in circulation
+    function addTotalSupply(uint256 _volume) public {
+        _totalSupply += _volume;
     }
 
     // What is the balance of a particular account?
     function balanceOf(address _owner) view public returns (uint256) {
         return balances[_owner];
+    }
+
+    // change the rate and currency of the exchange rate of this token
+    function changeRate(uint8 _newRate, string memory _newCurrency) public {
+        rate = _newRate;
+        currency = _newCurrency;
+    }
+
+    // Get the exchange rate and currency of this token
+    function exchangeRate() view public returns (uint8, string memory) {
+        return (rate, currency);
     }
 
     // Transfer the balance from owner's account to another account
