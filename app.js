@@ -11,7 +11,7 @@ const redis = require('redis');
 
 const app = express();
 require('dotenv').config();
-require('./helpers/connection');
+require('./helpers/connection').start();
 
 const client = redis.createClient();
 client.on('connect', () => {
@@ -21,7 +21,7 @@ client.on('connect', () => {
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
 //logger settings
-var logger = new (winston.Logger)({
+var appLogger = winston.createLogger({
   transports: [
     new (winston.transports.File)({
       name: 'info-file',
@@ -64,7 +64,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   
     //We log the error internaly 
-    logger.error(err);
+    appLogger.error(err);
   
     //  Remove Error's `stack` property. We don't want users to see this at the production env
     if (req.app.get('env') !== 'development') {

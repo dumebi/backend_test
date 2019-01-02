@@ -1,12 +1,12 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
-const Constants = require('./constants')
+const Constants = require('./httpStatus')
 require('dotenv').config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
   blockchain: '',
-  mongo: '',
+  mongo: process.env.MONGO_LAB_DEV_EXCHANGE,
   userHost: '',
   adminHost: ''
 }

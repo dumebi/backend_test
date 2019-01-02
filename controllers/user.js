@@ -2,9 +2,9 @@ const EthAccount = require("../libraries/ethUser.js");
 const validate = require("../helpers/validation.js");
 const secure = require("../helpers/encryption.js");
 const User = require("../models/user.js");
-// const Constants = require('../helpers/constants');
-// const { getAsync, client } = require('../helpers/redis');
-// const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
+const HttpStatus = require('../helpers/httpStatus');
+const { getAsync, client } = require('../helpers/redis');
+const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
 
 
 
@@ -20,7 +20,7 @@ module.exports = {
             const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
             const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
 
-            console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
+            // console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
         
             const user = new User({
                 userType : validReq.userType,
@@ -43,15 +43,13 @@ module.exports = {
             user.publicKey = await secure.encrypt(Ethkeys.childPubKey)
             user.address = Ethkeys.childAddress
 
-            console.log("secure.decrypt >> ", secure.decrypt(user.privateKey))
-
             const savedUser = await user.save()
+            console.log("yeahpp")
             // newUser = JSON.parse(newUser) Ensure if there is a need to parse users
             delete savedUser.password;
 
             // await this.addUserOrUpdateCache(newUser) Ensure to know what this is for
-
-            res.status(Constants.OK).json({
+            res.send({
                 status : true,
                 message : "User created successfully",
                 data : savedUser
@@ -80,6 +78,10 @@ module.exports = {
         } catch (err) {
           console.log(err)
         }
+    },
+
+    test : function () {
+        
     }
 
 }

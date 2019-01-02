@@ -1,6 +1,6 @@
 const express = require('express');
 const AuthController = require('../controllers/auth')
-const UserController = require("../controllers/user.js");
+const UserController = require("../controllers/user");
 const sanitize = require("../helpers/sanitization.js");
 
 const router = express.Router();
@@ -16,6 +16,5 @@ router.patch('/auth/reset-pass', AuthController.resetPass);
 //  * User Routes
 //  */
 router.post('/users/add-user', sanitize.users(), UserController.addShareholders);
-router.get('/users', UserController.fetchShareholders);
 
 module.exports = router;

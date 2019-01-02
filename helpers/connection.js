@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const utils = require('../helpers/utils');
+require('dotenv').config();
 
 module.exports =  {
-    connectWithRetry : function () {
+    start : function () {
 
         mongoose.promise = global.promise;
-        mongoose
-            .connect(
-            utils.config.mongo,
+        mongoose.connect(process.env.MONGO_LAB_DEV_EXCHANGE,
             {
                 keepAlive: true,
                 useNewUrlParser: true,

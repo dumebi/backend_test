@@ -1,9 +1,9 @@
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 const randomstring = require('randomstring');
 const UserModel = require('../models/user');
 const { sendUserToken } = require('../helpers/emails');
 const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
-const Constants = require('../helpers/constants');
+const Constants = require('../helpers/httpStatus');
 const { getAsync, client } = require('../helpers/redis');
 
 const UserController = {
