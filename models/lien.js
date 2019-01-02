@@ -7,18 +7,18 @@ const { Schema, model } = require('mongoose')
 
 const LienSchema = new Schema(
   {
-    userId: {type: Schema.ObjectId, ref:'users', required:true},
-    startDate:{type :Date , required:true},
-    endDate:{type :Date , required:true},
-    lienDuration:{type: Number , required:true},
-    amount:{type: Number , required:true},
-    isMoved:{type: boolean , required:true, default:false},
+    userId: {type: Schema.ObjectId, ref:'User', required:true},
+    startDate:{type:Date, required:true},
+    endDate:{type:Date, required:true},
+    lienDuration:{type: Number, required:true},
+    amount:{type: Number, required:true},
+    isMoved:{type: Schema.Types.Boolean, required:true, default:false },
     blockIndex:{type: Number , required:true},
-    transactionId:{type: Schema.ObjectId, ref:'transactions', required:true},
+    transactionId:{type: Schema.ObjectId, ref:'Transaction', required:true},
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-const Lien = model('liens', LienSchema)
+const Lien = model('Lien', LienSchema)
 
 module.exports = Lien

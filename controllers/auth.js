@@ -1,25 +1,89 @@
 // const jwt = require('jsonwebtoken');
 const randomstring = require('randomstring');
+const EthAccount = require('../libraries/ethUser.js');
+const validate = require('../helpers/validation.js');
+const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
 const { sendUserToken } = require('../helpers/emails');
-const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
-const httpStatus = require('../helpers/httpStatus');
+const {
+  paramsNotValid, sendMail, config, checkToken, createToken
+} = require('../helpers/utils');
+const HttpStatus = require('../helpers/status');
 const { getAsync, client } = require('../helpers/redis');
 
 const UserController = {
-    /**
-     * Login a user
-     * @param {string} email
-     * @param {string} password
-     *
-     * @return {object} user
-     */
-  async login(req, res) {
+  /**
+   * Create a user
+   * @param {string} email
+   * @param {string} password
+   *
+   * @return {object} user
+   */
+  async addUsers(req, res, next) {
+    try {
+      const validReq = await validate.users(req.body)
+
+      const userMnemonic = await EthAccount.newMnemonic()
+      const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
+      const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
+
+      // console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
+
+      const user = new UserModel({
+        userType: validReq.userType,
+        employmentStatus: validReq.employmentStatus,
+        userGroup: validReq.userGroup,
+        staffId: validReq.staffId,
+        email: validReq.email,
+        isVesting: validReq.isVesting,
+        lienPeriod: validReq.lienPeriod,
+        dividendAcct: validReq.dividendAcct,
+        beneficiary: validReq.beneficiary,
+        password: validReq.password,
+        workflow: validReq.workflow,
+        status: validReq.status
+      })
+
+      const [mnemonic, privateKey, publicKey] = Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
+      user.mnemonic = mnemonic
+      user.privateKey = privateKey
+      user.publicKey = publicKey
+      user.address = Ethkeys.childAddress
+
+      const savedUser = await user.save()
+      const newUser = JSON.parse(savedUser)
+      delete newUser.password;
+
+      // TODO: Add user to blockchain here
+
+      // await this.addUserOrUpdateCache(newUser)
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: savedUser });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not create user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Login a user
+   * @param {string} email
+   * @param {string} password
+   *
+   * @return {object} user
+   */
+  async login(req, res, next) {
     try {
       if (paramsNotValid(req.body.email, req.body.password)) {
-        return res.status(httpStatus.PRECONDITION_FAILED).json({
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
-          message: "the user's id was not supplied"
+          message: 'some parameters were not supplied'
         })
       }
       const email = req.body.email;
@@ -30,7 +94,7 @@ const UserController = {
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }
-      const jwtToken = jwt.sign({ email: req.body.email, id: user._id }, config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+      const jwtToken = createToken(email, user._id);
       user.token = jwtToken;
       await user.save();
       // Deep copy
@@ -38,13 +102,18 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      await this.addUserOrUpdateCache(newUser)
+      // await this.addUserOrUpdateCache(newUser)
 
-      return res.status(httpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
-    } catch (err) {
-      console.log('user error')
-      console.log(err)
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not create user',
+        devError: error
+      }
+      next(err)
     }
   },
 
@@ -57,14 +126,14 @@ const UserController = {
   async sendToken(req, res) {
     try {
       if (paramsNotValid(req.body.email)) {
-        return res.status(httpStatus.PRECONDITION_FAILED).json({
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
-          message: "the user's id was not supplied"
+          message: 'some parameters were not supplied'
         })
       }
       const email = req.body.email;
       const user = await UserModel.findOne({ email });
-      if (!user) { return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       const token = randomstring.generate({
         length: 5,
@@ -83,9 +152,9 @@ const UserController = {
         console.log(error)
         console.log(result)
       });
-      return res.status(httpStatus.OK).json({ status: 'success', message: 'Token sent', data: { token } });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: { token } });
     } catch (err) {
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -100,9 +169,9 @@ const UserController = {
   async resetPass(req, res) {
     try {
       if (paramsNotValid(req.body.email)) {
-        return res.status(httpStatus.PRECONDITION_FAILED).json({
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
-          message: "the user's id was not supplied"
+          message: 'some parameters were not supplied'
         })
       }
       const email = req.body.email;
@@ -110,11 +179,11 @@ const UserController = {
       const token = req.body.token;
 
       const user = await UserModel.findOne({ email });
-      if (!user) { return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validateToken(token)) {
         return res.json({ result: 'error', message: 'Wrong Token' });
       }
-      const jwtToken = jwt.sign({ key: req.body.email }, config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+      const jwtToken = createToken(email, user._id);
       user.password = user.encrypt(password);
       user.token = jwtToken;
 
@@ -126,64 +195,39 @@ const UserController = {
 
       await this.addUserOrUpdateCache(newUser)
 
-      return res.status(httpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (err) {
       console.log(err)
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
-  /**
-    * Get all users
-    * @return {object[]} users
-    */
-  async all(req, res) {
-    try {
-      let users = {}
-      const result = await getAsync('users');
-      console.log(result)
-      if (result != null && JSON.parse(result).length > 0) {
-        users = JSON.parse(result);
-      } else {
-        users = await UserModel.find({}, { password: 0 });
-        for (let index = 0; index < users.length; index++) {
-          users[users[index]._id] = users[index]
-        }
-        await client.set('users', JSON.stringify(users));
-      }
-      return res.status(httpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: { set: users, total_count: users.length } });
-    } catch (err) {
-      console.log(err)
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting users' });
-    }
-  },
+  // /**
+  //    * Get a user
+  //    * @return {object} user
+  //    */
+  // async one(req, res) {
+  //   try {
+  //     if (paramsNotValid(req.params.id)) {
+  //       return res.status(HttpStatus.PRECONDITION_FAILED).json({
+  //         status: 'failed',
+  //         message: "some parameters were not supplied"
+  //       })
+  //     }
+  //     const _id = req.params.id;
+  //     const user = await UserModel.findById(_id);
+  //     if (user.email) {
+  //       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
+  //     }
+  //     return res.status(404).json({ status: 'failed', message: 'User not found' });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+  //   }
+  // },
 
   /**
-     * Get a user
-     * @return {object} user
-     */
-  async one(req, res) {
-    try {
-      if (paramsNotValid(req.params.id)) {
-        return res.status(httpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: "the user's id was not supplied"
-        })
-      }
-      const _id = req.params.id;
-      const user = await UserModel.findById(_id);
-      if (user.email) {
-        return res.status(httpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
-      }
-      return res.status(404).json({ status: 'failed', message: 'User not found' });
-    } catch (err) {
-      console.log(err);
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
-    }
-  },
-
-  /**
-     * Get a user's token
+     * Get a user by token
      * @return {object} user
      */
   async token(req, res) {
@@ -191,12 +235,12 @@ const UserController = {
       const token = await checkToken(req);
       const user = await UserModel.findById(token.data.id);
       if (user.email) {
-        return res.status(httpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } catch (err) {
       console.log(err);
-      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -225,16 +269,18 @@ const UserController = {
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
-        await this.addUserOrUpdateCache(newUser)
+        // TODO: Update user in the blockchain here
 
-        return res.status(httpStatus.OK).json({
+        // await this.addUserOrUpdateCache(newUser)
+
+        return res.status(HttpStatus.OK).json({
           status: 'success',
           data: newUser
         })
       }
     } catch (error) {
       console.log(error)
-      return res.status(httpStatus.BAD_REQUEST).json({
+      return res.status(HttpStatus.BAD_REQUEST).json({
         status: 'failed',
         message: error
       })

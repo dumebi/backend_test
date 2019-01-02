@@ -15,12 +15,12 @@ const Employment = Object.freeze({
 })
 
 const UserGroup = Object.freeze({
-  ENTRYLEVEL: 'ET',
-  SENIOREXECUTIVE: 'SE',
-  ASSTBANKOFFICER: 'ABO',
-  SENIORBANKOFFICER: 'SBO',
-  ASSTMANAGER: 'AMG',
-  MANAGER: 'MG',
+  ENTRYLEVEL: 'ENTRY LEVEL',
+  SENIOREXECUTIVE: 'SENIOR EXECUTIVE',
+  ASSTBANKOFFICER: 'ASSISTANT BANK OFFICER',
+  SENIORBANKOFFICER: 'SENIOR BANK OFFICER',
+  ASSTMANAGER: 'ASSISTANT MANAGER',
+  MANAGER: 'MANAGER',
 })
 
 const UserSchema = new Schema(
@@ -54,7 +54,7 @@ const UserSchema = new Schema(
       required: true,
       dropDups: true
     },
-    fullname: { type: Schema.Types.String, required: true},
+    // fullname: { type: Schema.Types.String, required: true},
     isVesting : {type: Schema.Types.Boolean, required: true},
     lienPeriod: {type: Schema.Types.Number, required: true},
     accountNo: { type: Schema.Types.String },
@@ -64,8 +64,10 @@ const UserSchema = new Schema(
     privateKey: { type: Schema.Types.String, required: true},
     address: { type: Schema.Types.String, required: true},
     password: { type: Schema.Types.String,required: true},
-    workflow: { type: Schema.Types.Boolean, required: true},
+    enabled: { type: Schema.Types.Boolean, required: true},
     status: { type: Schema.Types.String },
+    token: { type: Schema.Types.String }, // JWT token
+    recover_token: { type: Schema.Types.String }
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
@@ -91,6 +93,6 @@ UserSchema.statics.validateToken = function validateToken(token) {
   return bcrypt.compareSync(token, this.recover_token)
 }
 
-const User = model('users', UserSchema)
+const User = model('User', UserSchema)
 
 module.exports = User

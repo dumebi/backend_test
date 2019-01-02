@@ -4,16 +4,14 @@
  * mnemonics : This is the user's account recorvery seed phrase, encrypted and backedup for  them.
  */
 const { Schema, model } = require('mongoose')
-const User = require('./user')
-const Transaction = require('./transaction')
 
 const TradableSchema = new Schema(
   {
-    userId: {type: Schema.ObjectId, ref:'users', required:true},
-    dateAdded:{type :Date , required:true},
-    amount:{type: Number , required:true},
-    blockIndex:{type: Number , required:true},
-    transactionId:{type: Schema.ObjectId, ref:'transactions', required:true},
+    userId: { type: Schema.ObjectId, ref: 'User', required: true },
+    dateAdded: { type: Date, required: true },
+    amount: { type: Number, required: true },
+    blockIndex: { type: Number, required: true },
+    transactionId: { type: Schema.ObjectId, ref: 'Transaction', required: true },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )

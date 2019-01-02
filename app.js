@@ -71,9 +71,12 @@ app.use(function(err, req, res, next) {
         delete err.stack;
         delete err.devError;
     }
+
+    let httpErr = err.http
+    delete err.http
         
     // This responds to the request 
-        res.status(err.status || 500).json(err);
+    res.status(httpErr || 500).json(err);
   });
 
 module.exports = app;

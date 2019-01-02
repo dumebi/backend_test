@@ -7,12 +7,12 @@ const { Schema, model } = require('mongoose')
 
 const AllocatedSchema = new Schema(
   {
-    userId: {type: Schema.ObjectId, ref:'users', required:true},
-    dueDate:{type :Date , required:true},
-    amount:{type: Number , required:true},
-    isMoved:{type: boolean , required:true, default:false},
-    blockIndex:{type: Number , required:true},
-    transactionId:{type: Schema.ObjectId, ref:'transactions', required:true},
+    userId: { type: Schema.ObjectId, ref: 'users', required: true },
+    dueDate: { type: Date, required: true },
+    amount: { type: Number, required: true },
+    isMoved: { type: Schema.Types.Boolean, required: true, default: false },
+    blockIndex: { type: Number, required: true },
+    transactionId: { type: Schema.ObjectId, ref: 'transactions', required: true },
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )

@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
-const Constants = require('./httpStatus')
+const Constants = require('./status')
 require('dotenv').config();
 
 exports.config = {
@@ -113,7 +113,7 @@ exports.checkToken = async (req) => {
  */
 exports.createToken = async (email, id) => {
   try {
-    const jwtToken = jwt.sign({ email, id }, this.config.jwt, { expiresIn: 60 * 60 * 24 * 31 });
+    const jwtToken = jwt.sign({ email, id }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken
   } catch (error) {
     return false

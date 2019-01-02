@@ -9,15 +9,12 @@ const { Schema, model } = require('mongoose')
 const RoleSchema = new Schema(
   {
     role:String,
-    permissions : [
-        {
-            method : {required : true, type : String},
-
-            action : {required : true, type: Array},
-
-            slug : String
-
-        }
+    permissions: [
+      {
+        method: {required: true, type: String},
+        action: {required: true, type: Array},
+        slug: String
+      }
     ]
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }

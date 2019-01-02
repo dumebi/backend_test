@@ -1,87 +1,40 @@
-const EthAccount = require("../libraries/ethUser.js");
-const validate = require("../helpers/validation.js");
-const secure = require("../helpers/encryption.js");
-const User = require("../models/user.js");
-const HttpStatus = require('../helpers/httpStatus');
+const UserModel = require('../models/user.js');
+const HttpStatus = require('../helpers/status');
 const { getAsync, client } = require('../helpers/redis');
-const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
-
+const {
+  paramsNotValid, sendMail, config, checkToken
+} = require('../helpers/utils');
 
 
 module.exports = {
-
-    addShareholders : async function(req, res, next) {
-
-        try {
-
-            const validReq = await validate.users(req.body)
-
-            const userMnemonic = await EthAccount.newMnemonic()
-            const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
-            const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
-
-            // console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
-        
-            const user = new User({
-                userType : validReq.userType,
-                employmentStatus : validReq.employmentStatus,
-                userGroup : validReq.userGroup,
-                staffId : validReq.staffId,
-                email : validReq.email,
-                fullname : validReq.fullname, 
-                isVesting  : validReq.isVesting,
-                lienPeriod : validReq.lienPeriod ,
-                dividendAcct : validReq.dividendAcct,
-                beneficiary : validReq.beneficiary,
-                password : validReq.password ,
-                workflow : validReq.workflow,
-                status : validReq.status
-            })
-
-            user.mnemonic = await secure.encrypt(userMnemonic)
-            user.privateKey = await secure.encrypt(Ethkeys.childPrivKey)
-            user.publicKey = await secure.encrypt(Ethkeys.childPubKey)
-            user.address = Ethkeys.childAddress
-
-            const savedUser = await user.save()
-            console.log("yeahpp")
-            // newUser = JSON.parse(newUser) Ensure if there is a need to parse users
-            delete savedUser.password;
-
-            // await this.addUserOrUpdateCache(newUser) Ensure to know what this is for
-            res.send({
-                status : true,
-                message : "User created successfully",
-                data : savedUser
-            });
-
-        } catch (error) {
-            console.log("error >> ", error)
-            let err = {
-                status : false,
-                message : 'Could not create user',
-                devError : error
-            }
-            next(err)
-        }
-
-    },
-
-    async addUserOrUpdateCache(user) {
-        try {
-          const sttpUsers = await getAsync('users');
-          if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
-            const users = JSON.parse(sttpUsers);
-            users[user._id] = user
-            await client.set('users', JSON.stringify(users));
-          }
-        } catch (err) {
-          console.log(err)
-        }
-    },
-
-    test : function () {
-        
+  /**
+    * Get all users
+    * @return {object[]} users
+    */
+  async allUsers(req, res, next) {
+    try {
+      let users = {}
+      const result = await getAsync('users');
+      console.log(result)
+      if (result != null && JSON.parse(result).length > 0) {
+        users = JSON.parse(result);
+      } else {
+        // TODO: Retrieve users from blockchain here
+        // users = await UserModel.find({}, { password: 0 });
+        // for (let index = 0; index < users.length; index++) {
+        //   users[users[index]._id] = users[index]
+        // }
+        // await client.set('users', JSON.stringify(users));
+      }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: { set: users, total_count: users.length } });
+    } catch (error) {
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not create user',
+        devError: error
+      }
+      next(err)
     }
-
+  },
 }
