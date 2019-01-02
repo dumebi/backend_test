@@ -6,7 +6,7 @@ require('dotenv').config();
 exports.config = {
   jwt: process.env.JWT_SECRET,
   blockchain: '',
-  mongo: process.env.MONGO_LAB_DEV_EXCHANGE,
+  mongo: '',
   userHost: '',
   adminHost: ''
 }

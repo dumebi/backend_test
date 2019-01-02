@@ -3,7 +3,7 @@ const randomstring = require('randomstring');
 const UserModel = require('../models/user');
 const { sendUserToken } = require('../helpers/emails');
 const {paramsNotValid, sendMail, config, checkToken} = require('../helpers/utils');
-const Constants = require('../helpers/httpStatus');
+const httpStatus = require('../helpers/httpStatus');
 const { getAsync, client } = require('../helpers/redis');
 
 const UserController = {
@@ -17,7 +17,7 @@ const UserController = {
   async login(req, res) {
     try {
       if (paramsNotValid(req.body.email, req.body.password)) {
-        return res.status(Constants.PRECONDITION_FAILED).json({
+        return res.status(httpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: "the user's id was not supplied"
         })
@@ -40,11 +40,11 @@ const UserController = {
 
       await this.addUserOrUpdateCache(newUser)
 
-      return res.status(Constants.OK).json({ status: 'success', message: 'User signed in', data: newUser });
+      return res.status(httpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (err) {
       console.log('user error')
       console.log(err)
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -57,14 +57,14 @@ const UserController = {
   async sendToken(req, res) {
     try {
       if (paramsNotValid(req.body.email)) {
-        return res.status(Constants.PRECONDITION_FAILED).json({
+        return res.status(httpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: "the user's id was not supplied"
         })
       }
       const email = req.body.email;
       const user = await UserModel.findOne({ email });
-      if (!user) { return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+      if (!user) { return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       const token = randomstring.generate({
         length: 5,
@@ -83,9 +83,9 @@ const UserController = {
         console.log(error)
         console.log(result)
       });
-      return res.status(Constants.OK).json({ status: 'success', message: 'Token sent', data: { token } });
+      return res.status(httpStatus.OK).json({ status: 'success', message: 'Token sent', data: { token } });
     } catch (err) {
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -100,7 +100,7 @@ const UserController = {
   async resetPass(req, res) {
     try {
       if (paramsNotValid(req.body.email)) {
-        return res.status(Constants.PRECONDITION_FAILED).json({
+        return res.status(httpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: "the user's id was not supplied"
         })
@@ -110,7 +110,7 @@ const UserController = {
       const token = req.body.token;
 
       const user = await UserModel.findOne({ email });
-      if (!user) { return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+      if (!user) { return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validateToken(token)) {
         return res.json({ result: 'error', message: 'Wrong Token' });
       }
@@ -126,10 +126,10 @@ const UserController = {
 
       await this.addUserOrUpdateCache(newUser)
 
-      return res.status(Constants.OK).json({ status: 'success', message: 'Password reset', data: newUser });
+      return res.status(httpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (err) {
       console.log(err)
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -151,10 +151,10 @@ const UserController = {
         }
         await client.set('users', JSON.stringify(users));
       }
-      return res.status(Constants.OK).json({ status: 'success', message: 'Users retrieved', data: { set: users, total_count: users.length } });
+      return res.status(httpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: { set: users, total_count: users.length } });
     } catch (err) {
       console.log(err)
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting users' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting users' });
     }
   },
 
@@ -165,7 +165,7 @@ const UserController = {
   async one(req, res) {
     try {
       if (paramsNotValid(req.params.id)) {
-        return res.status(Constants.PRECONDITION_FAILED).json({
+        return res.status(httpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: "the user's id was not supplied"
         })
@@ -173,12 +173,12 @@ const UserController = {
       const _id = req.params.id;
       const user = await UserModel.findById(_id);
       if (user.email) {
-        return res.status(Constants.OK).json({ status: 'success', message: 'User retrieved', data: user });
+        return res.status(httpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } catch (err) {
       console.log(err);
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -191,12 +191,12 @@ const UserController = {
       const token = await checkToken(req);
       const user = await UserModel.findById(token.data.id);
       if (user.email) {
-        return res.status(Constants.OK).json({ status: 'success', message: 'User retrieved', data: user });
+        return res.status(httpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } catch (err) {
       console.log(err);
-      return res.status(Constants.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(httpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
     }
   },
 
@@ -227,14 +227,14 @@ const UserController = {
 
         await this.addUserOrUpdateCache(newUser)
 
-        return res.status(Constants.OK).json({
+        return res.status(httpStatus.OK).json({
           status: 'success',
           data: newUser
         })
       }
     } catch (error) {
       console.log(error)
-      return res.status(Constants.BAD_REQUEST).json({
+      return res.status(httpStatus.BAD_REQUEST).json({
         status: 'failed',
         message: error
       })
