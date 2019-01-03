@@ -122,8 +122,6 @@ module.exports = {
 			} else if (!isValidTo) {
 				return "Invalid to address"
 			}
-			
-			const bal = await this.balance(fromAddress)
 		
 			const privateKey = Buffer.from(_privateKey, 'hex')
 			var nounce = await web3.eth.getTransactionCount(fromAddress)
@@ -145,7 +143,7 @@ module.exports = {
 
 			const txParams = {
 				nonce: nounce++,
-				gasLimit: gasUsed,
+				// gasLimit: gasUsed,
 				from: fromAddress,
 				to: toAddress, 
 				value: web3.utils.toHex(web3.utils.toWei(amount, "ether")), 
