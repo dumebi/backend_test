@@ -5,10 +5,10 @@ const path = require('path')
 const utils = require('../helpers/utils')
 
 
-const UserContractJson = require(path.join(
-  __dirname,
-  '../blockchain/build/contracts/SterlingUser.json'
-))
+// const UserContractJson = require(path.join(
+//   __dirname,
+//   '../blockchain/build/contracts/SterlingUser.json'
+// ))
 
 let coinbase_amount = 0
 let coinbase = ''
@@ -20,8 +20,8 @@ const provider = new Web3.providers.HttpProvider(utils.config.blockchain)
 const web3 = new Web3(provider)
 
 // Read JSON and attach RPC connection (Provider)
-const UserContract = contract(UserContractJson)
-UserContract.setProvider(provider)
+// const UserContract = contract(UserContractJson)
+// UserContract.setProvider(provider)
 
 /**
  * Get Coinbase address and amount, store them.
@@ -40,12 +40,13 @@ exports.getCoinbase = () => {
         })
       }
     })
+    
   } catch (err) {
     console.log(err)
   }
 }
 
 exports.web3 = web3
-exports.UserContract = UserContract
+// exports.UserContract = UserContract
 exports.coinbase = coinbase
 exports.coinbase_amount = coinbase_amount

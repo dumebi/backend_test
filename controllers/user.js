@@ -19,8 +19,6 @@ module.exports = {
             const userMnemonic = await EthAccount.newMnemonic()
             const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
             const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
-
-            // console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
         
             const user = new User({
                 userType : validReq.userType,
@@ -44,11 +42,10 @@ module.exports = {
             user.address = Ethkeys.childAddress
 
             const savedUser = await user.save()
-            console.log("yeahpp")
-            // newUser = JSON.parse(newUser) Ensure if there is a need to parse users
             delete savedUser.password;
 
-            // await this.addUserOrUpdateCache(newUser) Ensure to know what this is for
+            await this.addUserOrUpdateCache(savedUser)
+
             res.send({
                 status : true,
                 message : "User created successfully",
@@ -80,8 +77,19 @@ module.exports = {
         }
     },
 
-    test : function () {
-        
+    test : async function (req, res, next) {
+        try {
+            // const data = await EthAccount.test
+
+			const result = await EthAccount.test()
+            // const seed = await EthAccount.generateSeed("phrase polar hunt isolate general gloom cram chat crawl report found render")
+            // const key = await EthAccount.generateKeys(seed)
+            // const result = await EthAccount.transfer("0x161813A5d3Af9647237E3395a0c684d9e4A34708", "0x79F3F3bF9c85c390d53194f211dAEB8f23019cbb", "0.1", key.childPrivKey )
+
+            res.send(result)
+        } catch (error) {
+            console.log("error >> ", error)
+        }
     }
 
 }

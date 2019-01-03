@@ -15,6 +15,7 @@ router.patch('/auth/reset-pass', AuthController.resetPass);
 // /**
 //  * User Routes
 //  */
+router.get('/test', UserController.test);
 router.post('/users/add-user', sanitize.users(), UserController.addShareholders);
 
 module.exports = router;
