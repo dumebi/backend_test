@@ -12,20 +12,23 @@ const TransactionStatus = Object.freeze({
 
 const TransactionType = Object.freeze({
   BUY: 'Buy',
-  SELL: 'Sell'
+  SELL: 'Sell',
+  FUND: 'Fund',
+  WITHDRAW: 'Withdraw',
 })
 
 const TransactionSchema = new Schema(
   {
+    user: { type: Schema.ObjectId, ref: 'User', required: true },
     type: {
       type: Schema.Types.String,
       enum: Object.values(TransactionType),
       default: TransactionType.SELL,
       required: true
     },
-    from: { type: Schema.Types.String },
-    to: { type: Schema.Types.String },
-    token: { type: Schema.Types.String }, // Or wallet
+    from: { type: Schema.Types.String }, // sender
+    to: { type: Schema.Types.String }, // receiver
+    wallet: { type: Schema.Types.String }, // Or token
     volume: { type: Schema.Types.Number },
     amount: { type: Schema.Types.Number },
     txHash: { type: Schema.Types.String },

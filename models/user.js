@@ -1,3 +1,4 @@
+/* eslint-disable object-curly-newline */
 /** THIS CAPTURED THE USERS AND PROFILES INFORMATION
  * FailedMax : Max number of failed login attempt
  * Failed : Number of failed login attempt
@@ -23,66 +24,56 @@ const UserGroup = Object.freeze({
   MANAGER: 'MANAGER',
 })
 
+const UserType = Object.freeze({
+  USER: 'User',
+  ADMIN: 'Admin',
+  SUPERADMIN: 'SuperAdmin'
+})
+
 const UserSchema = new Schema(
   {
-    userType: {
-      type: Schema.Types.ObjectId,
-      ref: "roles",
-      required: true
-    },
-    employmentStatus: {
-      type: Schema.Types.String,
-      enum: Object.values(Employment),
-      default: Employment.EMPLOYED,
-      required: true
-    },
-    userGroup: {
-      type: Schema.Types.String,
-      enum: Object.values(UserGroup),
-      default: UserGroup.ET,
-      required: true
-    },
-    staffId: {
-      type: Schema.Types.String,
-      unique: true,
-      required: true,
-      dropDups: true
-    },
-    email: {
-      type: Schema.Types.String,
-      unique: true,
-      required: true,
-      dropDups: true
-    },
-    // fullname: { type: Schema.Types.String, required: true},
-    isVesting : {type: Schema.Types.Boolean, required: true},
-    lienPeriod: {type: Schema.Types.Number, required: true},
-    accountNo: { type: Schema.Types.String },
+    // Access levels
+    type: { type: Schema.Types.String, enum: Object.values(UserType), default: UserType.USER, required: true },
+    // role: { type: Schema.ObjectId, ref: 'Role', required: true },
+    employment: { type: Schema.Types.String, enum: Object.values(Employment), default: Employment.EMPLOYED, required: true },
+    group: { type: Schema.Types.String, enum: Object.values(UserGroup), default: UserGroup.ENTRYLEVEL, required: true },
+    // Official details
+    staffId: { type: Schema.Types.String, unique: true, required: true, dropDups: true },
+    email: { type: Schema.Types.String, unique: true, required: true, dropDups: true },
+    bank: { type: Schema.Types.String },
     beneficiary: { type: Schema.Types.String },
-    mnemonic: { type: Schema.Types.String, required: true},
-    publicKey: { type: Schema.Types.String, required: true},
-    privateKey: { type: Schema.Types.String, required: true},
-    address: { type: Schema.Types.String, required: true},
-    password: { type: Schema.Types.String,required: true},
-    enabled: { type: Schema.Types.Boolean, required: true},
-    status: { type: Schema.Types.String },
+    address: { type: Schema.Types.String, required: true },
+    // Authentication
+    enabled: { type: Schema.Types.Boolean, required: true },
+    password: { type: Schema.Types.String, required: true },
     token: { type: Schema.Types.String }, // JWT token
-    recover_token: { type: Schema.Types.String }
+    recover_token: { type: Schema.Types.String },
+    // Blockchain details
+    vesting: { type: Schema.Types.Boolean, required: true },
+    mnemonic: { type: Schema.Types.String, required: true },
+    publicKey: { type: Schema.Types.String, required: true },
+    privateKey: { type: Schema.Types.String, required: true },
+    preferences: {
+      email: { type: Schema.Types.Boolean, default: false }, // Email Notifications
+      push: { type: Schema.Types.Boolean, default: false }, // Push Notifications
+      _2fa: { type: Schema.Types.Boolean, default: false } // 2 factor authentication
+    }
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-UserSchema.statics.Type = UserGroup
-UserSchema.statics.Type = Employment
+UserSchema.statics.UserType = UserType
+UserSchema.statics.UserGroup = UserGroup
+UserSchema.statics.EmploymentStatus = Employment
 
-UserSchema.pre('save',function(next) {
-  let hashedPassword =  bcrypt.hashSync(this.password , bcrypt.genSaltSync(5), null)
+UserSchema.pre('save', (next) => {
+  const hashedPassword = bcrypt.hashSync(this.password, bcrypt.genSaltSync(5), null)
   this.password = hashedPassword;
   next();
 });
 
-UserSchema.statics.encryptPassword = function encrypt(password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(5), null)
+UserSchema.statics.encrypt = function encrypt(text) {
+  return bcrypt.hashSync(text, bcrypt.genSaltSync(5), null)
 }
 
 UserSchema.statics.validatePassword = function validatePassword(password) {

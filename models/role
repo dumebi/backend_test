@@ -5,21 +5,22 @@
  */
 const { Schema, model } = require('mongoose')
 
-
 const RoleSchema = new Schema(
   {
-    role:String,
+    role: {
+      type: Schema.Types.String, unique: true, required: true, dropDups: true
+    },
     permissions: [
       {
-        method: {required: true, type: String},
-        action: {required: true, type: Array},
-        slug: String
+        method: { type: Schema.Types.String, unique: true, required: true },
+        action: { type: Schema.Types.Array, required: true },
+        slug: { type: Schema.Types.String, unique: true, required: true },
       }
     ]
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
 
-const Role = model('roles', RoleSchema)
+const Role = model('Role', RoleSchema)
 
 module.exports = Role

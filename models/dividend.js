@@ -4,30 +4,29 @@ const {
   model
 } = require('mongoose')
 
-const ScheduleStatus = Object.freeze({
+const DividendStatus = Object.freeze({
   PENDING: 'Pending',
   COMPLETED: 'Completed',
   TERMINATED: 'Terminated',
   INPROGRESS: 'In Progress'
 })
 
-const ScheduleSchema = new Schema({
-  scheduleId: { type: Schema.Types.Number, unique: true, dropDups: true },
+const DividendSchema = new Schema({
+  dividendId: { type: Schema.Types.Number, unique: true, dropDups: true },
   staffId: {
     type: Schema.Types.String, unique: true, required: true, dropDups: true
   },
   amount: { type: Schema.Types.Number },
   date: { type: Schema.Types.Date },
-  enabled: { type: Schema.Types.String },
   status: {
     type: Schema.Types.String,
-    enum: Object.values(ScheduleStatus),
-    default: ScheduleStatus.PENDING,
+    enum: Object.values(DividendStatus),
+    default: DividendStatus.PENDING,
     required: true
   },
-  authorizedby: { type: Schema.Types.Array },
+  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true }
 }, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
 
-const Schedule = model('Schedule', ScheduleSchema)
+const Dividend = model('Dividend', DividendSchema)
 
-module.exports = Schedule
+module.exports = Dividend

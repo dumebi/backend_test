@@ -111,9 +111,9 @@ exports.checkToken = async (req) => {
 /**
  * Create Jwt token
  */
-exports.createToken = async (email, id) => {
+exports.createToken = async (email, id, type) => {
   try {
-    const jwtToken = jwt.sign({ email, id }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
+    const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken
   } catch (error) {
     return false

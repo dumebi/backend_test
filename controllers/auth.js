@@ -6,7 +6,7 @@ const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
 const { sendUserToken } = require('../helpers/emails');
 const {
-  paramsNotValid, sendMail, config, checkToken, createToken
+  paramsNotValid, sendMail, checkToken, createToken
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
 const { getAsync, client } = require('../helpers/redis');
@@ -36,10 +36,10 @@ const UserController = {
         staffId: validReq.staffId,
         email: validReq.email,
         isVesting: validReq.isVesting,
-        lienPeriod: validReq.lienPeriod,
+        // lienPeriod: validReq.lienPeriod,
         dividendAcct: validReq.dividendAcct,
         beneficiary: validReq.beneficiary,
-        password: validReq.password,
+        password: '12345',
         workflow: validReq.workflow,
         status: validReq.status
       })
@@ -120,10 +120,9 @@ const UserController = {
   /**
      * Send token to a user
      * @param {string} email
-     *
      * @return {null}
      */
-  async sendToken(req, res) {
+  async sendToken(req, res, next) {
     try {
       if (paramsNotValid(req.body.email)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
@@ -152,9 +151,16 @@ const UserController = {
         console.log(error)
         console.log(result)
       });
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: { token } });
-    } catch (err) {
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
     }
   },
 
@@ -166,7 +172,7 @@ const UserController = {
      *
      * @return {object} user
      */
-  async resetPass(req, res) {
+  async resetPass(req, res, next) {
     try {
       if (paramsNotValid(req.body.email)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
@@ -196,109 +202,79 @@ const UserController = {
       await this.addUserOrUpdateCache(newUser)
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
-    } catch (err) {
-      console.log(err)
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
     }
   },
 
   // /**
-  //    * Get a user
+  //    * Get a user by token
   //    * @return {object} user
   //    */
-  // async one(req, res) {
+  // async token(req, res, next) {
   //   try {
-  //     if (paramsNotValid(req.params.id)) {
-  //       return res.status(HttpStatus.PRECONDITION_FAILED).json({
-  //         status: 'failed',
-  //         message: "some parameters were not supplied"
-  //       })
-  //     }
-  //     const _id = req.params.id;
-  //     const user = await UserModel.findById(_id);
+  //     const token = await checkToken(req);
+  //     const user = await UserModel.findById(token.data.id);
   //     if (user.email) {
-  //       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
+  //       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user.token });
   //     }
   //     return res.status(404).json({ status: 'failed', message: 'User not found' });
-  //   } catch (err) {
-  //     console.log(err);
-  //     return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+  //   } catch (error) {
+  //     console.log('error >> ', error)
+  //     const err = {
+  //       http: HttpStatus.BAD_REQUEST,
+  //       status: 'failed',
+  //       message: 'Error getting user',
+  //       devError: error
+  //     }
+  //     next(err)
   //   }
-  // },
+  // }
 
   /**
-     * Get a user by token
-     * @return {object} user
+     * Send token to a user
+     * @param {string} email
+     * @return {null}
      */
-  async token(req, res) {
+  async token(req, res, next) {
     try {
-      const token = await checkToken(req);
-      const user = await UserModel.findById(token.data.id);
-      if (user.email) {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
-      }
-      return res.status(404).json({ status: 'failed', message: 'User not found' });
-    } catch (err) {
-      console.log(err);
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
-    }
-  },
-
-  /**
-     * Update a user
-     * @return {object} user
-     */
-  async update(req, res) {
-    try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
+      if (paramsNotValid(req.body.email)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
-          message: token.message
+          message: 'some parameters were not supplied'
         })
       }
-      delete req.body.password
-      const user = await UserModel.findByIdAndUpdate(
-        token.data.id,
-        { $set: req.body },
-        { safe: true, multi: true, new: true }
-      )
-      console.log(user)
-      if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
+      const email = req.body.email;
+      const user = await UserModel.findOne({ email });
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
-        // TODO: Update user in the blockchain here
+      const token = randomstring.generate({
+        length: 5,
+        charset: 'numeric'
+      });
+      user.recover_token = user.encrypt(token);
+      await user.save();
 
-        // await this.addUserOrUpdateCache(newUser)
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          data: newUser
-        })
-      }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
     } catch (error) {
-      console.log(error)
-      return res.status(HttpStatus.BAD_REQUEST).json({
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: error
-      })
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
     }
   },
 
-  async addUserOrUpdateCache(user) {
-    try {
-      const sttpUsers = await getAsync('users');
-      if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
-        const users = JSON.parse(sttpUsers);
-        users[user._id] = user
-        await client.set('users', JSON.stringify(users));
-      }
-    } catch (err) {
-      console.log(err)
-    }
-  }
 };
 
 module.exports = UserController;
