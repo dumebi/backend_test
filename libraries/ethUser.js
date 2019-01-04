@@ -1,13 +1,8 @@
 const HD = require('ethereumjs-wallet')
 const bip39 = require('bip39')
 var HDKey = require('hdkey')
-const ethUtil = require("ethereumjs-util")
-const Web3 = require("web3")
-const provider = "https://rinkeby.infura.io/afn70dBlA0QivCgkPipn"
-const web3 = new Web3(provider)
-const EthereumTx = require("ethereumjs-tx")
 const axios = require('axios');
-const {coinbase} = require("./parent.js")
+const {web3, EthereumTx, ethUtil} = require("./base.js")
 
 
 module.exports = {

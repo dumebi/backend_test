@@ -3,17 +3,17 @@ pragma solidity ^0.5.0;
 // pragma experimental ABIEncoderV2;
 
 import "./erc20Interface.sol";
-import "../common/owner.sol";
-import "../common/authorizer.sol";
-import "../library/safeMath.sol";
+import "./common/owner.sol";
+import "./common/authorizer.sol";
+import "./library/safeMath.sol";
 
 contract SIT is ERC20Interface, Ownable, Authorizer {
 
     using SafeMath for uint256;
     
-    function stringsEqual(string memory _a, string memory _b) pure internal returns (bool) {
+    function stringsEqual(string memory _a, string memory _b) internal pure returns (bool) {
         return keccak256(abi.encode(_a)) == keccak256(abi.encode(_b));
-	}
+    }
 
     function random() public view returns (uint8) {
         return uint8(uint256(keccak256(abi.encode(msg.sender, now, block.difficulty)))%251);
@@ -246,9 +246,11 @@ contract SIT is ERC20Interface, Ownable, Authorizer {
         emit NewSitHolder(_holder, _holderAccess);
     }
     
-    function getSitHolder(address _holder) view public onlyOwner returns(bool _isEnabled, bytes32 _beneficiary,uint _tradable, uint _allocated, uint _vesting, uint _lien ) { 
+    function getSitHolder(address _holder) public view onlyOwner 
+    returns(bool _isEnabled, bytes32 _beneficiary,uint _tradable, uint _allocated, uint _vesting, uint _lien ) { 
         
-        return (sitHolders[_holder].isEnabled, sitHolders[_holder].beneficiary, sitHolders[_holder].balances.tradable, sitHolders[_holder].balances.allocated, sitHolders[_holder].balances.vesting, sitHolders[_holder].balances.lien);
+        return (sitHolders[_holder].isEnabled, sitHolders[_holder].beneficiary,
+        sitHolders[_holder].balances.tradable, sitHolders[_holder].balances.allocated, sitHolders[_holder].balances.vesting, sitHolders[_holder].balances.lien);
         
     }
     
@@ -264,7 +266,7 @@ contract SIT is ERC20Interface, Ownable, Authorizer {
         return true;
     }
     
-    function isValidSitHolder(address _holder) view public returns (bool) {
+    function isValidSitHolder(address _holder) public view  returns (bool) {
         return sitHolders[_holder].isEnabled;
     }
 

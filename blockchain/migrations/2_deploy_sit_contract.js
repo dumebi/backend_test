@@ -2,5 +2,5 @@
 const TokenContract = artifacts.require('token/sit.sol');
 
 module.exports = (deployer) => {
-  deployer.deploy(TokenContract, 'SIT', 'Sterling Investment Token', 10000000000000, 1, 'NGN');
+  deployer.deploy(TokenContract, 'SIT', 'Sterling Investment Token', 200000, 200000000000,);
 }

@@ -5,7 +5,7 @@ require('dotenv').config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
-  blockchain: '',
+  blockchain: "https://rinkeby.infura.io/afn70dBlA0QivCgkPipn",
   mongo: '',
   userHost: '',
   adminHost: ''

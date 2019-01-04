@@ -1,4 +1,5 @@
 const EthAccount = require("../libraries/ethUser.js");
+const SIT = require("../libraries/sitHolder.js");
 const validate = require("../helpers/validation.js");
 const secure = require("../helpers/encryption.js");
 const User = require("../models/user.js");
@@ -79,13 +80,13 @@ module.exports = {
 
     test : async function (req, res, next) {
         try {
-            // const data = await EthAccount.test
-
-			const result = await EthAccount.test()
-            // const seed = await EthAccount.generateSeed("phrase polar hunt isolate general gloom cram chat crawl report found render")
-            // const key = await EthAccount.generateKeys(seed)
-            // const result = await EthAccount.transfer("0x161813A5d3Af9647237E3395a0c684d9e4A34708", "0x79F3F3bF9c85c390d53194f211dAEB8f23019cbb", "0.1", key.childPrivKey )
-
+            // const result = await SIT.getAdminBal("0xbb723b459f84c24665a89159d94701321864e5d0")
+            // const mnemonic = await EthAccount.newMnemonic()
+            const seed = await EthAccount.generateSeed("magnet left script engage tomorrow pause laugh wave fly sword afraid honey")
+            const key = await EthAccount.generateKeys(seed)
+			// const result = await EthAccount.test()
+			// const result = await SIT.getAdminBal("0x4cacb1201920d599813e66ba99278685015f568b")
+            const result = await SIT.addSitHolder(key.childPrivKey, "0x4cacb1201920d599813e66ba99278685015f568b", "0x79F3F3bF9c85c390d53194f211dAEB8f23019cbb", true, "Jude Sterling", 20, 0, 0, 0)
             res.send(result)
         } catch (error) {
             console.log("error >> ", error)
