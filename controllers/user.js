@@ -82,11 +82,15 @@ module.exports = {
         try {
             // const result = await SIT.getAdminBal("0xbb723b459f84c24665a89159d94701321864e5d0")
             // const mnemonic = await EthAccount.newMnemonic()
-            const seed = await EthAccount.generateSeed("magnet left script engage tomorrow pause laugh wave fly sword afraid honey")
+            const seed = await EthAccount.generateSeed("width certain anger body lady order toy ticket earth home shiver sibling")
             const key = await EthAccount.generateKeys(seed)
 			// const result = await EthAccount.test()
 			// const result = await SIT.getAdminBal("0x4cacb1201920d599813e66ba99278685015f568b")
-            const result = await SIT.addSitHolder(key.childPrivKey, "0x4cacb1201920d599813e66ba99278685015f568b", "0x79F3F3bF9c85c390d53194f211dAEB8f23019cbb", true, "Jude Sterling", 20, 0, 0, 0)
+            // const result = await SIT.addShareholder(key.childPrivKey, "0xa5146721df04a5e2e5646649849db4ab6d675448", "0x87741FfaF59aa62fb42e26Fba4D25DaFfBF2987F", true, "abbey Biodun", 20, 0, 0, 0)
+            // const result = await SIT.updateHolderStatus(key.childPrivKey, "0xa5146721df04a5e2e5646649849db4ab6d675448", "0xf217c23dd84e55497233b1b88f1cfcec3aaaa9ec", false)
+            const result = await SIT.getShareholder("0xa5146721df04a5e2e5646649849db4ab6d675448", "0xf217c23dd84e55497233b1b88f1cfcec3aaaa9ec")
+            // const result = await SIT.getAdminBal("0xa5146721df04a5e2e5646649849db4ab6d675448", "0xa5146721df04a5e2e5646649849db4ab6d675448")
+
             res.send(result)
         } catch (error) {
             console.log("error >> ", error)

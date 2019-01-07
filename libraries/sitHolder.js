@@ -1,7 +1,8 @@
 const {web3, EthereumTx, ethUtil} = require("./base.js")
 const axios = require('axios')
+const {encrypt, decrypt} = require("../helpers/encryption.js");
 
-const deployedContractAddr = "0x0230033f2e71cc61d09b922039af91474f51913c"
+const deployedContractAddr = "0x6d2c810f3b5d7b4e0e2b6660abec716a605b5cd8"
 const contractABI = [
 	{
 		"constant": false,
@@ -50,7 +51,97 @@ const contractABI = [
 			}
 		],
 		"name": "addSitHolder",
-		"outputs": [],
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_holder",
+				"type": "address"
+			},
+			{
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"name": "_dueDate",
+				"type": "uint256"
+			}
+		],
+		"name": "addToAllocated",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_holder",
+				"type": "address"
+			},
+			{
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"name": "_dateAdded",
+				"type": "uint256"
+			}
+		],
+		"name": "addToTradable",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_holder",
+				"type": "address"
+			},
+			{
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"name": "_dateStarted",
+				"type": "uint256"
+			},
+			{
+				"name": "_lienPeriod",
+				"type": "uint256"
+			}
+		],
+		"name": "addToVesting",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -71,44 +162,6 @@ const contractABI = [
 		"outputs": [
 			{
 				"name": "success",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_holder",
-				"type": "address"
-			}
-		],
-		"name": "disableHolder",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "_holder",
-				"type": "address"
-			}
-		],
-		"name": "enableHolder",
-		"outputs": [
-			{
-				"name": "",
 				"type": "bool"
 			}
 		],
@@ -173,7 +226,7 @@ const contractABI = [
 		"name": "transfer",
 		"outputs": [
 			{
-				"name": "",
+				"name": "success",
 				"type": "bool"
 			}
 		],
@@ -200,7 +253,7 @@ const contractABI = [
 		"name": "transferFrom",
 		"outputs": [
 			{
-				"name": "",
+				"name": "success",
 				"type": "bool"
 			}
 		],
@@ -218,6 +271,29 @@ const contractABI = [
 		],
 		"name": "transferOwnership",
 		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_holder",
+				"type": "address"
+			},
+			{
+				"name": "access",
+				"type": "bool"
+			}
+		],
+		"name": "updateHolderAccess",
+		"outputs": [
+			{
+				"name": "success",
+				"type": "bool"
+			}
+		],
 		"payable": false,
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -311,6 +387,97 @@ const contractABI = [
 			}
 		],
 		"name": "NewTradable",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"name": "_dateGiven",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"name": "_dueDate",
+				"type": "uint256"
+			}
+		],
+		"name": "NewAllocated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"name": "_date",
+				"type": "uint256"
+			}
+		],
+		"name": "NewVesting",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "_from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"name": "_to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"name": "_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"name": "_startDate",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"name": "_lienPeriod",
+				"type": "uint256"
+			}
+		],
+		"name": "NewLien",
 		"type": "event"
 	},
 	{
@@ -426,6 +593,10 @@ const contractABI = [
 		"outputs": [
 			{
 				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"name": "dateGiven",
 				"type": "uint256"
 			},
 			{
@@ -594,7 +765,7 @@ const contractABI = [
 		"name": "isValidSitHolder",
 		"outputs": [
 			{
-				"name": "",
+				"name": "success",
 				"type": "bool"
 			}
 		],
@@ -622,10 +793,6 @@ const contractABI = [
 			},
 			{
 				"name": "startDate",
-				"type": "uint256"
-			},
-			{
-				"name": "endDate",
 				"type": "uint256"
 			},
 			{
@@ -784,7 +951,7 @@ const contractABI = [
 		"name": "verifyTransfer",
 		"outputs": [
 			{
-				"name": "",
+				"name": "success",
 				"type": "bool"
 			}
 		],
@@ -838,10 +1005,10 @@ const getCurrentGasPrices = async () => {
 
 module.exports = {
 
-    getAdminBal : async (fromAddress) => {
+    getAdminBal : async (fromAddress, holder) => {
         try {
 
-            const result = await contractInst.methods.balanceOf(fromAddress).call({from : fromAddress})
+            const result = await contractInst.methods.balanceOf(holder).call({from : fromAddress})
 
             return result
 
@@ -849,10 +1016,10 @@ module.exports = {
             throw error
         }
     },
-    getHolderBal : async (fromAddress) => {
+    getHolderBal : async (fromAddress, holder) => {
         try {
 
-            const result = await contractInst.methods.SitHolderBalance(fromAddress).call({from : fromAddress})
+            const result = await contractInst.methods.SitHolderBalance(holder).call({from : fromAddress})
 
             return result
 
@@ -860,10 +1027,11 @@ module.exports = {
             throw error
         }
     },
-    addSitHolder : async (_privateKey, fromAddress, holder, isEnabled, beneficiary, tradable = 0, allocated = 0, vesting = 0, lien = 0) => {
+    addShareholder : async (_privateKey, fromAddress, holder, isEnabled, unEncryptedBeneficiary, tradable = 0, allocated = 0, vesting = 0, lien = 0) => {
         try {
             
-            const isValidHolder = await web3.utils.isAddress(holder)
+			const isValidHolder = await web3.utils.isAddress(holder)
+			const beneficiary = await encrypt(unEncryptedBeneficiary)
 
 			if (!isValidHolder) {
 				return "Invalid from address"
@@ -885,10 +1053,12 @@ module.exports = {
 			const gasUsed = await contractInst.methods.addSitHolder(holder, isEnabled, beneficiary, tradable, allocated, vesting, lien).estimateGas({
 				from: fromAddress,
 			})
-           
+			
+
 			const txParams = {
 				nonce: nounce++,
-				gas: 190000,
+				gasLimit: gasUsed  || 1200000,
+				gasPrice : gasPrice.high * 1000000000,
                 from: fromAddress,
                 to : deployedContractAddr,
                 data,
@@ -897,7 +1067,7 @@ module.exports = {
 
             const tx = await new EthereumTx(txParams)
 
-            tx.gasPrice = gasPrice.high * 1000000000
+            tx.gasPrice = 
             tx.sign(privateKey)
             
 			const serializedTx = tx.serialize()
@@ -909,5 +1079,80 @@ module.exports = {
             throw error
         }
 
-    }
+	},
+	getShareholder : async (fromAddress, holderAddress) => {
+		try {
+
+            const result = await contractInst.methods.getSitHolder(holderAddress).call({from : fromAddress})
+			console.log("result >>" , result)
+
+            return {
+				isEnabled : result._isEnabled,
+				beneficiary : await decrypt(result._beneficiary),
+				tradable : result._tradable,
+				allocated : result._allocated,
+				vesting : result._vesting,
+				lien : result._lien
+			}
+
+        } catch (error) {
+            throw error
+        }
+	},
+	updateHolderStatus : async (_privateKey, fromAddress, holder, access) => {
+		try {
+
+            const result = await contractInst.methods.updateHolderAccess(holder, access).call({from : fromAddress})
+
+            const isValidHolder = await web3.utils.isAddress(holder)
+            const isValidFrom = await web3.utils.isAddress(fromAddress)
+
+			if (!isValidHolder) {
+				return "Invalid shareholder address"
+			} 
+			if (!isValidFrom) {
+				return "Invalid initiator address"
+            } 
+            
+            if (typeof access != 'boolean') {
+                return "Can only set shareholders status to true or false"
+            }
+
+			const gasPrice = await getCurrentGasPrices()
+
+            const data = await contractInst.methods.updateHolderAccess(holder, access).encodeABI()
+
+            const privateKey = Buffer.from(_privateKey, 'hex')
+
+            var nounce = await web3.eth.getTransactionCount(fromAddress)
+            
+			const gasUsed = await contractInst.methods.updateHolderAccess(holder, access).estimateGas({
+				from: fromAddress,
+			})
+			
+
+			const txParams = {
+				nonce: nounce++,
+				gasLimit: gasUsed  || 1200000,
+				gasPrice : gasPrice.high * 1000000000,
+                from: fromAddress,
+                to : deployedContractAddr,
+                data,
+				chainId: 4
+			}
+
+            const tx = await new EthereumTx(txParams)
+
+            tx.sign(privateKey)
+            
+			const serializedTx = tx.serialize()
+            const transactionId = await web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex') )
+        
+			return transactionId
+
+
+        } catch (error) {
+            throw error
+        }
+	}
 }
