@@ -1,17 +1,71 @@
 // const jwt = require('jsonwebtoken');
 const randomstring = require('randomstring');
 const EthAccount = require('../libraries/ethUser.js');
-const validate = require('../helpers/validation.js');
+// const validate = require('../helpers/validation.js');
 const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
-const { sendUserToken } = require('../helpers/emails');
+const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const {
-  paramsNotValid, sendMail, checkToken, createToken
+  paramsNotValid, sendMail, createToken, config
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
-const { getAsync, client } = require('../helpers/redis');
+const { addUserOrUpdateCache } = require('../controllers/user');
 
 const UserController = {
+  /**
+     * User Types
+     * @return {null}
+     */
+  async types(req, res, next) {
+    try {
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Types', data: Object.keys(UserModel.UserType) });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+  /**
+     * User Groups
+     * @return {null}
+     */
+  async groups(req, res, next) {
+    try {
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Groups', data: Object.keys(UserModel.UserGroup) });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+  /**
+     * User Employments Status
+     * @return {null}
+     */
+  async employment(req, res, next) {
+    try {
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Employment statuses', data: Object.keys(UserModel.EmploymentStatus) });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
+    }
+  },
   /**
    * Create a user
    * @param {string} email
@@ -21,7 +75,15 @@ const UserController = {
    */
   async addUsers(req, res, next) {
     try {
-      const validReq = await validate.users(req.body)
+      if (paramsNotValid(req.body.fname, req.body.lname, req.body.email, req.body.phone,
+        req.body.sex, req.body.dob, req.body.password, req.body.vesting,
+        req.body.type, req.body.employment, req.body.group, req.body.staffId)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      // const validReq = await validate.users(req.body)
 
       const userMnemonic = await EthAccount.newMnemonic()
       const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
@@ -30,18 +92,21 @@ const UserController = {
       // console.log("Ethkeys.childPrivKey >> ", Ethkeys.childPrivKey)
 
       const user = new UserModel({
-        userType: validReq.userType,
-        employmentStatus: validReq.employmentStatus,
-        userGroup: validReq.userGroup,
-        staffId: validReq.staffId,
-        email: validReq.email,
-        isVesting: validReq.isVesting,
-        // lienPeriod: validReq.lienPeriod,
-        dividendAcct: validReq.dividendAcct,
-        beneficiary: validReq.beneficiary,
-        password: '12345',
-        workflow: validReq.workflow,
-        status: validReq.status
+        fname: req.body.fname,
+        lname: req.body.lname,
+        email: req.body.email,
+        phone: req.body.phone,
+        sex: req.body.sex,
+        dob: req.body.dob,
+        type: req.body.type,
+        employment: req.body.employment,
+        group: req.body.group,
+        staffId: req.body.staffId,
+        beneficiary: req.body.beneficiary,
+        activated: false,
+        enabled: true,
+        password: req.body.password,
+        vesting: req.body.vesting
       })
 
       const [mnemonic, privateKey, publicKey] = Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
@@ -54,9 +119,20 @@ const UserController = {
       const newUser = JSON.parse(savedUser)
       delete newUser.password;
 
-      // TODO: Add user to blockchain here
+      await addUserOrUpdateCache(newUser)
 
-      // await this.addUserOrUpdateCache(newUser)
+      const link = `${config.host}/users/activate/${btoa(user.email)}`
+
+      const userTokenMailBody = sendUserSignupEmail(user, link)
+      const mailparams = {
+        email: user.email,
+        body: userTokenMailBody,
+        subject: 'Activate your account'
+      };
+      sendMail(mailparams, (error, result) => {
+        console.log(error)
+        console.log(result)
+      });
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: savedUser });
     } catch (error) {
@@ -102,7 +178,7 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      // await this.addUserOrUpdateCache(newUser)
+      await addUserOrUpdateCache(newUser)
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (error) {
@@ -111,6 +187,41 @@ const UserController = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
         message: 'Could not create user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Send token to a user
+     * @param {string} id
+     * @return {null}
+     */
+  async activate(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.id)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const email = atob(req.params.id)
+      const user = await UserModel.findOne({ email });
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+
+      user.activated = true;
+      await user.save();
+
+      await addUserOrUpdateCache(newUser)
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User activated' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error activating user',
         devError: error
       }
       next(err)
@@ -199,7 +310,7 @@ const UserController = {
       newUser = JSON.parse(newUser)
       delete newUser.password;
 
-      await this.addUserOrUpdateCache(newUser)
+      await addUserOrUpdateCache(newUser)
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (error) {

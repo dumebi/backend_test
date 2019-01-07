@@ -45,7 +45,7 @@ exports.sendUserToken = (user, token) => {
             Token: <strong>${token}</strong>
         </p>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
-            If you are having any issues signing up, contact <strong>support@comflo.com</strong>
+            If you are having any issues signing up, contact <strong>Sterling Support</strong>
         </p>
     `;
   const body = this.emailBody(partialBody);
@@ -56,15 +56,15 @@ exports.sendUserToken = (user, token) => {
  * send a user signup email
  * @param {object} user
  */
-exports.sendUserSignupEmail = (user) => {
+exports.sendUserSignupEmail = (user, link) => {
   const partialBody = `
         <h3>Welcome to AltMall</h3>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
             We are so glad to have you here ${user.fname}.<br>
         </p>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
-            Get started immediately by signing into your account, and start shopping!<br> 
-            For further questions, you can contact <strong>support@altmall.com</strong>
+            Get started immediately by activating your account, click <a href='${link}'>here</a> <br> 
+            For further questions, you can contact <strong>Sterling Support</strong>
         </p>
     `;
   const body = this.emailBody(partialBody);

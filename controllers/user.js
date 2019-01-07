@@ -20,14 +20,13 @@ module.exports = {
       if (result != null && JSON.parse(result).length > 0) {
         users = JSON.parse(result);
       } else {
-        // TODO: Retrieve users from blockchain here
-        // users = await UserModel.find({}, { password: 0 });
-        // for (let index = 0; index < users.length; index++) {
-        //   users[users[index]._id] = users[index]
-        // }
-        // await client.set('users', JSON.stringify(users));
+        users = await UserModel.find({}, { password: 0, recover_token: 0, token: 0 });
+        for (let index = 0; index < users.length; index++) {
+          users[users[index]._id] = users[index]
+        }
+        await client.set('users', JSON.stringify(users));
       }
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: { set: users, total_count: users.length } });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: users });
     } catch (error) {
       const err = {
         http: HttpStatus.BAD_REQUEST,
@@ -53,8 +52,6 @@ module.exports = {
       }
       const _id = req.params.id;
       const user = await UserModel.findById(_id);
-
-      // TODO: Retrieve user from blockchain here
 
       if (user) {
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
@@ -83,9 +80,7 @@ module.exports = {
       console.log(user)
       if (user) {
         // TODO: get user balance from blockchain lib
-
-        // await this.addUserOrUpdateCache(newUser)
-
+        
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
@@ -120,14 +115,55 @@ module.exports = {
       console.log(user)
       if (user) {
         const transactions = TransactionModel.find({ user: user._id })
-        // TODO: get user balance from blockchain lib
-
-        // await this.addUserOrUpdateCache(newUser)
-
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User transactions gotten successfully',
           data: transactions
+        })
+      }
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error updating user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Update a user
+     * @return {object} user
+     */
+  async update(req, res, next) {
+    try {
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      delete req.body.password
+      const user = await UserModel.findByIdAndUpdate(
+        token.data.id,
+        { $set: req.body },
+        { safe: true, multi: true, new: true }
+      )
+      console.log(user)
+      if (user) {
+        let newUser = JSON.stringify(user)
+        newUser = JSON.parse(newUser)
+        delete newUser.password;
+
+
+        await this.addUserOrUpdateCache(newUser)
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          data: newUser
         })
       }
     } catch (error) {

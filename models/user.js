@@ -6,6 +6,7 @@
  */
 const { Schema, model } = require('mongoose')
 const bcrypt = require('bcrypt-nodejs')
+const Wallet = require('../models/wallet')
 
 const Employment = Object.freeze({
   EMPLOYED: 'Employed',
@@ -32,22 +33,37 @@ const UserType = Object.freeze({
 
 const UserSchema = new Schema(
   {
+    // Personal Details
+    fname: { type: Schema.Types.String },
+    mname: { type: Schema.Types.String },
+    lname: { type: Schema.Types.String },
+    email: {
+      type: Schema.Types.String, unique: true, required: true, dropDups: true
+    },
+    phone: { type: Schema.Types.String },
+    image: { type: Schema.Types.String },
+    // bvn: { type: Schema.Types.String },
+    sex: { type: Schema.Types.String },
+    dob: { type: Schema.Types.String },
+    state: { type: Schema.Types.String },
+    city: { type: Schema.Types.String },
+    country: { type: Schema.Types.String },
+    houseAddress: { type: Schema.Types.String },
     // Access levels
     type: { type: Schema.Types.String, enum: Object.values(UserType), default: UserType.USER, required: true },
-    // role: { type: Schema.ObjectId, ref: 'Role', required: true },
     employment: { type: Schema.Types.String, enum: Object.values(Employment), default: Employment.EMPLOYED, required: true },
     group: { type: Schema.Types.String, enum: Object.values(UserGroup), default: UserGroup.ENTRYLEVEL, required: true },
     // Official details
     staffId: { type: Schema.Types.String, unique: true, required: true, dropDups: true },
-    email: { type: Schema.Types.String, unique: true, required: true, dropDups: true },
-    bank: { type: Schema.Types.String },
+    // bank: { type: Schema.Types.String }, Wallet already contains bank details
     beneficiary: { type: Schema.Types.String },
     address: { type: Schema.Types.String, required: true },
     // Authentication
+    activated: { type: Schema.Types.Boolean, required: true },
     enabled: { type: Schema.Types.Boolean, required: true },
-    password: { type: Schema.Types.String, required: true },
-    token: { type: Schema.Types.String }, // JWT token
-    recover_token: { type: Schema.Types.String },
+    password: { type: Schema.Types.String, required: true, select: false },
+    token: { type: Schema.Types.String, select: false }, // JWT token
+    recover_token: { type: Schema.Types.String, select: false },
     // Blockchain details
     vesting: { type: Schema.Types.Boolean, required: true },
     mnemonic: { type: Schema.Types.String, required: true },
@@ -57,7 +73,9 @@ const UserSchema = new Schema(
       email: { type: Schema.Types.Boolean, default: false }, // Email Notifications
       push: { type: Schema.Types.Boolean, default: false }, // Push Notifications
       _2fa: { type: Schema.Types.Boolean, default: false } // 2 factor authentication
-    }
+    },
+    wallet: { type: Schema.Types.ObjectId, ref: 'Wallet' },
+    __v: { type: Number, select: false }
   },
   { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
 )
@@ -66,9 +84,17 @@ UserSchema.statics.UserType = UserType
 UserSchema.statics.UserGroup = UserGroup
 UserSchema.statics.EmploymentStatus = Employment
 
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', async (next) => {
   const hashedPassword = bcrypt.hashSync(this.password, bcrypt.genSaltSync(5), null)
   this.password = hashedPassword;
+  if (this.isNew) {
+    const wallet = await new Wallet({
+      balance: 0,
+      transactions: [],
+      bank: []
+    }).save()
+    this.wallet = wallet._id
+  }
   next();
 });
 

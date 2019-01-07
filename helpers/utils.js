@@ -7,21 +7,18 @@ exports.config = {
   jwt: process.env.JWT_SECRET,
   blockchain: '',
   mongo: '',
-  userHost: '',
-  adminHost: ''
+  host: ''
 }
 
 if (process.env.NODE_ENV === 'development') {
   this.config.blockchain = process.env.GANACHE
-  this.config.mongo = process.env.MONGO_DB_DEV_EXCHANGE
-  this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`
-  this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`
+  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
+  this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'exchange-test'
 } else {
   this.config.blockchain = process.env.GETH
-  this.config.mongo = process.env.MONGO_DB_PROD_EXCHANGE
-  this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`
-  this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`
+  this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
+  this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'exchange'
 }
 
@@ -42,7 +39,7 @@ exports.sendMail = (params, callback) => {
   });
 
   const mailOptions = {
-    from: 'Altmall Support <support@altmall.com>',
+    from: 'Sterling Support <support@sterlingbankng.com>',
     to: email,
     subject,
     html: body

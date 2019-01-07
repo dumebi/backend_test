@@ -20,8 +20,8 @@ client.on('connect', () => {
 
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
-//logger settings
-var appLogger = winston.createLogger({
+// logger settings
+const appLogger = winston.createLogger({
   transports: [
     new (winston.transports.File)({
       name: 'info-file',
@@ -51,32 +51,31 @@ app.use(logger('dev'));
 app.use('/v1/', require('./routes'));
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    var error = {
-      status : 404,
-      success : false,
-      errMsg : "Page Not Found"
-    };
-    next(error);
-  });
+app.use((req, res, next) => {
+  let error = {
+    status: 404,
+    success: false,
+    errMsg: 'Page Not Found'
+  };
+  next(error);
+});
 
 // error handler
-app.use(function(err, req, res, next) {
-  
-    //We log the error internaly 
-    appLogger.error(err);
-  
-    //  Remove Error's `stack` property. We don't want users to see this at the production env
-    if (req.app.get('env') !== 'development') {
-        delete err.stack;
-        delete err.devError;
-    }
+app.use((err, req, res, next) => {
+  // We log the error internaly
+  appLogger.error(err);
 
-    let httpErr = err.http
-    delete err.http
-        
-    // This responds to the request 
-    res.status(httpErr || 500).json(err);
-  });
+  //  Remove Error's `stack` property. We don't want users to see this at the production env
+  if (req.app.get('env') !== 'development') {
+    delete err.stack;
+    delete err.devError;
+  }
+
+  const httpErr = err.http
+  delete err.http
+
+  // This responds to the request
+  res.status(httpErr || 500).json(err);
+});
 
 module.exports = app;
