@@ -108,7 +108,7 @@ contract SIT is Restricted, MessagedERC1404, IST20, Ownable, SITRestriction {
     }
 
     function approve(address _spender, uint256 _amount) public onlyValidShareHolder returns (bool ) {
-        require(shareHolders[_spender].isEnabled , SITRestriction.SEND_TRANSFER_BLOCKED);
+        require(shareHolders[_spender].isEnabled,SITRestriction.SEND_TRANSFER_BLOCKED);
         mAllowed[msg.sender][_spender] = _amount;
         emit Approval(msg.sender, _spender, _amount);
         return true;
@@ -188,7 +188,7 @@ contract SIT is Restricted, MessagedERC1404, IST20, Ownable, SITRestriction {
             emit MovedToTradable(_holder,_sitCat, catIndex);
         } 
         
-        bool success = true;
+        success = true;
         return success;
     }
     
@@ -204,6 +204,11 @@ contract SIT is Restricted, MessagedERC1404, IST20, Ownable, SITRestriction {
         return true;
     }
     
+    function changeBeneficiary(address _holder, bytes32 _beneficiary) public onlyOwner returns (bool success) {
+        shareHolders[_holder].beneficiary = _beneficiary;
+        success = true;
+        return success;
+    }
     
     function updateHolderAccess(address _holder, bool access) public onlyOwner returns (bool success) {
         shareHolders[_holder].isEnabled = access;
@@ -212,34 +217,35 @@ contract SIT is Restricted, MessagedERC1404, IST20, Ownable, SITRestriction {
         } else {
             emit shareHolderDisabled(_holder);
         }
-        return true;
+        success = true;
+        return success;
     }
     
     function withhold(address _holder) public returns (bool success) {
         if (shareHolders[_holder].isWithhold) {
-            bool success = true;
+            success = true;
             return success;
         }
         shareHolders[_holder].isWithhold = true;
-        bool success = true;
+        success = true;
         return success;
     }
     
     function unHold(address _holder) public returns (bool success) {
         if (!shareHolders[_holder].isWithhold) {
-            bool success = true;
+            success = true;
             return success;
         }
         shareHolders[_holder].isWithhold = false;
-        bool success = true;
+        success = true;
         return success;
     }
     
-    function isValid(address _holder) view public returns (bool success) {
+    function isValid(address _holder) public view returns (bool success) {
         return shareHolders[_holder].isEnabled;
     }
     
-    function _isWithhold(address _holder) view public returns (bool success) {
+    function _isWithhold(address _holder) public view returns (bool success) {
         return shareHolders[_holder].isWithhold;
     }
     
@@ -260,4 +266,3 @@ contract SIT is Restricted, MessagedERC1404, IST20, Ownable, SITRestriction {
         return MessagedERC1404(tokenAddress).transfer(owner(), tokens);
     }
 }
-
