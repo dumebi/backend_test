@@ -109,19 +109,20 @@ const UserController = {
         vesting: req.body.vesting
       })
 
-      const [mnemonic, privateKey, publicKey] = Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
+      const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
       user.mnemonic = mnemonic
       user.privateKey = privateKey
       user.publicKey = publicKey
       user.address = Ethkeys.childAddress
 
-      const savedUser = await user.save()
-      const newUser = JSON.parse(savedUser)
+      await user.save()
+      let newUser = JSON.stringify(user)
+      newUser = JSON.parse(newUser)
       delete newUser.password;
 
       await addUserOrUpdateCache(newUser)
 
-      const link = `${config.host}/users/activate/${btoa(user.email)}`
+      const link = `${config.host}/users/activate/${Buffer.from(user.email).toString('base64')}`
 
       const userTokenMailBody = sendUserSignupEmail(user, link)
       const mailparams = {
@@ -134,7 +135,7 @@ const UserController = {
         console.log(result)
       });
 
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: savedUser });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -206,12 +207,16 @@ const UserController = {
           message: 'some parameters were not supplied'
         })
       }
-      const email = atob(req.params.id)
+      const email = Buffer.from(req.params.id, 'base64').toString()
       const user = await UserModel.findOne({ email });
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = true;
       await user.save();
+
+      let newUser = JSON.stringify(user)
+      newUser = JSON.parse(newUser)
+      delete newUser.password;
 
       await addUserOrUpdateCache(newUser)
 

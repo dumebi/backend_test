@@ -22,7 +22,7 @@ const UserGroup = Object.freeze({
   ASSTBANKOFFICER: 'ASSISTANT BANK OFFICER',
   SENIORBANKOFFICER: 'SENIOR BANK OFFICER',
   ASSTMANAGER: 'ASSISTANT MANAGER',
-  MANAGER: 'MANAGER',
+  MANAGER: 'MANAGER'
 })
 
 const UserType = Object.freeze({
@@ -48,7 +48,7 @@ const UserSchema = new Schema(
     state: { type: Schema.Types.String },
     city: { type: Schema.Types.String },
     country: { type: Schema.Types.String },
-    houseAddress: { type: Schema.Types.String },
+    // houseAddress: { type: Schema.Types.String },
     // Access levels
     type: { type: Schema.Types.String, enum: Object.values(UserType), default: UserType.USER, required: true },
     employment: { type: Schema.Types.String, enum: Object.values(Employment), default: Employment.EMPLOYED, required: true },

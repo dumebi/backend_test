@@ -14,12 +14,12 @@ if (process.env.NODE_ENV === 'development') {
   this.config.blockchain = process.env.GANACHE
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
-  this.config.db = 'exchange-test'
+  this.config.db = 'STTP'
 } else {
   this.config.blockchain = process.env.GETH
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
-  this.config.db = 'exchange'
+  this.config.db = 'STTP'
 }
 
 exports.sendMail = (params, callback) => {
@@ -62,20 +62,26 @@ exports.generateTransactionReference = () => {
   return ''.concat(text);
 }
 
+exports.paramsNotValid = (...args) => args
+  .map(param => param !== undefined && param != null && param !== '')
+  .includes(false)
+
 /**
  * Check token was sent
  */
 exports.checkToken = async (req) => {
   try {
     let token = null
-    if (req.headers.usertoken) {
-      token = req.headers.usertoken;
+    if (req.headers.authorization) {
+      token = req.headers.authorization;
+      const tokenArray = token.split(' ');
+      token = tokenArray[1]
     }
-    if (req.params.usertoken) {
-      token = req.params.usertoken
+    if (req.query.token) {
+      token = req.query.token
     }
-    if (req.body.usertoken) {
-      token = req.body.usertoken
+    if (req.body.token) {
+      token = req.body.token
     }
     if (!token) {
       return {

@@ -54,8 +54,8 @@ app.use('/v1/', require('./routes'));
 app.use((req, res, next) => {
   let error = {
     status: 404,
-    success: false,
-    errMsg: 'Page Not Found'
+    success: 'failed',
+    message: 'Page Not Found'
   };
   next(error);
 });
