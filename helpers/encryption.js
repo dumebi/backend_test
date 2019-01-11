@@ -12,7 +12,7 @@ async function encrypt(text) {
 
     encrypted = await Buffer.concat([encrypted, cipher.final()]);
 
-    return `${iv.toString('hex') }:$%${encrypted.toString('hex')}`;
+    return `${iv.toString('hex')  };a8l${  encrypted.toString('hex')}`;
   } catch (error) {
     throw error
   }

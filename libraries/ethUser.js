@@ -1,12 +1,8 @@
 const HD = require('ethereumjs-wallet')
 const bip39 = require('bip39')
 var HDKey = require('hdkey')
-const ethUtil = require("ethereumjs-util")
-const Web3 = require("web3")
-const provider = "https://rinkeby.infura.io/afn70dBlA0QivCgkPipn"
-const web3 = new Web3(provider)
-const EthereumTx = require("ethereumjs-tx")
 const axios = require('axios');
+const {web3, EthereumTx, ethUtil} = require("./base.js")
 
 
 module.exports = {
@@ -43,7 +39,7 @@ module.exports = {
     
 	},
 	
-	ethAccountBal : async function (address) {
+	balance : async function (address) {
 
 		try {
 			const balance = await web3.eth.getBalance(address)
@@ -56,7 +52,7 @@ module.exports = {
 		}
 	},
 	
-	EthFundAccount : async function (fromAddress, toAddress, amount, _privateKey ) {
+	fundAcct : async function (fromAddress, toAddress, amount, _privateKey ) {
 
 		try {
 			
@@ -109,10 +105,10 @@ module.exports = {
 	
 	},
 
-	EthAccountTransfer : async function (fromAddress, toAddress, amount, _privateKey ) {
+	transfer : async function (fromAddress, toAddress, amount, _privateKey ) {
 
 		try {
-			
+			 
 			const isValidFrom = await ethUtil.isValidAddress(fromAddress)
 			const isValidTo = await ethUtil.isValidAddress(toAddress)
 
@@ -121,13 +117,13 @@ module.exports = {
 			} else if (!isValidTo) {
 				return "Invalid to address"
 			}
-			
+		
 			const privateKey = Buffer.from(_privateKey, 'hex')
 			var nounce = await web3.eth.getTransactionCount(fromAddress)
 			const gasUsed = await web3.eth.estimateGas({
 				to: toAddress, 
 				value: web3.utils.toHex(web3.utils.toWei(amount, "ether")), 
-				chainId: 4
+				chainId: 4 // Rinkeby - Changed for production
 			})
 			const getCurrentGasPrices = async () => {
 				let response = await axios.get('https://ethgasstation.info/json/ethgasAPI.json')
@@ -139,9 +135,11 @@ module.exports = {
 				return prices
 			}
 
+
 			const txParams = {
 				nonce: nounce++,
-				gasLimit: gasUsed,
+				// gasLimit: gasUsed,
+				from: fromAddress,
 				to: toAddress, 
 				value: web3.utils.toHex(web3.utils.toWei(amount, "ether")), 
 				chainId: 4
@@ -158,7 +156,14 @@ module.exports = {
 
 		} catch (error) {
 			console.log("error >> ", error)
+			throw error
 		}
+	
+	},
+
+	test : async function () {
+		console.log("coinbase >> ", coinbase)
+		return coinbase
 	
 	}
 	
