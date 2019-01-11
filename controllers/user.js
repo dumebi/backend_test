@@ -56,7 +56,7 @@ module.exports = {
       if (user) {
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
-      return res.status(404).json({ status: 'failed', message: 'User not found' });
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'User not found' });
     } catch (err) {
       console.log(err);
       return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
@@ -87,6 +87,10 @@ module.exports = {
           data: user
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -121,6 +125,10 @@ module.exports = {
           data: transactions
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -166,6 +174,10 @@ module.exports = {
           data: newUser
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -210,6 +222,10 @@ module.exports = {
           data: newUser
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -254,6 +270,10 @@ module.exports = {
           data: newUser
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -298,6 +318,10 @@ module.exports = {
           data: newUser
         })
       }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {

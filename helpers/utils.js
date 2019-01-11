@@ -114,7 +114,7 @@ exports.checkToken = async (req) => {
 /**
  * Create Jwt token
  */
-exports.createToken = async (email, id, type) => {
+exports.createToken = (email, id, type) => {
   try {
     const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken

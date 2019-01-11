@@ -114,8 +114,11 @@ const UserController = {
       user.privateKey = privateKey
       user.publicKey = publicKey
       user.address = Ethkeys.childAddress
+      const jwtToken = createToken(user.email, user._id);
+      user.token = jwtToken;
 
       await user.save()
+
       let newUser = JSON.stringify(user)
       newUser = JSON.parse(newUser)
       delete newUser.password;
@@ -166,7 +169,7 @@ const UserController = {
       const email = req.body.email;
       const password = req.body.password;
       const user = await UserModel.findOne({ email }).select('+password');
-      // console.log(user)
+      console.log(user)
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
@@ -187,7 +190,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Could not create user',
+        message: 'Could not login user',
         devError: error
       }
       next(err)
@@ -207,8 +210,8 @@ const UserController = {
           message: 'some parameters were not supplied'
         })
       }
-      const email = Buffer.from(req.params.id, 'base64').toString()
-      const user = await UserModel.findOne({ email });
+      // const email = Buffer.from(req.params.id, 'base64').toString()
+      const user = await UserModel.findById(req.params.id);
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = true;
@@ -221,6 +224,44 @@ const UserController = {
       await addUserOrUpdateCache(newUser)
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User activated' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error activating user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Send token to a user
+     * @param {string} id
+     * @return {null}
+     */
+  async deactivate(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.id)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const user = await UserModel.findById(req.params.id);
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+
+      user.activated = false;
+      await user.save();
+
+      let newUser = JSON.stringify(user)
+      newUser = JSON.parse(newUser)
+      delete newUser.password;
+
+      await addUserOrUpdateCache(newUser)
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User deactivated' });
     } catch (error) {
       console.log('error >> ', error)
       const err = {

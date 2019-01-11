@@ -15,6 +15,7 @@ router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/activate/:id', AuthController.activate);
+router.patch('/users/deactivate/:id', AuthController.deactivate);
 
 
 /**

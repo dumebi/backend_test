@@ -62,7 +62,7 @@ const UserSchema = new Schema(
     activated: { type: Schema.Types.Boolean, required: true },
     enabled: { type: Schema.Types.Boolean, required: true },
     password: { type: Schema.Types.String, required: true, select: false },
-    token: { type: Schema.Types.String, select: false }, // JWT token
+    token: { type: Schema.Types.String, select: true }, // JWT token
     recover_token: { type: Schema.Types.String, select: false },
     // Blockchain details
     vesting: { type: Schema.Types.Boolean, required: true },
@@ -84,10 +84,11 @@ UserSchema.statics.UserType = UserType
 UserSchema.statics.UserGroup = UserGroup
 UserSchema.statics.EmploymentStatus = Employment
 
-UserSchema.pre('save', async (next) => {
-  const hashedPassword = bcrypt.hashSync(this.password, bcrypt.genSaltSync(5), null)
-  this.password = hashedPassword;
+UserSchema.pre('save', async function pre(next) {
   if (this.isNew) {
+    const hashedPassword = bcrypt.hashSync(this.password, bcrypt.genSaltSync(5), null)
+    console.log(hashedPassword)
+    this.password = hashedPassword;
     const wallet = await new Wallet({
       balance: 0,
       transactions: [],
@@ -102,11 +103,11 @@ UserSchema.statics.encrypt = function encrypt(text) {
   return bcrypt.hashSync(text, bcrypt.genSaltSync(5), null)
 }
 
-UserSchema.statics.validatePassword = function validatePassword(password) {
+UserSchema.methods.validatePassword = function validatePassword(password) {
   return bcrypt.compareSync(password, this.password)
 }
 
-UserSchema.statics.validateToken = function validateToken(token) {
+UserSchema.methods.validateToken = function validateToken(token) {
   return bcrypt.compareSync(token, this.recover_token)
 }
 

@@ -12,7 +12,7 @@ exports.emailBody = (partialBody) => {
             <meta name="description" content="">
             <meta name="author" content="">
             <link href="https://fonts.googleapis.com/css?family=Muli:200" rel="stylesheet">
-            <title>Altmall</title>
+            <title>Sterling Exchange</title>
         </head>
 
         <body style="max-width: 600px;margin: 10px auto;padding: 70px;border: 1px solid #ccc;background: #ffffff;color: #4e4e4e;font-family: Muli;">
@@ -23,7 +23,7 @@ exports.emailBody = (partialBody) => {
                 ${partialBody}
                 <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
                     Cheers, <br>
-                    The Altmall Team
+                    The Sterling Exchange Team
                 </p>
             </div>
         </body>
@@ -58,7 +58,7 @@ exports.sendUserToken = (user, token) => {
  */
 exports.sendUserSignupEmail = (user, link) => {
   const partialBody = `
-        <h3>Welcome to AltMall</h3>
+        <h3>Welcome to the Sterling Token Portal</h3>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
             We are so glad to have you here ${user.fname}.<br>
         </p>
