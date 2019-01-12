@@ -10,20 +10,21 @@ const router = express.Router();
  * Auth Routes
  */
 router.get('/users/token', AuthController.token);
-router.post('/users/create', AuthController.addUsers);
+router.post('/users/create', middleware.isAdmin, AuthController.addUsers);
 router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
+router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
 router.patch('/users/activate/:id', AuthController.activate);
-router.patch('/users/deactivate/:id', AuthController.deactivate);
+router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
 
 
 /**
  * User Model routes
  */
-router.get('/users/types', middleware.isAdmin, AuthController.types);
-router.get('/users/groups', middleware.isAdmin, AuthController.groups);
-router.get('/users/employment-statuses', middleware.isAdmin, AuthController.employment);
+router.get('/users/type', middleware.isAdmin, AuthController.types);
+router.get('/users/group', middleware.isAdmin, AuthController.groups);
+router.get('/users/employment-status', middleware.isAdmin, AuthController.employment);
 
 /**
  * User Profile Routes
@@ -47,5 +48,7 @@ router.get('/users/transactions', middleware.isUser, UserController.transactions
  * Admin Routes
  */
 router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
+router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup);
+router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
 module.exports = router;

@@ -17,12 +17,18 @@ const Employment = Object.freeze({
 })
 
 const UserGroup = Object.freeze({
-  ENTRYLEVEL: 'ENTRY LEVEL',
-  SENIOREXECUTIVE: 'SENIOR EXECUTIVE',
-  ASSTBANKOFFICER: 'ASSISTANT BANK OFFICER',
-  SENIORBANKOFFICER: 'SENIOR BANK OFFICER',
-  ASSTMANAGER: 'ASSISTANT MANAGER',
-  MANAGER: 'MANAGER'
+  ET: 'Executive Trainee',
+  SE: 'Senior Executive',
+  BO: 'Bank Officer',
+  SBO: 'Senior Bank Officer',
+  AM: 'Assistant Manager',
+  DM: 'Deputy Manager',
+  MGR: 'Manager',
+  SM: 'Senior Manager',
+  AGM: 'Assistant General Manager',
+  DGM: 'Deputy General Manager',
+  ED: 'Executive Director',
+  MD: 'Managing Director'
 })
 
 const UserType = Object.freeze({
@@ -99,7 +105,7 @@ UserSchema.pre('save', async function pre(next) {
   next();
 });
 
-UserSchema.statics.encrypt = function encrypt(text) {
+UserSchema.methods.encrypt = function encrypt(text) {
   return bcrypt.hashSync(text, bcrypt.genSaltSync(5), null)
 }
 
@@ -110,7 +116,6 @@ UserSchema.methods.validatePassword = function validatePassword(password) {
 UserSchema.methods.validateToken = function validateToken(token) {
   return bcrypt.compareSync(token, this.recover_token)
 }
-
 const User = model('User', UserSchema)
 
 module.exports = User

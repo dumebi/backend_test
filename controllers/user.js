@@ -12,7 +12,7 @@ const {
 } = require('../helpers/utils');
 
 
-module.exports = {
+const UserController = {
   /**
     * Get all users
     * @return {object[]} users
@@ -21,7 +21,7 @@ module.exports = {
     try {
       let users = {}
       const result = await getAsync('STTP_users');
-      console.log(result)
+      // console.log(result)
       if (result != null && JSON.parse(result).length > 0) {
         users = JSON.parse(result);
       } else {
@@ -47,7 +47,7 @@ module.exports = {
      * Get a user
      * @return {object} user
      */
-  async one(req, res) {
+  async one(req, res, next) {
     try {
       if (paramsNotValid(req.params.id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
@@ -62,9 +62,15 @@ module.exports = {
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
       }
       return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'User not found' });
-    } catch (err) {
-      console.log(err);
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Error getting user' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error updating user',
+        devError: error
+      }
+      next(err)
     }
   },
 
@@ -82,7 +88,7 @@ module.exports = {
         })
       }
       const user = await UserModel.findById(token.data.id)
-      console.log(user)
+      
       if (user) {
         // TODO: get user balance from blockchain lib
         
@@ -121,7 +127,7 @@ module.exports = {
         })
       }
       const user = await UserModel.findById(token.data.id)
-      console.log(user)
+      
       if (user) {
         const transactions = TransactionModel.find({ user: user._id })
         return res.status(HttpStatus.OK).json({
@@ -160,19 +166,27 @@ module.exports = {
         })
       }
       delete req.body.password
+      delete req.body.type
+      delete req.body.employment
+      delete req.body.group
+      delete req.body.address
+      delete req.body.enabled
+      delete req.body.token
+      delete req.body.recover_token
+      delete req.body.vesting
+      delete req.body.enabled
       const user = await UserModel.findByIdAndUpdate(
         token.data.id,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )
-      console.log(user)
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
 
-        await this.addUserOrUpdateCache(newUser)
+        await UserController.addUserOrUpdateCache(newUser)
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -213,14 +227,13 @@ module.exports = {
         { type: req.body.type },
         { safe: true, multi: true, new: true }
       )
-      console.log(user)
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
 
-        await this.addUserOrUpdateCache(newUser)
+        await UserController.addUserOrUpdateCache(newUser)
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -261,14 +274,14 @@ module.exports = {
         { group: req.body.group },
         { safe: true, multi: true, new: true }
       )
-      console.log(user)
+      
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
 
-        await this.addUserOrUpdateCache(newUser)
+        await UserController.addUserOrUpdateCache(newUser)
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -309,14 +322,14 @@ module.exports = {
         { employment: req.body.employment },
         { safe: true, multi: true, new: true }
       )
-      console.log(user)
+      
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
         delete newUser.password;
 
 
-        await this.addUserOrUpdateCache(newUser)
+        await UserController.addUserOrUpdateCache(newUser)
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -351,4 +364,6 @@ module.exports = {
       console.log(err)
     }
   }
-}
+};
+
+module.exports = UserController;

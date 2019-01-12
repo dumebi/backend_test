@@ -6,19 +6,19 @@ const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
 const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const {
-  paramsNotValid, sendMail, createToken, config
+  paramsNotValid, sendMail, createToken, config, checkToken
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
 const { addUserOrUpdateCache } = require('../controllers/user');
 
-const UserController = {
+const AuthController = {
   /**
      * User Types
      * @return {null}
      */
   async types(req, res, next) {
     try {
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Types', data: Object.keys(UserModel.UserType) });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Types', data: Object.values(UserModel.UserType) });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -36,7 +36,7 @@ const UserController = {
      */
   async groups(req, res, next) {
     try {
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Groups', data: Object.keys(UserModel.UserGroup) });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Groups', data: Object.values(UserModel.UserGroup) });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -54,7 +54,7 @@ const UserController = {
      */
   async employment(req, res, next) {
     try {
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Employment statuses', data: Object.keys(UserModel.EmploymentStatus) });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Employment statuses', data: Object.values(UserModel.EmploymentStatus) });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -114,7 +114,7 @@ const UserController = {
       user.privateKey = privateKey
       user.publicKey = publicKey
       user.address = Ethkeys.childAddress
-      const jwtToken = createToken(user.email, user._id);
+      const jwtToken = createToken(user.email, user._id, user.type);
       user.token = jwtToken;
 
       await user.save()
@@ -169,12 +169,11 @@ const UserController = {
       const email = req.body.email;
       const password = req.body.password;
       const user = await UserModel.findOne({ email }).select('+password');
-      console.log(user)
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }
-      const jwtToken = createToken(email, user._id);
+      const jwtToken = createToken(email, user._id, user.type);
       user.token = jwtToken;
       await user.save();
       // Deep copy
@@ -331,7 +330,7 @@ const UserController = {
      */
   async resetPass(req, res, next) {
     try {
-      if (paramsNotValid(req.body.email)) {
+      if (paramsNotValid(req.body.email, req.body.password, req.body.token)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -341,12 +340,15 @@ const UserController = {
       const password = req.body.password;
       const token = req.body.token;
 
-      const user = await UserModel.findOne({ email });
+      const user = await UserModel.findOne({
+        email: req.body.email
+      }).select('+recover_token');
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validateToken(token)) {
-        return res.json({ result: 'error', message: 'Wrong Token' });
+        return res.json({ result: 'error', message: 'Wrong Token' })
       }
-      const jwtToken = createToken(email, user._id);
+
+      const jwtToken = createToken(email, user._id, user.type);
       user.password = user.encrypt(password);
       user.token = jwtToken;
 
@@ -364,7 +366,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error getting user',
+        message: 'Error reseting password',
         devError: error
       }
       next(err)
@@ -377,7 +379,7 @@ const UserController = {
   //    */
   // async token(req, res, next) {
   //   try {
-  //     const token = await checkToken(req);
+  //     const token = await token(req);
   //     const user = await UserModel.findById(token.data.id);
   //     if (user.email) {
   //       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user.token });
@@ -432,6 +434,48 @@ const UserController = {
     }
   },
 
+  /**
+     * change a user's password
+     * @return {object} user
+     */
+  async changePass(req, res) {
+    try {
+      if (paramsNotValid(req.body.password)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id);
+      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+      user.password = user.encrypt(req.body.password);
+      await user.save()
+
+      let newUser = JSON.stringify(user)
+      newUser = JSON.parse(newUser)
+      delete newUser.password;
+
+      return res.status(HttpStatus.OK).json({
+        status: 'success',
+        message: 'Password changed successfully',
+        data: newUser
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: error
+      })
+    }
+  },
+
 };
 
-module.exports = UserController;
+module.exports = AuthController;

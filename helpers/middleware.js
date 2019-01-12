@@ -18,9 +18,9 @@ exports.isUser = async (req, res, next) => {
       })
     }
     if (
-      token.data.type === UserModel.UserType[0]
-      || token.user_type === UserModel.UserType[1]
-      || token.user_type === UserModel.UserType[2]
+      token.data.type === Object.values(UserModel.UserType)[0]
+      || token.data.type === Object.values(UserModel.UserType)[1]
+      || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
       next()
     } else {
@@ -43,6 +43,7 @@ exports.isUser = async (req, res, next) => {
 exports.isAdmin = async (req, res, next) => {
   try {
     const token = await checkToken(req);
+    console.log(token)
     if (token.status === 'failed') {
       return res.status(token.data).json({
         status: 'failed',
@@ -50,8 +51,8 @@ exports.isAdmin = async (req, res, next) => {
       })
     }
     if (
-      token.user_type === UserModel.UserType[1]
-      || token.user_type === UserModel.UserType[2]
+      token.data.type === Object.values(UserModel.UserType)[1]
+      || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
       next()
     } else {
@@ -80,7 +81,7 @@ exports.isSuperAdmin = async (req, res, next) => {
       })
     }
     if (
-      token.user_type === UserModel.UserType[2]
+      token.data.type === Object.values(UserModel.UserType)[2]
     ) {
       next()
     } else {
