@@ -13,7 +13,7 @@
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
     "dev": "NODE_ENV=development nodemon ./bin/www",
-    "test": "NODE_ENV=development mocha test/node/*.test.js --reporter spec --exit --full-trace"
+    "test": "NODE_ENV=development mocha test/*.test.js --reporter spec --exit --full-trace"
   },
   "devDependencies": {
     "chai": "^4.2.0",

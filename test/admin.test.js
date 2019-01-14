@@ -9,6 +9,7 @@ describe('Admin Test', () => {
   let user_jwt = ''
   let user_id = ''
   let admin_jwt = ''
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlkIjoiNWMzN2E0ODZjMmRhYzgxNzM2ZjE4MmNiIiwidHlwZSI6IkFkbWluIiwiaWF0IjoxNTQ3NDk4MzAzLCJleHAiOjE1NDc1ODQ3MDN9.Q9TtOXm1w2zG6oXZ9td9pWOd2Eaa92Du3Soql22DIcI'
 
   it('Should create a user', (done) => {
     const fname = 'John'
@@ -22,10 +23,11 @@ describe('Admin Test', () => {
     const type = 'User'
     const employment = 'Employed'
     const group = 'Senior Executive'
-    const staffId = '16738'
+    const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
       .post('users/create')
       .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${token}`)
       .send({
         fname,
         lname,
@@ -44,8 +46,18 @@ describe('Admin Test', () => {
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.email).to.equal(user_email)
-        expect(res.body.data.password).to.not.equal(user_pass)
+        expect(res.body.data.email).to.equal(email)
+        expect(res.body.data.fname).to.equal(fname)
+        expect(res.body.data.lname).to.equal(lname)
+        expect(res.body.data.phone).to.equal(phone)
+        expect(res.body.data.sex).to.equal(sex)
+        expect(res.body.data.dob).to.equal(dob)
+        expect(res.body.data.vesting).to.equal(vesting)
+        expect(res.body.data.type).to.equal(type)
+        expect(res.body.data.employment).to.equal(employment)
+        expect(res.body.data.group).to.equal(group)
+        expect(res.body.data.staffId).to.equal(staffId)
+        expect(res.body.data.password).to.not.equal(password)
         user_jwt = res.body.data.token;
         user_id = res.body.data._id
         done()
@@ -64,10 +76,11 @@ describe('Admin Test', () => {
     const type = 'Admin'
     const employment = 'Employed'
     const group = 'Executive Trainee'
-    const staffId = '74895'
+    const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
       .post('users/create')
       .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${token}`)
       .send({
         fname,
         lname,
@@ -86,8 +99,18 @@ describe('Admin Test', () => {
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.email).to.equal(user_email)
-        expect(res.body.data.password).to.not.equal(user_pass)
+        expect(res.body.data.email).to.equal(email)
+        expect(res.body.data.fname).to.equal(fname)
+        expect(res.body.data.lname).to.equal(lname)
+        expect(res.body.data.phone).to.equal(phone)
+        expect(res.body.data.sex).to.equal(sex)
+        expect(res.body.data.dob).to.equal(dob)
+        expect(res.body.data.vesting).to.equal(vesting)
+        expect(res.body.data.type).to.equal(type)
+        expect(res.body.data.employment).to.equal(employment)
+        expect(res.body.data.group).to.equal(group)
+        expect(res.body.data.staffId).to.equal(staffId)
+        expect(res.body.data.password).to.not.equal(password)
         admin_jwt = res.body.data.token;
         done()
       })
@@ -97,7 +120,7 @@ describe('Admin Test', () => {
     api
       .get(`users/${user_id}`)
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
@@ -110,7 +133,7 @@ describe('Admin Test', () => {
     api
       .get('users')
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
@@ -121,9 +144,9 @@ describe('Admin Test', () => {
 
   it('Should get all user types', (done) => {
     api
-      .get('users/types')
+      .get('users/type')
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
@@ -136,7 +159,7 @@ describe('Admin Test', () => {
     api
       .get('users/group')
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
@@ -149,7 +172,7 @@ describe('Admin Test', () => {
     api
       .get('users/employment-status')
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
@@ -163,7 +186,7 @@ describe('Admin Test', () => {
     api
       .patch(`users/${user_id}/group`)
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .send({
         group
       })
@@ -182,7 +205,7 @@ describe('Admin Test', () => {
     api
       .patch(`users/${user_id}/type`)
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .send({
         type
       })
@@ -201,9 +224,9 @@ describe('Admin Test', () => {
     api
       .patch(`users/${user_id}/employment-status`)
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .send({
-        type
+        employment
       })
       .expect(200)
       .end((err, res) => {
@@ -219,14 +242,11 @@ describe('Admin Test', () => {
     api
       .patch(`users/deactivate/${user_id}`)
       .set('Accept', 'application/json')
-      .set('authorization', admin_jwt)
-      .send({
-        type
-      })
+      .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
-        expect(res.body.data.message).to.equal('User deactivated')
+        expect(res.body.message).to.equal('User deactivated')
         done()
       })
   }).timeout(10000)
