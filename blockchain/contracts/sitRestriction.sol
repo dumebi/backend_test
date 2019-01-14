@@ -1,15 +1,21 @@
 pragma solidity >=0.4.0 <0.6.0;
 
-import "./messagedERC1404.sol";
+import "./iERC1404.sol";
 import "./safeMath.sol";
 import "./owner.sol";
 import "./messagesAndCodes.sol";
 
 /// @title Extendable reference implementation for the ERC-1404 token
 /// @dev Inherit from this contract to implement your own ERC-1404 token
-contract SITRestriction is MessagedERC1404, Ownable {
+contract SITRestriction is IERC1404, Ownable {
     using SafeMath for uint256;
     
+    using MessagesAndCodes for MessagesAndCodes.Data;
+    MessagesAndCodes.Data internal messagesAndCodes;
+
+    uint8 public constant SUCCESS_CODE = 0;
+    string public constant SUCCESS_MESSAGE = "SUCCESS";
+
     uint8 public UNVERIFIED_HOLDER_CODE;
     uint8 public SEND_TRANSFER_BLOCKED_CODE;
     uint8 public RECEIPT_TRANSFER_BLOCKED_CODE;
@@ -34,7 +40,7 @@ contract SITRestriction is MessagedERC1404, Ownable {
     string public constant MOVE_LIEN_ERROR = "Lien cannot be moved to tradable balance, lien period not over yet";
     string public constant UNIQUE_SHAREHOLDER_ERROR = "Shareholder already added before!";
     
-     modifier onlyValidShareHolder () {
+    modifier onlyValidShareHolder () {
         if (msg.sender != owner()) {
             require(shareHolders[msg.sender].isEnabled, UNVERIFIED_HOLDER_ERROR);
             require(shareHolders[msg.sender].isWithhold, ACCOUNT_WITHHOLD_ERROR);
@@ -64,6 +70,7 @@ contract SITRestriction is MessagedERC1404, Ownable {
     
     constructor () public {
         
+        messagesAndCodes.addMessage(SUCCESS_CODE, SUCCESS_MESSAGE);
         UNVERIFIED_HOLDER_CODE = messagesAndCodes.autoAddMessage(UNVERIFIED_HOLDER_ERROR);
         SEND_TRANSFER_BLOCKED_CODE = messagesAndCodes.autoAddMessage(SEND_TRANSFER_BLOCKED);
         RECEIPT_TRANSFER_BLOCKED_CODE = messagesAndCodes.autoAddMessage(RECEIPT_TRANSFER_BLOCKED);

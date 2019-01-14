@@ -13,5 +13,5 @@ contract IST20 {
     function verifyTransfer(address _from, address _to, uint256 _amount) public view returns (bool success);
 
     // used to create tokens 
-    function mint(address _investor, uint256 _amount) public returns (bool success); 
+    // function mint(address _investor, uint256 _amount) public returns (bool success); 
 }

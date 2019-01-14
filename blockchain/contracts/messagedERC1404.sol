@@ -16,11 +16,11 @@ contract Restricted is IERC1404 {
         _;
     }
     
-    function detectTransferRestriction (address from, address to, uint256 value) public view returns (uint8 restrictionCode)
-    {
-        restrictionCode = SUCCESS_CODE;
-        return restrictionCode;
-    }
+    // function detectTransferRestriction (address from, address to, uint256 value) public view returns (uint8 restrictionCode)
+    // {
+    //     restrictionCode = SUCCESS_CODE;
+    //     return restrictionCode;
+    // }
         
     function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory message){
         if (restrictionCode == SUCCESS_CODE) {
