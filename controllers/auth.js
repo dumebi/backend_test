@@ -438,7 +438,7 @@ const AuthController = {
      * change a user's password
      * @return {object} user
      */
-  async changePass(req, res) {
+  async changePass(req, res, next) {
     try {
       if (paramsNotValid(req.body.password)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
@@ -468,11 +468,14 @@ const AuthController = {
         data: newUser
       })
     } catch (error) {
-      console.log(error)
-      return res.status(HttpStatus.BAD_REQUEST).json({
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: error
-      })
+        message: 'Error getting user',
+        devError: error
+      }
+      next(err)
     }
   },
 

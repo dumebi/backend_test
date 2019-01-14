@@ -27,13 +27,6 @@ router.get('/users/group', middleware.isAdmin, AuthController.groups);
 router.get('/users/employment-status', middleware.isAdmin, AuthController.employment);
 
 /**
- * User Profile Routes
- */
-router.patch('/users/', middleware.isUser, UserController.update);
-router.get('/users/:id', middleware.isUser, UserController.one);
-router.get('/users/', middleware.isAdmin, UserController.all);
-
-/**
  * User Exchange Routes
  */
 router.get('/users/balance', middleware.isUser, UserController.balance);
@@ -43,6 +36,14 @@ router.get('/users/transactions', middleware.isUser, UserController.transactions
 // router.post('/users/buy', middleware.isUser, UserController.buy);
 // router.post('/users/sell', middleware.isUser, UserController.sell);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
+
+/**
+ * User Profile Routes
+ */
+router.get('/users/bank', middleware.isUser, UserController.bank);
+router.patch('/users/', middleware.isUser, UserController.update);
+router.get('/users/:id', middleware.isUser, UserController.one);
+router.get('/users/', middleware.isAdmin, UserController.all);
 
 /**
  * Admin Routes

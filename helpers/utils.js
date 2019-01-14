@@ -5,7 +5,7 @@ require('dotenv').config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
-  blockchain: "https://rinkeby.infura.io/afn70dBlA0QivCgkPipn",
+  blockchain: 'https://rinkeby.infura.io/afn70dBlA0QivCgkPipn',
   mongo: '',
   host: ''
 }
@@ -69,7 +69,7 @@ exports.paramsNotValid = (...args) => args
 /**
  * Check token was sent
  */
-exports.checkToken = async (req) => {
+exports.checkToken = async (req, res, next) => {
   try {
     let token = null
     if (req.headers.authorization) {
@@ -98,14 +98,23 @@ exports.checkToken = async (req) => {
     //     message: 'Not authorized'
     //   }
     // }
+    // let dateNow = new Date()
+    // console.log(isExpiredToken)
     return {
       status: 'success',
       data: decryptedToken
     }
-  } catch (err) {
+  } catch (error) {
+    if (error.name === 'TokenExpiredError') {
+      return {
+        status: 'failed',
+        data: Constants.UNAUTHORIZED,
+        message: 'Token expired'
+      }
+    }
     return {
       status: 'failed',
-      data: Constants.BAD_REQUEST,
+      data: Constants.UNAUTHORIZED,
       message: 'failed to authenticate token'
     }
   }

@@ -5,7 +5,7 @@ const HttpStatus = require('../helpers/status');
 // const SIT = require("../libraries/sitHolder.js");
 // const validate = require("../helpers/validation.js");
 // const secure = require("../helpers/encryption.js");
-// const User = require("../models/user.js");
+const Wallet = require('../models/wallet.js');
 const { getAsync, client } = require('../helpers/redis');
 const {
   paramsNotValid, checkToken
@@ -78,7 +78,7 @@ const UserController = {
      * Get a user balance
      * @return {object} user
      */
-  async balance(req, res, next) {
+  async bank(req, res, next) {
     try {
       const token = await checkToken(req);
       if (token.status === 'failed') {
@@ -88,14 +88,15 @@ const UserController = {
         })
       }
       const user = await UserModel.findById(token.data.id)
-      
+
       if (user) {
         // TODO: get user balance from blockchain lib
-        
+        const user_wallet = await Wallet.findById(user.wallet)
+
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
-          data: user
+          data: user_wallet.bank
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({
@@ -107,12 +108,54 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error getting balance user',
         devError: error
       }
       next(err)
     }
   },
+  
+  /**
+     * Get a user balance
+     * @return {object} user
+     */
+  async balance(req, res, next) {
+    try {
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        // TODO: get user balance from blockchain lib
+        const user_wallet = await Wallet.findById(user.wallet)
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User balance gotten successfully',
+          data: { naira: user_wallet.balance, sit: 0 }
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting balance user',
+        devError: error
+      }
+      next(err)
+    }
+  },
+  
   /**
      * Get all user transaction
      * @return {object} user
@@ -127,7 +170,7 @@ const UserController = {
         })
       }
       const user = await UserModel.findById(token.data.id)
-      
+
       if (user) {
         const transactions = TransactionModel.find({ user: user._id })
         return res.status(HttpStatus.OK).json({
@@ -274,7 +317,7 @@ const UserController = {
         { group: req.body.group },
         { safe: true, multi: true, new: true }
       )
-      
+
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
@@ -322,7 +365,7 @@ const UserController = {
         { employment: req.body.employment },
         { safe: true, multi: true, new: true }
       )
-      
+
       if (user) {
         let newUser = JSON.stringify(user)
         newUser = JSON.parse(newUser)
