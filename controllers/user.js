@@ -1,10 +1,6 @@
 const UserModel = require('../models/user.js');
 const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
-// const EthAccount = require("../libraries/ethUser.js");
-// const SIT = require("../libraries/sitHolder.js");
-// const validate = require("../helpers/validation.js");
-// const secure = require("../helpers/encryption.js");
 const Wallet = require('../models/wallet.js');
 const { getAsync, client } = require('../helpers/redis');
 const {
@@ -36,7 +32,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Could not create user',
+        message: 'Could not get users',
         devError: error
       }
       next(err)
@@ -67,7 +63,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error getting user',
         devError: error
       }
       next(err)
@@ -108,7 +104,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error getting balance user',
+        message: 'Error getting user bank details',
         devError: error
       }
       next(err)
@@ -149,7 +145,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error getting balance user',
+        message: 'Error getting user balance',
         devError: error
       }
       next(err)
@@ -188,7 +184,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error getting user transactions',
         devError: error
       }
       next(err)
@@ -292,7 +288,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error updating user type',
         devError: error
       }
       next(err)
@@ -340,7 +336,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error updating user group',
         devError: error
       }
       next(err)
@@ -388,7 +384,7 @@ const UserController = {
       const err = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Error updating user',
+        message: 'Error updating user employment status',
         devError: error
       }
       next(err)

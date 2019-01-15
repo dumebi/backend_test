@@ -1,6 +1,7 @@
 const express = require('express');
 const AuthController = require('../controllers/auth')
 const UserController = require('../controllers/user');
+const TransactionController = require('../controllers/transaction');
 const middleware = require('../helpers/middleware')
 // const sanitize = require("../helpers/sanitization.js");
 
@@ -30,7 +31,7 @@ router.get('/users/employment-status', middleware.isAdmin, AuthController.employ
  * User Exchange Routes
  */
 router.get('/users/balance', middleware.isUser, UserController.balance);
-router.get('/users/transactions', middleware.isUser, UserController.transactions);
+router.get('/users/transactions', middleware.isUser, TransactionController.user);
 // router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
 // router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
 // router.post('/users/buy', middleware.isUser, UserController.buy);
@@ -52,4 +53,7 @@ router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
 router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup);
 router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
+
+router.post('/admin/schedule/create', middleware.isAdmin, AuthController.addUsers);
+router.post('/admin/transactions', middleware.isAdmin, TransactionController.all);
 module.exports = router;

@@ -17,6 +17,11 @@ const TransactionType = Object.freeze({
   WITHDRAW: 'Withdraw',
 })
 
+const WalletType = Object.freeze({
+  NAIRA: 'Naira',
+  SIT: 'SIT',
+})
+
 const TransactionSchema = new Schema(
   {
     user: { type: Schema.ObjectId, ref: 'User', required: true },
@@ -28,7 +33,12 @@ const TransactionSchema = new Schema(
     },
     from: { type: Schema.Types.String }, // sender
     to: { type: Schema.Types.String }, // receiver
-    wallet: { type: Schema.Types.String }, // Or token
+    wallet: {
+      type: Schema.Types.String,
+      enum: Object.values(WalletType),
+      default: TransactionType.NAIRA,
+      required: true
+    }, // Or token
     volume: { type: Schema.Types.Number },
     amount: { type: Schema.Types.Number },
     txHash: { type: Schema.Types.String },
@@ -44,5 +54,6 @@ const TransactionSchema = new Schema(
 
 TransactionSchema.statics.Status = TransactionStatus
 TransactionSchema.statics.Type = TransactionType
+TransactionSchema.statics.Wallet = WalletType
 
 module.exports = model('Transaction', TransactionSchema)

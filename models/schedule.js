@@ -4,6 +4,8 @@ const {
   model
 } = require('mongoose')
 
+const UserModel = require('../models/user');
+
 const ScheduleStatus = Object.freeze({
   PENDING: 'Pending',
   COMPLETED: 'Completed',
@@ -13,20 +15,24 @@ const ScheduleStatus = Object.freeze({
 
 const ScheduleSchema = new Schema({
   scheduleId: { type: Schema.Types.Number, unique: true, dropDups: true },
-  staffId: {
-    type: Schema.Types.String, unique: true, required: true, dropDups: true
+  group: {
+    type: Schema.Types.String, enum: Object.values(UserModel.UserGroup), default: UserModel.UserGroup.ENTRYLEVEL, required: true
   },
   amount: { type: Schema.Types.Number },
   date: { type: Schema.Types.Date },
-  enabled: { type: Schema.Types.String },
+  enabled: { type: Schema.Types.Boolean },
   status: {
     type: Schema.Types.String,
     enum: Object.values(ScheduleStatus),
     default: ScheduleStatus.PENDING,
     required: true
   },
-  authorizedby: { type: Schema.Types.Array },
+  createdby: { type: Schema.ObjectId, ref: 'User', required: true },
+  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true },
+  disabledby: { type: Schema.ObjectId, ref: 'User', required: true },
 }, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
+
+ScheduleSchema.statics.Status = ScheduleStatus
 
 const Schedule = model('Schedule', ScheduleSchema)
 

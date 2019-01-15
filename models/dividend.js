@@ -4,6 +4,8 @@ const {
   model
 } = require('mongoose')
 
+const UserModel = require('../models/user');
+
 const DividendStatus = Object.freeze({
   PENDING: 'Pending',
   COMPLETED: 'Completed',
@@ -13,8 +15,8 @@ const DividendStatus = Object.freeze({
 
 const DividendSchema = new Schema({
   dividendId: { type: Schema.Types.Number, unique: true, dropDups: true },
-  staffId: {
-    type: Schema.Types.String, unique: true, required: true, dropDups: true
+  group: {
+    type: Schema.Types.String, enum: Object.values(UserModel.UserGroup), default: UserModel.UserGroup.ENTRYLEVEL, required: true
   },
   amount: { type: Schema.Types.Number },
   date: { type: Schema.Types.Date },
@@ -24,7 +26,9 @@ const DividendSchema = new Schema({
     default: DividendStatus.PENDING,
     required: true
   },
-  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true }
+  createdby: { type: Schema.ObjectId, ref: 'User', required: true },
+  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true },
+  disabledby: { type: Schema.ObjectId, ref: 'User', required: true },
 }, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
 
 const Dividend = model('Dividend', DividendSchema)
