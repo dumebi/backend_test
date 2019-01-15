@@ -48,4 +48,5 @@ router.get('/users/transactions', middleware.isUser, UserController.transactions
  */
 router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
 
+
 module.exports = router;
