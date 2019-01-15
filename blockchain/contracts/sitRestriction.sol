@@ -1,49 +1,28 @@
 pragma solidity >=0.4.0 <0.6.0;
 
-import "./iERC1404.sol";
+import "./iERCs.sol";
 import "./safeMath.sol";
 import "./owner.sol";
 import "./messagesAndCodes.sol";
 
-/// @title Extendable reference implementation for the ERC-1404 token
-/// @dev Inherit from this contract to implement your own ERC-1404 token
 contract SITRestriction is IERC1404, Ownable {
     using SafeMath for uint256;
-    
     using MessagesAndCodes for MessagesAndCodes.Data;
     MessagesAndCodes.Data internal messagesAndCodes;
-
-    uint8 public constant SUCCESS_CODE = 0;
-    string public constant SUCCESS_MESSAGE = "SUCCESS";
-
-    uint8 public UNVERIFIED_HOLDER_CODE;
-    uint8 public SEND_TRANSFER_BLOCKED_CODE;
-    uint8 public RECEIPT_TRANSFER_BLOCKED_CODE;
-    uint8 public TOKEN_GRANULARITY_ERROR_CODE;
-    uint8 public TRANSFER_VERIFIED_ERROR_CODE;
-    uint8 public INSUFFICIENT_BALANCE_ERROR_CODE;
-    uint8 public INVALID_AMOUNT_ERROR_CODE;
-    uint8 public SPENDER_BALANCE_ERROR_CODE;
-    uint8 public ACCOUNT_WITHHOLD_ERROR_CODE;
-    uint8 public MOVE_LIEN_ERROR_CODE;
-    uint8 public UNIQUE_SHAREHOLDER_ERROR_CODE;
-
-    string public constant UNVERIFIED_HOLDER_ERROR = "Only verified SIT holders can perform this transaction";
-    string public constant SEND_TRANSFER_BLOCKED = "Sender not authorized";
-    string public constant RECEIPT_TRANSFER_BLOCKED = "Recipient not authorized";
-    string public constant TOKEN_GRANULARITY_ERROR = "Token cannot be granular below the specified granularity"; 
-    string public constant TRANSFER_VERIFIED_ERROR = "Off-Chain approval for restricted token";
-    string public constant INSUFFICIENT_BALANCE_ERROR = "You do not have sufficient balance for this transaction";
-    string public constant SPENDER_BALANCE_ERROR = "Amount specified is morethan spendable amount";
-    string public constant INVALID_AMOUNT_ERROR = "Token amount specified is invalid";
-    string public constant ACCOUNT_WITHHOLD_ERROR = "Account on hold";
-    string public constant MOVE_LIEN_ERROR = "Lien cannot be moved to tradable balance, lien period not over yet";
-    string public constant UNIQUE_SHAREHOLDER_ERROR = "Shareholder already added before!";
+ 
+    struct Code {
+        mapping(string => uint256) errorStringToCodeIndex;
+        mapping(string => uint8) errorStringToCode;
+        uint8 currentCodeIndex;
+    }
+    Code public codes;
     
     modifier onlyValidShareHolder () {
         if (msg.sender != owner()) {
-            require(shareHolders[msg.sender].isEnabled, UNVERIFIED_HOLDER_ERROR);
-            require(shareHolders[msg.sender].isWithhold, ACCOUNT_WITHHOLD_ERROR);
+            uint8 _code1 = codes.errorStringToCode["UNVERIFIED_HOLDER"];
+            uint8 _code2 = codes.errorStringToCode["ACCOUNT_WITHHOLD_ERROR"];
+            require(shareHolders[msg.sender].isEnabled, messagesAndCodes.messages[_code1]);
+            require(shareHolders[msg.sender].isWithhold, messagesAndCodes.messages[_code2]);
             _;
         }
         _;
@@ -69,38 +48,54 @@ contract SITRestriction is IERC1404, Ownable {
     mapping(address => SitHolder) shareHolders; 
     
     constructor () public {
-        
-        messagesAndCodes.addMessage(SUCCESS_CODE, SUCCESS_MESSAGE);
-        UNVERIFIED_HOLDER_CODE = messagesAndCodes.autoAddMessage(UNVERIFIED_HOLDER_ERROR);
-        SEND_TRANSFER_BLOCKED_CODE = messagesAndCodes.autoAddMessage(SEND_TRANSFER_BLOCKED);
-        RECEIPT_TRANSFER_BLOCKED_CODE = messagesAndCodes.autoAddMessage(RECEIPT_TRANSFER_BLOCKED);
-        TOKEN_GRANULARITY_ERROR_CODE = messagesAndCodes.autoAddMessage(TOKEN_GRANULARITY_ERROR);
-        TRANSFER_VERIFIED_ERROR_CODE = messagesAndCodes.autoAddMessage(TRANSFER_VERIFIED_ERROR);
-        INSUFFICIENT_BALANCE_ERROR_CODE = messagesAndCodes.autoAddMessage(INSUFFICIENT_BALANCE_ERROR);
-        INVALID_AMOUNT_ERROR_CODE = messagesAndCodes.autoAddMessage(INVALID_AMOUNT_ERROR);
-        SPENDER_BALANCE_ERROR_CODE = messagesAndCodes.autoAddMessage(SPENDER_BALANCE_ERROR);
-        ACCOUNT_WITHHOLD_ERROR_CODE = messagesAndCodes.autoAddMessage(ACCOUNT_WITHHOLD_ERROR);
-        MOVE_LIEN_ERROR_CODE = messagesAndCodes.autoAddMessage(MOVE_LIEN_ERROR);
-        UNIQUE_SHAREHOLDER_ERROR_CODE = messagesAndCodes.autoAddMessage(UNIQUE_SHAREHOLDER_ERROR);
+        addMessage("SUCCESS", "Success");
+        addMessage("UNVERIFIED_HOLDER", "Only verified SIT holders can perform this transaction");
+        addMessage("RECEIPT_TRANSFER_BLOCKED", "Recipient not authorized");
+        addMessage("TOKEN_GRANULARITY_ERROR", "Token cannot be granular below the specified granularity");
+        addMessage("TRANSFER_VERIFIED_ERROR", "Off-Chain approval for restricted token");
+        addMessage("INSUFFICIENT_BALANCE_ERROR", "You do not have sufficient balance for this transaction");
+        addMessage("INVALID_AMOUNT_ERROR", "Token amount specified is invalid");
+        addMessage("SPENDER_BALANCE_ERROR", "Amount specified is morethan spendable amount");
+        addMessage("ACCOUNT_WITHHOLD_ERROR", "Account on hold");
+        addMessage("MOVE_LIEN_ERROR", "Lien cannot be moved to tradable balance, lien period not over yet");
+        addMessage("UNIQUE_SHAREHOLDER_ERROR", "Shareholder already added before!");
+    }
+
+    function addMessage (string memory  _errorString, string memory _message) public returns (string memory errorString){
+        // enter message at code and push code onto storage
+        uint8 _code = codes.currentCodeIndex;
+        uint256 codeIndex = messagesAndCodes._addMessage(_code, _message);
+        codes.errorStringToCodeIndex["_errorString"] = codeIndex;
+        codes.currentCodeIndex = codes.currentCodeIndex++;
+        codes.errorStringToCode[_errorString] = _code;
+        errorString = _errorString;
+    }
+
+    function removeMessage (string memory _errorString) public returns (bool success) {   
+        uint256 _codeIndex = codes.errorStringToCodeIndex[_errorString];
+        uint8 _code = codes.errorStringToCode[_errorString];
+        success = messagesAndCodes._removeMessage(_codeIndex, _code);
+    }
+
+    function updateMessage (string memory _errorString, string memory _message) public returns (bool success){
+        uint8 _code = codes.errorStringToCode[_errorString];
+        success = messagesAndCodes._updateMessage(_code, _message);
     }
     
-   
     function detectTransferRestriction (address _from, address _to, uint256 _amount) public view returns (uint8 restrictionCode)
     {
-        restrictionCode = SUCCESS_CODE;
-        
+        restrictionCode = codes.errorStringToCode["SUCCESS"];
         if (!shareHolders[_from].isEnabled) {
-            restrictionCode = SEND_TRANSFER_BLOCKED_CODE;
+            restrictionCode = codes.errorStringToCode["SEND_TRANSFER_BLOCKED"];
         } else if (!shareHolders[_to].isEnabled) {
-            restrictionCode = RECEIPT_TRANSFER_BLOCKED_CODE;
+            restrictionCode = codes.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"];
         } else if (mBalances[_from] < _amount) {
-            restrictionCode = INSUFFICIENT_BALANCE_ERROR_CODE;
+            restrictionCode = codes.errorStringToCode["INSUFFICIENT_BALANCE_ERROR"];
         } else if (_amount <= 0 && mBalances[_to].add(_amount) <= mBalances[_to]) {
-            restrictionCode = INVALID_AMOUNT_ERROR_CODE;
+            restrictionCode = codes.errorStringToCode["INVALID_AMOUNT_ERROR"];
         } else if (!shareHolders[_from].isWithhold) {
-            restrictionCode = ACCOUNT_WITHHOLD_ERROR_CODE;
+            restrictionCode = codes.errorStringToCode["ACCOUNT_WITHHOLD_ERROR"];
         }
-        
         return restrictionCode;
     }
         

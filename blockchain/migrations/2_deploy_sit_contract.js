@@ -6,6 +6,6 @@ module.exports = (deployer) => {
   deployer.then(async () => {
     await deployer.deploy(MessagesLibrary);
     await deployer.link(MessagesLibrary, TokenContract);
-    await deployer.deploy(TokenContract, 'SIT', 'Sterling Investment Token', 1, "0x6a0e53381008ede2515681d885a7fa745089bd9c");
+    await deployer.deploy(TokenContract, 'SIT', 'Sterling Investment Token', 1, "0x30a9498cb03a0c1c5aef76d8cb901e63dd041e16   ");
   })
 }

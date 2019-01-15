@@ -1,16 +1,10 @@
 pragma solidity >=0.4.0 <0.6.0;
 
-import "./iST20.sol";
 import "./sitRestriction.sol";
 import "./authorizer.sol";
 
-
-contract approveAndCallFallBack {
-    function receiveApproval(address _from, uint256 _amount, address _token, bytes memory _data) public;
-}
-
 contract SIT is IST20, SITRestriction, Authorizer {
-    
+
     event NewTradable(address indexed _from, address indexed _to, uint _amount, uint indexed _date);
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateGiven, uint indexed _dueDate);
     event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
@@ -75,7 +69,6 @@ contract SIT is IST20, SITRestriction, Authorizer {
     uint256 internal scheduleIndex;
     mapping(uint256 => Schedule) public mMintSchedules;
     
-    
     constructor (string memory _symbol, string memory _name, uint256 _granular, address _coinbase) public {
         sName = _name;
         sSymbol = _symbol;
@@ -91,18 +84,17 @@ contract SIT is IST20, SITRestriction, Authorizer {
     }
     
     function totalSupply() public view  returns (uint256) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR);
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
         return uTotalSupply;
     }
 
-   
     function balanceOf(address _tokenOwner) public view  returns (uint256) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR); // Inquire if this is valid
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]); // Inquire if this is valid
         return mBalances[_tokenOwner];
     }
     
     function transfer(address _to, uint256 _amount) public returns (bool) {
-        require(_amount % uGranularity == 0, TOKEN_GRANULARITY_ERROR);
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
         verifyTransfer (msg.sender, _to, _amount);
         _addToTradable(_to, _amount, now);
         mBalances[owner()].sub(_amount);
@@ -112,9 +104,9 @@ contract SIT is IST20, SITRestriction, Authorizer {
     }
 
     function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
-        require(_amount % uGranularity == 0, TOKEN_GRANULARITY_ERROR);
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
         verifyTransfer (msg.sender, _to, _amount);
-        require(mAllowed[_from][msg.sender] <= _amount, SITRestriction.SPENDER_BALANCE_ERROR);
+        require(mAllowed[_from][msg.sender] <= _amount, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["SPENDER_BALANCE_ERROR"]]);
         _addToTradable(_to, _amount, now);
         mBalances[_from].sub(_amount);
         mAllowed[_from][msg.sender].sub(_amount);
@@ -124,50 +116,28 @@ contract SIT is IST20, SITRestriction, Authorizer {
     }
 
     function approve(address _spender, uint256 _amount) public onlyValidShareHolder returns (bool ) {
-        require(shareHolders[_spender].isEnabled,SITRestriction.SEND_TRANSFER_BLOCKED);
+        require(shareHolders[_spender].isEnabled, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["SEND_TRANSFER_BLOCKED"]]);
         mAllowed[msg.sender][_spender] = _amount;
         emit Approval(msg.sender, _spender, _amount);
         return true;
     }
     
     function allowance(address _owner, address _spender) public view  returns (uint256) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR);
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
         return mAllowed[_owner][_spender];
-    }
-
-    function approveAndCall(address _spender, uint256 _amount, bytes memory _data) public onlyValidShareHolder returns (bool) {
-        require(shareHolders[_spender].isEnabled,SITRestriction.SEND_TRANSFER_BLOCKED);
-        require(approve(_spender, _amount), "Spender could not be approved on your account");
-        approveAndCallFallBack(_spender).receiveApproval(_spender, _amount, address(this), _data );
-        return true;
     }
     
     function verifyTransfer (address _from,address _to,uint256 _amount)public view returns (bool success){
         uint8 restrictionCode = SITRestriction.detectTransferRestriction(_from, _to, _amount);
-        require(restrictionCode == SITRestriction.SUCCESS_CODE, SITRestriction.messageForTransferRestriction(restrictionCode));
+        require(restrictionCode == SITRestriction.codes.errorStringToCode["SUCCESS"], SITRestriction.messageForTransferRestriction(restrictionCode));
         return true;
     }
-    
-    
-    function balanceOfByCat(string memory _sitCat, address _holder) public view returns (uint256) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR);
-        if (stringsEqual("lien", _sitCat)) {
-            return shareHolders[_holder].sitBalances.lien;
-        } else  if (stringsEqual("vesting", _sitCat)) {
-            return shareHolders[_holder].sitBalances.vesting;
-        } else  if (stringsEqual("allocated", _sitCat)) {
-            return shareHolders[_holder].sitBalances.allocated;
-        } else {
-            return 0;
-        }
-    }
-    
+        
     function _addToTradable (address _holder, uint _amount, uint _dateAdded) internal returns(bool success) {
         mTradables[_holder].push(Tradable(_amount, _dateAdded));
         emit NewTradable(msg.sender, _holder, _amount, _dateAdded);
         return true;
     }
-    
     
     function _addToAllocated (address _holder, uint _amount, uint _dateGiven, uint _dueDate) internal returns(bool success) {
         mAllocations[_holder].push(Allocated(_amount, _dateGiven, _dueDate, false));
@@ -188,9 +158,9 @@ contract SIT is IST20, SITRestriction, Authorizer {
     }
     
     function moveToTradable(string memory _sitCat, address _holder, uint catIndex) public onlyOwner returns (bool success) {
-        require(isValid(_holder), SITRestriction.RECEIPT_TRANSFER_BLOCKED);
+        require(isValid(_holder), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
         if (stringsEqual("lien", _sitCat)) {
-            require(mLiens[_holder][catIndex].startDate.add(mLiens[_holder][catIndex].lienPeriod) >= now, SITRestriction.MOVE_LIEN_ERROR);
+            require(mLiens[_holder][catIndex].startDate.add(mLiens[_holder][catIndex].lienPeriod) >= now, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["MOVE_LIEN_ERROR"]]);
             mLiens[_holder][catIndex].isMovedToTradable = true;
             mBalances[_holder].add(mLiens[_holder][catIndex].amount);
             _addToTradable(_holder, mLiens[_holder][catIndex].amount, now);
@@ -206,31 +176,24 @@ contract SIT is IST20, SITRestriction, Authorizer {
             _addToTradable (_holder, mAllocations[_holder][catIndex].amount, now);
             emit MovedToTradable(_holder,_sitCat, catIndex);
         } 
-        
         success = true;
         return success;
     }
     
     function addShareholder(address _holder, bool _isEnabled, bool _isWithhold, bytes32 _beneficiary) public onlyOwner returns(bool success) { 
-        require(shareHolders[_holder].uniqueHolder == false, SITRestriction.UNIQUE_SHAREHOLDER_ERROR);
-        
+        require(shareHolders[_holder].uniqueHolder == false, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNIQUE_SHAREHOLDER_ERROR"]]);
         SitBalanceByCat memory _holderBalance = SitBalanceByCat(0, 0, 0);
-
         shareHolders[_holder] = SitHolder(true, _isEnabled,_isWithhold, _beneficiary, _holderBalance);
-        
         emit NewShareholder(_holder);
-        
         return true;
     }
     
-    function getSitHolder(address _holder) public view returns(bool isEnabled, bool isWithhold, bytes32 beneficiary,uint tradable, uint allocated, uint vesting, uint _ien ) { 
-        
-        return (shareHolders[_holder].isEnabled, shareHolders[_holder].isEnabled, shareHolders[_holder].beneficiary, mBalances[_holder], shareHolders[_holder].sitBalances.allocated, shareHolders[_holder].sitBalances.vesting, shareHolders[_holder].sitBalances.lien);
-        
+    function getSitHolder(address _holder) public view returns(bool isEnabled, bool isWithhold, bytes32 beneficiary,uint tradable, uint allocated, uint vesting, uint lien ) { 
+        return (shareHolders[_holder].isEnabled, shareHolders[_holder].isWithhold, shareHolders[_holder].beneficiary, mBalances[_holder], shareHolders[_holder].sitBalances.allocated, shareHolders[_holder].sitBalances.vesting, shareHolders[_holder].sitBalances.lien);
     }
     
     function changeBeneficiary(bytes32 _beneficiary) public returns (bool success) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR);
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
         shareHolders[msg.sender].beneficiary = _beneficiary;
         success = true;
         return success;
@@ -275,7 +238,6 @@ contract SIT is IST20, SITRestriction, Authorizer {
     }
     
     function _isWithhold(address _holder) public view returns (bool) {
-        require(isValid(msg.sender), SITRestriction.UNVERIFIED_HOLDER_ERROR);
         return shareHolders[_holder].isWithhold;
     }
     
@@ -285,14 +247,12 @@ contract SIT is IST20, SITRestriction, Authorizer {
             success = true;
             return success;
         }
-        
         assert(stringsEqual(_sitCat, "tradable") || stringsEqual(_sitCat, "allocated") || stringsEqual(_sitCat, "vesting") || stringsEqual(_sitCat, "lien"));
-        
         require(mMintSchedules[_scheduleIndex].isActive, "Inactive schedule");
         require(mMintSchedules[_scheduleIndex].isApproved, "Unauthorized schedule");
         require(mMintSchedules[_scheduleIndex].activeAmount >= _amount, "Minting amount is greater than available on schedule");
-        require(_amount % uGranularity == 0, TOKEN_GRANULARITY_ERROR);
-        require(isValid(_holder), SITRestriction.RECEIPT_TRANSFER_BLOCKED);
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        require(isValid(_holder), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
             
         string memory _from;
         
@@ -326,7 +286,7 @@ contract SIT is IST20, SITRestriction, Authorizer {
         emit Minted(_from, _holder, _sitCat, _amount,  _scheduleIndex, _data);
         success = true;
     }
-
+    
     function createSchedule (uint _amount, string memory _scheduleType, bytes memory _data) public onlyOwner returns(uint256 ) {
 
         Schedule memory schedule;
@@ -346,7 +306,6 @@ contract SIT is IST20, SITRestriction, Authorizer {
     function approveSchedule( uint256 _scheduleId, bytes memory _reason) public onlyAuthorizer returns(uint256 scheduleId)  {
 
         require(!mMintSchedules[_scheduleId].isApproved && !mMintSchedules[_scheduleId].isRejected, "This schedule has already been approved!");
-        
         Schedule memory _scheduleInstance = mMintSchedules[_scheduleId];
         if (stringsEqual(_scheduleInstance.scheduleType, "custom"))  {
             require(stringsEqual(mAuthorizers[msg.sender].authorizerType, "custom"), "You are restricted from approving this schedule");
@@ -381,16 +340,13 @@ contract SIT is IST20, SITRestriction, Authorizer {
         }
         emit ScheduleRejected(_scheduleId, msg.sender, _reason);
         return _scheduleId;
-
     } 
     
     function withdraw(address _holder, uint256 _amount, string memory _sitCat, bytes memory _reason) public onlyOwner returns (bytes memory reason) {
         if (_amount < 0) {
             return "";
         }
-        
-        require(_amount % uGranularity == 0, TOKEN_GRANULARITY_ERROR);
-        
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
         if (stringsEqual("lien", _sitCat)) {
             shareHolders[_holder].sitBalances.lien.sub(_amount);
         } else  if (stringsEqual("vesting", _sitCat)) {
@@ -400,20 +356,13 @@ contract SIT is IST20, SITRestriction, Authorizer {
         } else if (stringsEqual("tradable", _sitCat)) {
             mBalances[_holder].sub(_amount);
         }
-        
         mBalances[aCoinbaseAcct].add(_amount);
         emit Withdrawn(msg.sender, _holder, _sitCat, _amount, _reason);
-        
         return _reason;
     }
-     
+    
      // Don't accept ETH
-    function () external payable {
-        revert("Contract cannot accept Ether");
-    }
-
-    // Owner can transfer out any accidentally sent ERC20 tokens
-    function transferAnyERC20Token(address tokenAddress, uint tokens) public onlyOwner returns (bool success) {
-        return SITRestriction(tokenAddress).transfer(owner(), tokens);
+    function () external {
+        revert("Contract cannot accept Ether and also ensure you are calling the right function!");
     }
 }

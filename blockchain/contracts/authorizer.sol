@@ -30,7 +30,6 @@ contract Authorizer is Ownable{
         return success;
     }
     
-
     function isAuthorizer(address _approver) public view returns (bool) {
         return mAuthorizers[_approver].isValid;
     }
