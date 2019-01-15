@@ -4,6 +4,13 @@ import "./sitRestriction.sol";
 import "./authorizer.sol";
 
 contract SIT is IST20, SITRestriction, Authorizer {
+    
+    function stringsEqual(string memory _a, string memory _b) public pure returns(bool){
+        if (keccak256(abi.encode(_a)) == keccak256(abi.encode(_b))) {
+            return true;
+        }
+        return false;
+    }
 
     event NewTradable(address indexed _from, address indexed _to, uint _amount, uint indexed _date);
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateGiven, uint indexed _dueDate);
@@ -11,13 +18,13 @@ contract SIT is IST20, SITRestriction, Authorizer {
     event NewLien(address _from, address indexed _to, uint _amount, uint indexed _startDate, uint indexed _lienPeriod);
     event MovedToTradable(address indexed _holder, string indexed _sitCat, uint256 catIndex);
     event NewShareholder(address indexed __holder);
-    event shareHolderEnabled(address indexed __holder);
-    event shareHolderDisabled(address indexed __holder);
+    event shareHolderUpdated(address indexed _holder,bool updateData, string _updateSpecification);
     event Minted(string indexed _from, address indexed _holder, string indexed _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
     event Withdrawn(address initiator, address indexed _holder, string indexed _sitCat, uint256 _amount, bytes _data);
     event NewSchedule(uint256 _scheduleId, string _scheduleType, uint256 _amount, bytes _data);
     event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
     event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
+
     
     string public sName;
     string public sSymbol;
@@ -76,12 +83,6 @@ contract SIT is IST20, SITRestriction, Authorizer {
         aCoinbaseAcct = _coinbase;
     }
     
-    function stringsEqual(string memory _a, string memory _b) public pure returns(bool){
-        if (keccak256(abi.encode(_a)) == keccak256(abi.encode(_b))) {
-            return true;
-        }
-        return false;
-    }
     
     function totalSupply() public view  returns (uint256) {
         require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
@@ -188,48 +189,29 @@ contract SIT is IST20, SITRestriction, Authorizer {
         return true;
     }
     
-    function getSitHolder(address _holder) public view returns(bool isEnabled, bool isWithhold, bytes32 beneficiary,uint tradable, uint allocated, uint vesting, uint lien ) { 
+    function getShareHolder(address _holder) public view returns(bool isEnabled, bool isWithhold, bytes32 beneficiary,uint tradable, uint allocated, uint vesting, uint lien ) { 
         return (shareHolders[_holder].isEnabled, shareHolders[_holder].isWithhold, shareHolders[_holder].beneficiary, mBalances[_holder], shareHolders[_holder].sitBalances.allocated, shareHolders[_holder].sitBalances.vesting, shareHolders[_holder].sitBalances.lien);
+    }
+
+    function updateShareHolder(address _holder, bool _updateData, string memory _updateSpec) public onlyOwner returns(bool success ) { 
+
+        if (stringsEqual(_updateSpec, "validation")) {
+            shareHolders[_holder].isEnabled = _updateData;
+            return success = true;
+        } else if (stringsEqual(_updateSpec, "access")) {
+            shareHolders[_holder].isWithhold = _updateData;
+            return success = true;
+        }
+        emit shareHolderUpdated(_holder, _updateData, _updateSpec);
+        return success = false;
     }
     
     function changeBeneficiary(bytes32 _beneficiary) public returns (bool success) {
         require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
         shareHolders[msg.sender].beneficiary = _beneficiary;
-        success = true;
-        return success;
+        return success = true;
     }
-    
-    function updateHolderAccess(address _holder, bool access) public onlyOwner returns (bool success) {
-        shareHolders[_holder].isEnabled = access;
-        if (access) {
-            emit shareHolderEnabled(_holder);
-        } else {
-            emit shareHolderDisabled(_holder);
-        }
-        success = true;
-        return success;
-    }
-    
-    function withhold(address _holder) public onlyOwner returns (bool success) {
-        if (shareHolders[_holder].isWithhold) {
-            success = true;
-            return success;
-        }
-        shareHolders[_holder].isWithhold = true;
-        success = true;
-        return success;
-    }
-    
-    function unHold(address _holder) public onlyOwner returns (bool success) {
-        if (!shareHolders[_holder].isWithhold) {
-            success = true;
-            return success;
-        }
-        shareHolders[_holder].isWithhold = false;
-        success = true;
-        return success;
-    }
-    
+
     function isValid(address _holder) public view returns (bool) {
         if (_holder != owner()) {
             return shareHolders[_holder].isEnabled;

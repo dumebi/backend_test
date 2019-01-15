@@ -32,9 +32,9 @@ contract SITRestriction is IERC1404, Ownable {
     mapping (address => mapping (address => uint256)) mAllowed;
     
     struct SitBalanceByCat {
-        uint allocated;
-        uint vesting;
-        uint lien;
+        uint256 allocated;
+        uint256 vesting;
+        uint256 lien;
     }
     
     struct SitHolder {

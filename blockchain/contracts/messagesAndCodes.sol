@@ -46,4 +46,11 @@ library MessagesAndCodes {
         self.messages[_code] = _message;
         return true;
     }
+
+    function stringsEqual(string memory _a, string memory _b) public pure returns(bool){
+        if (keccak256(abi.encode(_a)) == keccak256(abi.encode(_b))) {
+            return true;
+        }
+        return false;
+    }
 }
