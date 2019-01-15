@@ -20,7 +20,12 @@ module.exports = {
       host: 'localhost',
       port: 8545,
       network_id: '*', // Match any network id
-      gas : 0x82F79CD9000
+      gas: 0x82F79CD9000
+    },
+    ganache: {
+      host: 'localhost',
+      port: 7545,
+      network_id: '*' // Match any network id
     },
     geth: {
       host: 'localhost',
