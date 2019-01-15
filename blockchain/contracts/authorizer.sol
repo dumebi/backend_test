@@ -5,65 +5,44 @@ import "./owner.sol";
 
 contract Authorizer is Ownable{
 
-    address[] public authorizers;
-    mapping(address => bool) internal validAuthorizer;
-    mapping(address => uint) internal addrToAuthorizer;
-
-    event NewAuthorizer(address indexed _authorizer);
+    event NewAuthorizer(address indexed _authorizer, string indexed _type);
     event AuthorizerRemoved(address indexed _authorizer);
+    
+    struct Authorize {
+        bool isUnique;
+        bool isValid;
+        string authorizerType; // Type can be montly or custom
+    }
+    
+    mapping(address => Authorize) internal mAuthorizers;
 
 
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
     modifier onlyAuthorizer() {
         require(isAuthorizer(msg.sender), "You are not listed as an authorizer.");
         _;
     }
     
-    
-    /**
-     * @dev Allows the current owner to add an authorizer.
-     */
-    function addAuthorizer(address _user) public onlyOwner {
-        
-        uint authorizerId = authorizers.push(_user) - 1;
-        addrToAuthorizer[_user] = authorizerId;
-        validAuthorizer[_user] = true;
-
-        emit NewAuthorizer(_user);
+    function addAuthorizer(address _approver, string memory _type) public onlyOwner returns (bool success) {
+        require(!mAuthorizers[_approver].isUnique, "Authorizer already added!");
+        mAuthorizers[_approver] = Authorize(true, true, _type);
+        emit NewAuthorizer(_approver, _type);
+        success = true;
+        return success;
     }
     
-    
-    /**
-     * @return the address of the owner.
-     */
-    function getAuthorizers() public view returns (address[] memory) {
-        return authorizers;
+    function isAuthorizer(address _approver) public view returns (bool) {
+        return mAuthorizers[_approver].isValid;
     }
 
-    /**
-     * @return true if `msg.sender` is the owner of the contract.
-     */
-    function isAuthorizer(address _user) public view returns (bool) {
-        return validAuthorizer[_user] == true;
+    function getAuthorizer(address _approver) public view returns (bool IsValidAuthorizer, string memory authorizationType) {
+        return (mAuthorizers[_approver].isValid, mAuthorizers[_approver].authorizerType);
     }
 
-    /**
-     * @dev Allows the current owner to remove an authorizer.
-     * @notice All ng activities 
-     */
-    function removeAuthorizer(address _user) public onlyOwner {
-        
-        uint authorizerId = addrToAuthorizer[_user];
-        delete authorizers[authorizerId];
 
-        validAuthorizer[_user] = false;
-        addrToAuthorizer[_user] = authorizers.length + 1;
-
-        emit AuthorizerRemoved(_user);
+    function removeAuthorizer(address _approver) public onlyOwner returns (bool success) {
+        delete mAuthorizers[_approver];
+        emit AuthorizerRemoved(_approver);
+        success = true;
+        return success;
     }
-    
-
 }
-

@@ -16,16 +16,23 @@ module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
   // to customize your Truffle configuration!
   networks: {
-    ganache: {
+    development: {
       host: 'localhost',
-      port: 7545,
-      network_id: '*' // Match any network id
+      port: 8545,
+      network_id: '*', // Match any network id
+      gas : 0x82F79CD9000
     },
     geth: {
       host: 'localhost',
       port: 8545,
       network_id: '4224',
       gas: 4612388
+    },
+    solc: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
     }
   }
 };

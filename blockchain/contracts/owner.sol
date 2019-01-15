@@ -1,6 +1,4 @@
-pragma solidity ^0.5.0;
-pragma experimental SMTChecker;
-
+pragma solidity >=0.4.0 <0.6.0;
 
 
 /**
@@ -33,7 +31,7 @@ contract Ownable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(isOwner());
+        require(isOwner(), "Sorry, only the owner of this contract is authorized for this transaction");
         _;
     }
 
@@ -68,7 +66,7 @@ contract Ownable {
      * @param newOwner The address to transfer ownership to.
      */
     function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0));
+        require(newOwner != address(0), "New Owner must have an address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }

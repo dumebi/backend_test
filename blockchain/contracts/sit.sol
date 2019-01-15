@@ -1,41 +1,29 @@
-pragma solidity ^0.5.0;
-// pragma experimental SMTChecker;
-// pragma experimental ABIEncoderV2;
+pragma solidity >=0.4.0 <0.6.0;
 
-import "./erc20Interface.sol";
-import "./owner.sol";
+import "./sitRestriction.sol";
 import "./authorizer.sol";
-import "./safeMath.sol";
 
-contract SIT is ERC20Interface, Ownable, Authorizer {
+contract SIT is IST20, SITRestriction, Authorizer {
 
-    using SafeMath for uint256;
-    
-    function stringsEqual(string memory _a, string memory _b) pure internal returns (bool) {
-        return keccak256(abi.encode(_a)) == keccak256(abi.encode(_b));
-	}
-
-    function random() public view returns (uint8) {
-        return uint8(uint256(keccak256(abi.encode(msg.sender, now, block.difficulty)))%251);
-    }
-
-    modifier onlyValidShareHolder() {
-        if (msg.sender != owner()) {
-            require(sitHolders[msg.sender].isEnabled, "You are not authorized for this transaction.");
-            _;
-        }
-        _;
-    }
-    
-
-    event NewSitHolder(address indexed __holder, bool indexed __holderAccess);
-    event SitHolderEnabled(address indexed __holder);
-    event SitHolderDisabled(address indexed __holder);
     event NewTradable(address indexed _from, address indexed _to, uint _amount, uint indexed _date);
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateGiven, uint indexed _dueDate);
     event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
     event NewLien(address _from, address indexed _to, uint _amount, uint indexed _startDate, uint indexed _lienPeriod);
-    event Maxsupply(uint _amount);
+    event MovedToTradable(address indexed _holder, string indexed _sitCat, uint256 catIndex);
+    event NewShareholder(address indexed __holder);
+    event shareHolderEnabled(address indexed __holder);
+    event shareHolderDisabled(address indexed __holder);
+    event Minted(string indexed _from, address indexed _holder, string indexed _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
+    event Withdrawn(address initiator, address indexed _holder, string indexed _sitCat, uint256 _amount, bytes _data);
+    event NewSchedule(uint256 _scheduleId, string _scheduleType, uint256 _amount, bytes _data);
+    event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
+    event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
+    
+    string public sName;
+    string public sSymbol;
+    uint256 private uTotalSupply;
+    uint256 public uGranularity;
+    address public aCoinbaseAcct; // Holds buybacks and withdrawn tokens
     
     struct Lien {
         uint amount;
@@ -62,283 +50,319 @@ contract SIT is ERC20Interface, Ownable, Authorizer {
         uint amount;
         uint dateGiven;
     }
-
-    struct SitBalance {
-        uint tradable;
-        uint allocated;
-        uint vesting;
-        uint lien;
+    
+    mapping(address => Tradable[]) public mTradables;
+    mapping(address => Lien[]) public mLiens;
+    mapping(address => Allocated[]) public mAllocations;
+    mapping(address => Vesting[]) public mVestings;
+    
+    struct Schedule {
+        uint amount;
+        uint activeAmount;
+        bool isApproved;
+        bool isRejected;
+        bool isActive;
+        bytes authorizerReason;
+        string scheduleType;
+        address[] authorizedBy;
     }
-
-    struct SitHolderInfo {
-        bool uniqueHolder;
-        bool isEnabled;
-        bytes32 beneficiary; //Incase of death, users SIT will be transfered
-        SitBalance balances;
+    uint256 internal scheduleIndex;
+    mapping(uint256 => Schedule) public mMintSchedules;
+    
+    constructor (string memory _symbol, string memory _name, uint256 _granular, address _coinbase) public {
+        sName = _name;
+        sSymbol = _symbol;
+        uGranularity = _granular;
+        aCoinbaseAcct = _coinbase;
     }
     
-    mapping(address => Tradable[]) public tradables;
-    mapping(address => Lien[]) public liens;
-    mapping(address => Allocated[]) public allocations;
-    mapping(address => Vesting[]) public vestings;
-    
-    // Token Info
-    string public symbol;
-    string public name;
-    uint8 public decimals = 18;
-    uint256 _totalSupply;
-    uint256 internal maxTotalSupply;
-    mapping (address => uint256) balances;
-    mapping (address => mapping (address => uint256)) allowed;
-    mapping(address => SitHolderInfo) sitHolders; // Address can be in any of the 4 cat of SIT
-
-
-    constructor (string memory _symbol, string memory _name, uint _total, uint _maxSupply) public {
-        symbol = _symbol;
-        name = _name;
-        _totalSupply = _total;
-        maxTotalSupply = _maxSupply;
-        balances[owner()] = _totalSupply;
-    } 
-    
-    function setMaxSupply(uint _maxTotalSupply) public onlyOwner returns (bool) {
-        require(_maxTotalSupply >= _totalSupply, "Maximum total supply cannot be less than total supply");
-        maxTotalSupply = _maxTotalSupply;
-        emit Maxsupply(_maxTotalSupply);
-        return true;
+    function stringsEqual(string memory _a, string memory _b) public pure returns(bool){
+        if (keccak256(abi.encode(_a)) == keccak256(abi.encode(_b))) {
+            return true;
+        }
+        return false;
     }
-
-    function getMaxSupply() public view onlyOwner returns (uint) {
-        return maxTotalSupply;
-    }
-
+    
     function totalSupply() public view  returns (uint256) {
-        return _totalSupply;
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
+        return uTotalSupply;
+    }
+
+    function balanceOf(address _tokenOwner) public view  returns (uint256) {
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]); // Inquire if this is valid
+        return mBalances[_tokenOwner];
     }
     
-
-    function balanceOf(address _holder) public view  returns (uint) {
-        
-        if (_holder == owner()) {
-            
-            return balances[_holder];
-
-        }
-
-        uint tradable;
-        (tradable,,,) = SitHolderBalance(_holder);
-        return tradable;
-    }
-    
-    function SitHolderBalance(address _holder) public view  returns (uint _tradable, uint _allocated, uint _inVesting, uint _onLien) {
-
-        return (sitHolders[_holder].balances.tradable, sitHolders[_holder].balances.allocated, sitHolders[_holder].balances.vesting, sitHolders[_holder].balances.lien);
-    }
-  
-    function transfer(address _to, uint256 _amount) public onlyValidShareHolder returns (bool success) {
-
-        bool isVerified = verifyTransfer(msg.sender, _to);
-        require(isVerified == true, "Transaction not authorized! Please ensure both the sender and receiver are both verrified on this platform");
-        
-        if (msg.sender == owner()) {
-            
-            require(balances[owner()] >= _amount, "You do not have sufficient balance for this transaction");
-
-            if (_amount <= 0 && sitHolders[_to].balances.tradable + _amount <= sitHolders[_to].balances.tradable) {
-                return false;
-            }
-    
-            balances[owner()] = SafeMath.sub(balances[owner()] ,_amount);
-            sitHolders[_to].balances.tradable= SafeMath.add(sitHolders[_to].balances.tradable,_amount);
-            emit Transfer(msg.sender, _to, _amount);
-            _addToTradable(_to, _amount, now);
-            return true;
-        }
-
-        require(sitHolders[msg.sender].balances.tradable >= _amount, "You do not have sufficient balance for this transaction");
-
-        if (_amount <= 0 && sitHolders[_to].balances.tradable + _amount <= sitHolders[_to].balances.tradable) {
-            return false;
-        }
-
-        sitHolders[msg.sender].balances.tradable = SafeMath.sub(sitHolders[msg.sender].balances.tradable,_amount);
-        sitHolders[_to].balances.tradable= SafeMath.add(sitHolders[_to].balances.tradable,_amount);
-        emit Transfer(msg.sender, _to, _amount);
+    function transfer(address _to, uint256 _amount) public returns (bool) {
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        verifyTransfer (msg.sender, _to, _amount);
         _addToTradable(_to, _amount, now);
+        mBalances[owner()].sub(_amount);
+        mBalances[_to].add(_amount);
+        emit Transfer(msg.sender, _to, _amount);
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _amount) public onlyValidShareHolder returns (bool success) {
-        
-        bool isVerified = verifyTransfer(msg.sender, _to);
-        require(isVerified, "This transaction is not verified, please ensure both the sender and receiver are both verrified on this platform");
-
-        if (_from == owner()) {
-            
-            if (balances[_from] < _amount || allowed[_from][msg.sender] < _amount || _amount <= 0 || sitHolders[_to].balances.tradable + _amount <=sitHolders[_to].balances.tradable) {
-                return false;
-            }
-       
-            balances[_from] = SafeMath.sub(balances[_from],_amount);
-            allowed[_from][msg.sender] = SafeMath.sub(allowed[_from][msg.sender],_amount);
-            sitHolders[_to].balances.tradable = SafeMath.add(sitHolders[_to].balances.tradable,_amount);
-            emit Transfer(msg.sender, _to, _amount);                                                                                                                                                                                                                                                                                                                                                                                                                                                
-            _addToTradable(_to, _amount, now);
-            return true;
-        }
-        
-        require(sitHolders[_from].balances.tradable < _amount, "Owner does not have sufficient balance to spend from, try reducing the amount to spend");
-        require(allowed[_from][msg.sender] <= _amount, "Owner does not have sufficient balance to spend from, try reducing the amount to spend");
-        
-        if (_amount <= 0 || sitHolders[_to].balances.tradable + _amount <=sitHolders[_to].balances.tradable) {
-            return false;
-        }
-       
-        sitHolders[_from].balances.tradable = SafeMath.sub(balances[_from],_amount);
-        allowed[_from][msg.sender] = SafeMath.sub(allowed[_from][msg.sender],_amount);
-        sitHolders[_to].balances.tradable = SafeMath.add(sitHolders[_to].balances.tradable,_amount);
-        emit Transfer(msg.sender, _to, _amount);
+    function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        verifyTransfer (msg.sender, _to, _amount);
+        require(mAllowed[_from][msg.sender] <= _amount, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["SPENDER_BALANCE_ERROR"]]);
         _addToTradable(_to, _amount, now);
+        mBalances[_from].sub(_amount);
+        mAllowed[_from][msg.sender].sub(_amount);
+        mBalances[_to].add(_amount);
+        emit Transfer(_from, _to, _amount);
         return true;
     }
 
-    function verifyTransfer(address _from, address _to) public view returns (bool success){
-        
-        if (_from != owner()) {
-
-            if (sitHolders[_from].isEnabled == true && sitHolders[_to].isEnabled == true) {
-                return true;
-            } 
-            
-            return false;
-        
-        } else {
-            
-            return sitHolders[_to].isEnabled;
-        }
-        
-        
-    }
-
-    // Allow _spender to withdraw from your account, multiple times, up to the _value amount.
-    // If this function is called again it overwrites the current allowance with _value.
-    function approve(address _spender, uint256 _amount) public returns (bool success) {
-        allowed[msg.sender][_spender] = _amount;
+    function approve(address _spender, uint256 _amount) public onlyValidShareHolder returns (bool ) {
+        require(shareHolders[_spender].isEnabled, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["SEND_TRANSFER_BLOCKED"]]);
+        mAllowed[msg.sender][_spender] = _amount;
         emit Approval(msg.sender, _spender, _amount);
         return true;
     }
-
-    function allowance(address _owner, address _spender) public view  returns (uint256 remaining) {
-        return allowed[_owner][_spender];
+    
+    function allowance(address _owner, address _spender) public view  returns (uint256) {
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
+        return mAllowed[_owner][_spender];
     }
     
-    // Adds a to the platform
-    function addSitHolder(address _holder, bool _holderAccess, bytes32 _beneficiary, uint _tadableBal, uint _allocatedBal, uint _vestingBal, uint _lienBal) public onlyOwner returns(bool success) { 
-        require(sitHolders[_holder].uniqueHolder == false, "Shareholder already added before!");
-
-        if (_tadableBal > 0) {
-            require(balances[msg.sender] >= _tadableBal, "Insufficient balance for transfer to new account");
-            balances[msg.sender] = SafeMath.sub(balances[msg.sender], _tadableBal);
-            _addToTradable(_holder, _tadableBal, now);
-        }
-        
-        if (_allocatedBal > 0) {
-            require(balances[msg.sender] >= _allocatedBal, "Insufficient balance for transfer to new account");
-            balances[msg.sender] = SafeMath.sub(balances[msg.sender], _allocatedBal);
-            _addToAllocated(_holder, _allocatedBal, now, now);
-        }
-        
-        if (_vestingBal > 0) {
-            require(balances[msg.sender] >= _vestingBal, "Insufficient balance for transfer to new account");
-            balances[msg.sender] = SafeMath.sub(balances[msg.sender], _vestingBal);
-            _addToVesting(_holder, _vestingBal, now);
-        }
-        
-        if (_lienBal > 0) {
-            
-        }
-        
-        SitBalance memory _holderBalance = SitBalance(_tadableBal, _allocatedBal, _vestingBal, _lienBal);
-
-        SitHolderInfo memory _holderInfo = SitHolderInfo(true, _holderAccess, _beneficiary, _holderBalance);
-        sitHolders[_holder] = _holderInfo;
-        
-        emit NewSitHolder(_holder, _holderAccess);
-        
+    function verifyTransfer (address _from,address _to,uint256 _amount)public view returns (bool success){
+        uint8 restrictionCode = SITRestriction.detectTransferRestriction(_from, _to, _amount);
+        require(restrictionCode == SITRestriction.codes.errorStringToCode["SUCCESS"], SITRestriction.messageForTransferRestriction(restrictionCode));
         return true;
     }
-    
-    function getSitHolder(address _holder) view public returns(bool _isEnabled, bytes32 _beneficiary,uint _tradable, uint _allocated, uint _vesting, uint _lien ) { 
         
-        return (sitHolders[_holder].isEnabled, sitHolders[_holder].beneficiary, sitHolders[_holder].balances.tradable, sitHolders[_holder].balances.allocated, sitHolders[_holder].balances.vesting, sitHolders[_holder].balances.lien);
-        
-    }
-    
-    function updateHolderAccess(address _holder, bool access) public onlyOwner returns (bool success) {
-        sitHolders[_holder].isEnabled = access;
-        if (access) {
-            emit SitHolderEnabled(_holder);
-        } else {
-            emit SitHolderDisabled(_holder);
-        }
-        return true;
-    }
-
-    function isValidSitHolder(address _holder) view public returns (bool success) {
-        return sitHolders[_holder].isEnabled;
-    }
-    
-    
     function _addToTradable (address _holder, uint _amount, uint _dateAdded) internal returns(bool success) {
-        tradables[_holder].push(Tradable(_amount, _dateAdded));
+        mTradables[_holder].push(Tradable(_amount, _dateAdded));
         emit NewTradable(msg.sender, _holder, _amount, _dateAdded);
         return true;
     }
     
-    
     function _addToAllocated (address _holder, uint _amount, uint _dateGiven, uint _dueDate) internal returns(bool success) {
-        allocations[_holder].push(Allocated(_amount, _dateGiven, _dueDate, false));
+        mAllocations[_holder].push(Allocated(_amount, _dateGiven, _dueDate, false));
         emit NewAllocated(msg.sender, _holder, _amount, _dateGiven, _dueDate);
         return true;
     }
     
     function _addToVesting (address _holder, uint _amount, uint _dateGiven) internal returns(bool success) {
-        vestings[_holder].push(Vesting(_amount, _dateGiven, false));
+        mVestings[_holder].push(Vesting(_amount, _dateGiven, false));
         emit NewVesting(msg.sender, _holder, _amount, _dateGiven);
         return true;
     }
     
     function _addToLien (address _holder, uint _amount, uint _dateAdded,  uint _dateStarted, uint _lienPeriod) internal returns(bool success) {
-        liens[_holder].push(Lien(_amount, _dateAdded, _dateStarted, _lienPeriod, false));
+        mLiens[_holder].push(Lien(_amount, _dateAdded, _dateStarted, _lienPeriod, false));
         emit NewLien(msg.sender, _holder, _amount, _dateStarted, _lienPeriod);
         return true;
     }
     
-    function addToTradable (address _holder, uint _amount) public onlyOwner returns(bool success) {
-        require(balances[msg.sender] >= _amount, "Insufficient balance for transfer to holder's tradable account");
-        balances[msg.sender] = SafeMath.sub(balances[msg.sender], _amount);
-        sitHolders[_holder].balances.tradable = SafeMath.add(sitHolders[_holder].balances.tradable , _amount);
-        _addToTradable(_holder, _amount, now);
+    function moveToTradable(string memory _sitCat, address _holder, uint catIndex) public onlyOwner returns (bool success) {
+        require(isValid(_holder), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
+        if (stringsEqual("lien", _sitCat)) {
+            require(mLiens[_holder][catIndex].startDate.add(mLiens[_holder][catIndex].lienPeriod) >= now, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["MOVE_LIEN_ERROR"]]);
+            mLiens[_holder][catIndex].isMovedToTradable = true;
+            mBalances[_holder].add(mLiens[_holder][catIndex].amount);
+            _addToTradable(_holder, mLiens[_holder][catIndex].amount, now);
+            emit MovedToTradable(_holder,_sitCat, catIndex);
+        } else  if (stringsEqual("vesting", _sitCat)) {
+            mVestings[_holder][catIndex].isMovedToTradable = true;
+            mBalances[_holder].add(mVestings[_holder][catIndex].amount);
+            _addToTradable (_holder, mVestings[_holder][catIndex].amount, now);
+            emit MovedToTradable(_holder,_sitCat, catIndex);
+        } else  if (stringsEqual("allocated", _sitCat)) {
+            mAllocations[_holder][catIndex].isMovedToTradable = true;
+            mBalances[_holder].add(mAllocations[_holder][catIndex].amount);
+            _addToTradable (_holder, mAllocations[_holder][catIndex].amount, now);
+            emit MovedToTradable(_holder,_sitCat, catIndex);
+        } 
+        success = true;
+        return success;
     }
     
-    function addToVesting (address _holder, uint _amount) public onlyOwner returns(bool success) {
-        require(balances[msg.sender] >= _amount, "Insufficient balance for transfer to holder's tradable account");
-        balances[msg.sender] = SafeMath.sub(balances[msg.sender], _amount);
-        sitHolders[_holder].balances.vesting = SafeMath.add(sitHolders[_holder].balances.vesting , _amount);
-        _addToVesting(_holder, _amount, now);
+    function addShareholder(address _holder, bool _isEnabled, bool _isWithhold, bytes32 _beneficiary) public onlyOwner returns(bool success) { 
+        require(shareHolders[_holder].uniqueHolder == false, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNIQUE_SHAREHOLDER_ERROR"]]);
+        SitBalanceByCat memory _holderBalance = SitBalanceByCat(0, 0, 0);
+        shareHolders[_holder] = SitHolder(true, _isEnabled,_isWithhold, _beneficiary, _holderBalance);
+        emit NewShareholder(_holder);
+        return true;
     }
+    
+    function getSitHolder(address _holder) public view returns(bool isEnabled, bool isWithhold, bytes32 beneficiary,uint tradable, uint allocated, uint vesting, uint lien ) { 
+        return (shareHolders[_holder].isEnabled, shareHolders[_holder].isWithhold, shareHolders[_holder].beneficiary, mBalances[_holder], shareHolders[_holder].sitBalances.allocated, shareHolders[_holder].sitBalances.vesting, shareHolders[_holder].sitBalances.lien);
+    }
+    
+    function changeBeneficiary(bytes32 _beneficiary) public returns (bool success) {
+        require(isValid(msg.sender), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["UNVERIFIED_HOLDER_ERROR"]]);
+        shareHolders[msg.sender].beneficiary = _beneficiary;
+        success = true;
+        return success;
+    }
+    
+    function updateHolderAccess(address _holder, bool access) public onlyOwner returns (bool success) {
+        shareHolders[_holder].isEnabled = access;
+        if (access) {
+            emit shareHolderEnabled(_holder);
+        } else {
+            emit shareHolderDisabled(_holder);
+        }
+        success = true;
+        return success;
+    }
+    
+    function withhold(address _holder) public onlyOwner returns (bool success) {
+        if (shareHolders[_holder].isWithhold) {
+            success = true;
+            return success;
+        }
+        shareHolders[_holder].isWithhold = true;
+        success = true;
+        return success;
+    }
+    
+    function unHold(address _holder) public onlyOwner returns (bool success) {
+        if (!shareHolders[_holder].isWithhold) {
+            success = true;
+            return success;
+        }
+        shareHolders[_holder].isWithhold = false;
+        success = true;
+        return success;
+    }
+    
+    function isValid(address _holder) public view returns (bool) {
+        if (_holder != owner()) {
+            return shareHolders[_holder].isEnabled;
+        }
+        return true;
+    }
+    
+    function _isWithhold(address _holder) public view returns (bool) {
+        return shareHolders[_holder].isWithhold;
+    }
+    
+    function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, string memory _sitCat, uint256 _extraDataData, bytes memory _data) public onlyOwner returns (bool success) {
+        
+        if (totalSupply().add(_amount) < totalSupply()) {
+            success = true;
+            return success;
+        }
+        assert(stringsEqual(_sitCat, "tradable") || stringsEqual(_sitCat, "allocated") || stringsEqual(_sitCat, "vesting") || stringsEqual(_sitCat, "lien"));
+        require(mMintSchedules[_scheduleIndex].isActive, "Inactive schedule");
+        require(mMintSchedules[_scheduleIndex].isApproved, "Unauthorized schedule");
+        require(mMintSchedules[_scheduleIndex].activeAmount >= _amount, "Minting amount is greater than available on schedule");
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        require(isValid(_holder), messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
+            
+        string memory _from;
+        
+        if (balanceOf(aCoinbaseAcct) >= _amount) {
+            uTotalSupply = mBalances[aCoinbaseAcct].sub(_amount);
+            _from = "coinbase";
+        } else {
+            uTotalSupply = uTotalSupply.add(_amount);
+            _from = "minter";
+        }
+        mMintSchedules[_scheduleIndex].activeAmount.sub(_amount);
+        
+        if (stringsEqual("lien", _sitCat)) {
+            shareHolders[_holder].sitBalances.lien.add(_amount);
+            _addToLien(_holder, _amount, now, now, _extraDataData);
+        } else  if (stringsEqual("vesting", _sitCat)) {
+            shareHolders[_holder].sitBalances.vesting.add(_amount);
+            _addToVesting (_holder, _amount, now);
+        } else  if (stringsEqual("allocated", _sitCat)) {
+            shareHolders[_holder].sitBalances.allocated.add(_amount);
+            _addToAllocated (_holder, _amount, now, _extraDataData);
+        } else if (stringsEqual("tradable", _sitCat)) {
+            mBalances[_holder].add(_amount);
+            _addToTradable(_holder, _amount, now);
+        }
+        
+        if (mMintSchedules[_scheduleIndex].activeAmount <= 0) {
+            mMintSchedules[_scheduleIndex].isActive = false;
+        }
+        
+        emit Minted(_from, _holder, _sitCat, _amount,  _scheduleIndex, _data);
+        success = true;
+    }
+    
+    function createSchedule (uint _amount, string memory _scheduleType, bytes memory _data) public onlyOwner returns(uint256 ) {
 
-    function addToAllocated (address _holder, uint _amount, uint _dueDate) public onlyOwner returns(bool success) {
-        require(balances[msg.sender] >= _amount, "Insufficient balance for transfer to holder's tradable account");
-        balances[msg.sender] = SafeMath.sub(balances[msg.sender], _amount);
-        sitHolders[_holder].balances.allocated = SafeMath.add(sitHolders[_holder].balances.allocated , _amount);
-        _addToAllocated(_holder, _amount, now, _dueDate);
+        Schedule memory schedule;
+        schedule.amount = _amount;
+        schedule.activeAmount = _amount;
+        schedule.isApproved = false;
+        schedule.isRejected = false;
+        schedule.isActive = true;
+        schedule.scheduleType = _scheduleType;
+        
+        mMintSchedules[scheduleIndex++] = schedule;
+        emit NewSchedule(scheduleIndex, _scheduleType, _amount, _data);
+        
+        return scheduleIndex;
+    } 
+    
+    function approveSchedule( uint256 _scheduleId, bytes memory _reason) public onlyAuthorizer returns(uint256 scheduleId)  {
+
+        require(!mMintSchedules[_scheduleId].isApproved && !mMintSchedules[_scheduleId].isRejected, "This schedule has already been approved!");
+        Schedule memory _scheduleInstance = mMintSchedules[_scheduleId];
+        if (stringsEqual(_scheduleInstance.scheduleType, "custom"))  {
+            require(stringsEqual(mAuthorizers[msg.sender].authorizerType, "custom"), "You are restricted from approving this schedule");
+            mMintSchedules[_scheduleId].isApproved = true;
+            mMintSchedules[_scheduleId].authorizerReason = _reason;
+            mMintSchedules[_scheduleId].authorizedBy.push(msg.sender);
+        } else if (stringsEqual(_scheduleInstance.scheduleType, "monthly"))  {
+            require(stringsEqual(mAuthorizers[msg.sender].authorizerType, "custom"), "You are restricted from rejecting this schedule");
+            mMintSchedules[_scheduleId].authorizedBy.push(msg.sender);
+            if ( mMintSchedules[_scheduleId].authorizedBy.length >= 3) {
+                mMintSchedules[_scheduleId].isApproved = true;
+                mMintSchedules[_scheduleId].authorizerReason = _reason;
+            }
+        }
+        emit ScheduleApproved(_scheduleId, msg.sender, _reason);
+        return _scheduleId;
+
+    } 
+    
+    function rejectSchedule( uint256 _scheduleId, bytes memory _reason) public onlyAuthorizer returns(uint256 scheduleId)  {
+        Schedule memory _scheduleInstance = mMintSchedules[_scheduleId];
+        if (stringsEqual(_scheduleInstance.scheduleType, "custom"))  {
+            require(stringsEqual(mAuthorizers[msg.sender].authorizerType, "custom"), "You are restricted from rejecting this schedule");
+            mMintSchedules[_scheduleId].isRejected = true;
+            mMintSchedules[_scheduleId].authorizerReason = _reason;
+            mMintSchedules[_scheduleId].authorizedBy.push(msg.sender);
+        } else if (stringsEqual(_scheduleInstance.scheduleType, "custom"))  {
+            require(stringsEqual(mAuthorizers[msg.sender].authorizerType, "monthly"), "You are restricted from rejecting this schedule");
+            mMintSchedules[_scheduleId].isRejected = true;
+            mMintSchedules[_scheduleId].authorizerReason = _reason;
+            mMintSchedules[_scheduleId].authorizedBy.push(msg.sender);
+        }
+        emit ScheduleRejected(_scheduleId, msg.sender, _reason);
+        return _scheduleId;
+    } 
+    
+    function withdraw(address _holder, uint256 _amount, string memory _sitCat, bytes memory _reason) public onlyOwner returns (bytes memory reason) {
+        if (_amount < 0) {
+            return "";
+        }
+        require(_amount % uGranularity == 0, messagesAndCodes.messages[SITRestriction.codes.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        if (stringsEqual("lien", _sitCat)) {
+            shareHolders[_holder].sitBalances.lien.sub(_amount);
+        } else  if (stringsEqual("vesting", _sitCat)) {
+            shareHolders[_holder].sitBalances.vesting.sub(_amount);
+        } else  if (stringsEqual("allocated", _sitCat)) {
+            shareHolders[_holder].sitBalances.allocated.sub(_amount);
+        } else if (stringsEqual("tradable", _sitCat)) {
+            mBalances[_holder].sub(_amount);
+        }
+        mBalances[aCoinbaseAcct].add(_amount);
+        emit Withdrawn(msg.sender, _holder, _sitCat, _amount, _reason);
+        return _reason;
     }
     
-    function addToLien (address _holder, uint _amount, uint _dateStarted, uint _lienPeriod) public onlyOwner returns(bool success) {
-        require(balances[msg.sender] >= _amount, "Insufficient balance for transfer to holder lien account");
-        balances[msg.sender] = SafeMath.sub(balances[msg.sender], _amount);
-        sitHolders[_holder].balances.lien = SafeMath.add(sitHolders[_holder].balances.lien , _amount);
-        _addToLien(_holder, _amount, now, _dateStarted, _lienPeriod);
+     // Don't accept ETH
+    function () external {
+        revert("Contract cannot accept Ether and also ensure you are calling the right function!");
     }
 }
