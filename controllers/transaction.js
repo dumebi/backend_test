@@ -8,12 +8,13 @@ const {
 
 const UserController = {
   /**
-    * Get all schedules
+    * Get transactions
+    * @description Get all transactions
     * @param {string} group
     * @param {string} to
     * @param {string} from
     * @param {string} status
-    * @return {object[]} schedules
+    * @return {object[]} transactions
     */
   async all(req, res, next) {
     try {
@@ -44,7 +45,8 @@ const UserController = {
   },
 
   /**
-     * Get all user transaction
+     * Get User Transactions
+     * @description Get all user transaction
      * @return {object} user
      */
   async user(req, res, next) {

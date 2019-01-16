@@ -8,11 +8,12 @@ const {
 
 const ScheduleController = {
   /**
-    * Get all schedules
-    * @param {string} group
-    * @param {string} to
-    * @param {string} from
-    * @param {string} status
+    * Get Schedules
+    * @description Get all schedules
+    * @param {string} group   User group
+    * @param {string} to      To date
+    * @param {string} from    From date
+    * @param {string} status  Schedule status
     * @return {object[]} schedules
     */
   async all(req, res, next) {
@@ -54,11 +55,12 @@ const ScheduleController = {
   },
 
   /**
-   * Create a schedule
-   * @param {string} group
-   * @param {string} amount
-   * @param {string} date
-   * @param {string} status
+   * Create Schedule
+   * @description Create a schedule
+   * @param {string} group  User group
+   * @param {string} amount Schedule amount
+   * @param {string} date   Schedule amount
+   * @param {string} status Schedule status
    *
    * @return {object} schedule
    */
@@ -102,11 +104,10 @@ const ScheduleController = {
   },
 
   /**
-   * Enable a schedule
-   * @param {string} email
-   * @param {string} password
-   *
-   * @return {object} user
+   * Enable Schedule
+   * @description Enable a schedule
+   * @param {string} schedule_id Schedule ID
+   * @return {object} schedule
    */
   async enable(req, res, next) {
     try {
@@ -146,10 +147,9 @@ const ScheduleController = {
   },
 
   /**
-   * Disable a schedule
-   * @param {string} email
-   * @param {string} password
-   *
+   * Disable Schedule
+   * @description Disable a schedule
+   * @param {string} schedule_id Schedule ID
    * @return {object} user
    */
   async disable(req, res, next) {
@@ -187,7 +187,65 @@ const ScheduleController = {
       }
       next(err)
     }
-  }
+  },
+
+  /**
+     * Update Schedule
+     * @description Update a schedule
+     * @param {string} group        User group
+     * @param {string} amount       Schedule amount
+     * @param {string} date         Schedule date
+     * @param {string} status       Schedule status
+     * @param {string} schedule_id  Schedule ID
+     * @return {object} schedule
+     */
+  async update(req, res, next) {
+    try {
+      if (paramsNotValid(req.body.schedule_id)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      delete req.body.scheduleId
+      delete req.body.enabled
+      delete req.body.createdby
+      delete req.body.authorizedby
+      delete req.body.disabledby
+      const schedule = await ScheduleModel.findByIdAndUpdate(
+        req.body.schedule_id,
+        { $set: req.body },
+        { safe: true, multi: true, new: true }
+      )
+      if (schedule) {
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'Schedule has been updated',
+          data: schedule
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'Schedule not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error updating schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
 };
 
 module.exports = ScheduleController;

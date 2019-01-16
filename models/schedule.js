@@ -18,7 +18,7 @@ const ScheduleSchema = new Schema({
   group: {
     type: Schema.Types.String, enum: Object.values(UserModel.UserGroup), default: UserModel.UserGroup.ENTRYLEVEL, required: true
   },
-  amount: { type: Schema.Types.Number },
+  amount: { type: Schema.Types.String },
   date: { type: Schema.Types.Date },
   enabled: { type: Schema.Types.Boolean },
   status: {

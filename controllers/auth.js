@@ -13,9 +13,10 @@ const { addUserOrUpdateCache } = require('../controllers/user');
 
 const AuthController = {
   /**
-     * User Types
-     * @return {null}
-     */
+   * Get User Types
+   * @description Get different user types
+   * @return {object} user types
+   */
   async types(req, res, next) {
     try {
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Types', data: Object.values(UserModel.UserType) });
@@ -30,10 +31,12 @@ const AuthController = {
       next(err)
     }
   },
+
   /**
-     * User Groups
-     * @return {null}
-     */
+   * Get User Groups
+   * @description Get different user groups
+   * @return {object} user groups
+   */
   async groups(req, res, next) {
     try {
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Groups', data: Object.values(UserModel.UserGroup) });
@@ -48,10 +51,12 @@ const AuthController = {
       next(err)
     }
   },
+
   /**
-     * User Employments Status
-     * @return {null}
-     */
+   * Get User Employment Status
+   * @description Get different user employment status
+   * @return {object} user employment status
+   */
   async employment(req, res, next) {
     try {
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User Employment statuses', data: Object.values(UserModel.EmploymentStatus) });
@@ -66,11 +71,22 @@ const AuthController = {
       next(err)
     }
   },
+
   /**
-   * Create a user
-   * @param {string} email
-   * @param {string} password
-   *
+   * Create User
+   * @description Create a user
+   * @param {string} fname        First name
+   * @param {string} mname        Middle name
+   * @param {string} lname        Last name
+   * @param {string} phone        Phone number
+   * @param {string} sex          Sex
+   * @param {string} dob          Date of birth
+   * @param {string} password     Password
+   * @param {string} vesting      Vesting status
+   * @param {string} type         User type
+   * @param {string} employment   User employment
+   * @param {string} group        User group
+   * @param {string} staffId      User staff ID
    * @return {object} user
    */
   async addUsers(req, res, next) {
@@ -152,10 +168,10 @@ const AuthController = {
   },
 
   /**
-   * Login a user
+   * User Login
+   * @description Login a user
    * @param {string} email
    * @param {string} password
-   *
    * @return {object} user
    */
   async login(req, res, next) {
@@ -197,7 +213,8 @@ const AuthController = {
   },
 
   /**
-     * Send token to a user
+     * Activate User
+     * @description Activate a user's account
      * @param {string} id
      * @return {null}
      */
@@ -236,7 +253,8 @@ const AuthController = {
   },
 
   /**
-     * Send token to a user
+     * Deactivate User
+     * @description Deactivate a user's account
      * @param {string} id
      * @return {null}
      */
@@ -274,7 +292,8 @@ const AuthController = {
   },
 
   /**
-     * Send token to a user
+     * User Send Token
+     * @description Send a forgot password token to a user
      * @param {string} email
      * @return {null}
      */
@@ -321,11 +340,11 @@ const AuthController = {
   },
 
   /**
-     * reset user password
+     * Reset User Password
+     * @description Resets a user password
      * @param {string} email
      * @param {string} password
      * @param {string} token
-     *
      * @return {object} user
      */
   async resetPass(req, res, next) {
@@ -374,17 +393,30 @@ const AuthController = {
   },
 
   // /**
-  //    * Get a user by token
-  //    * @return {object} user
+  //    * Send token to a user
+  //    * @param {string} email
+  //    * @return {null}
   //    */
   // async token(req, res, next) {
   //   try {
-  //     const token = await token(req);
-  //     const user = await UserModel.findById(token.data.id);
-  //     if (user.email) {
-  //       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user.token });
+  //     if (paramsNotValid(req.body.email)) {
+  //       return res.status(HttpStatus.PRECONDITION_FAILED).json({
+  //         status: 'failed',
+  //         message: 'some parameters were not supplied'
+  //       })
   //     }
-  //     return res.status(404).json({ status: 'failed', message: 'User not found' });
+  //     const email = req.body.email;
+  //     const user = await UserModel.findOne({ email });
+  //     if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
+
+  //     const token = randomstring.generate({
+  //       length: 5,
+  //       charset: 'numeric'
+  //     });
+  //     user.recover_token = user.encrypt(token);
+  //     await user.save();
+
+  //     return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
   //   } catch (error) {
   //     console.log('error >> ', error)
   //     const err = {
@@ -395,47 +427,11 @@ const AuthController = {
   //     }
   //     next(err)
   //   }
-  // }
+  // },
 
   /**
-     * Send token to a user
-     * @param {string} email
-     * @return {null}
-     */
-  async token(req, res, next) {
-    try {
-      if (paramsNotValid(req.body.email)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const email = req.body.email;
-      const user = await UserModel.findOne({ email });
-      if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
-
-      const token = randomstring.generate({
-        length: 5,
-        charset: 'numeric'
-      });
-      user.recover_token = user.encrypt(token);
-      await user.save();
-
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * change a user's password
+     * Change User Password
+     * @description Change a user's profile password
      * @return {object} user
      */
   async changePass(req, res, next) {

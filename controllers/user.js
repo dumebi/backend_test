@@ -9,10 +9,12 @@ const {
 
 
 const UserController = {
+
   /**
-    * Get all users
-    * @return {object[]} users
-    */
+   * Get Users.
+   * @description This returns all users in the STTP Ecosystem.
+   * @return {object[]} users
+   */
   async all(req, res, next) {
     try {
       let users = {}
@@ -40,8 +42,10 @@ const UserController = {
   },
 
   /**
-     * Get a user
-     * @return {object} user
+     * Get User
+     * @description This gets a user from the STTP Ecosystem based off ID
+     * @param   {string}  id  User's ID
+     * @return  {object}  user
      */
   async one(req, res, next) {
     try {
@@ -71,130 +75,20 @@ const UserController = {
   },
 
   /**
-     * Get a user balance
-     * @return {object} user
-     */
-  async bank(req, res, next) {
-    try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
-
-      if (user) {
-        // TODO: get user balance from blockchain lib
-        const user_wallet = await Wallet.findById(user.wallet)
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User balance gotten successfully',
-          data: user_wallet.bank
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user bank details',
-        devError: error
-      }
-      next(err)
-    }
-  },
-  
-  /**
-     * Get a user balance
-     * @return {object} user
-     */
-  async balance(req, res, next) {
-    try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
-
-      if (user) {
-        // TODO: get user balance from blockchain lib
-        const user_wallet = await Wallet.findById(user.wallet)
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User balance gotten successfully',
-          data: { naira: user_wallet.balance, sit: 0 }
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user balance',
-        devError: error
-      }
-      next(err)
-    }
-  },
-  
-  /**
-     * Get all user transaction
-     * @return {object} user
-     */
-  async transactions(req, res, next) {
-    try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
-
-      if (user) {
-        const transactions = TransactionModel.find({ user: user._id })
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User transactions gotten successfully',
-          data: transactions
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user transactions',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Update a user
-     * @return {object} user
-     */
+   * Update User
+   * @description This returns the transactions on all wallets of a user
+   * @param {string} fname        First name
+   * @param {string} mname        Middle name
+   * @param {string} lname        Last name
+   * @param {string} phone        Phone number
+   * @param {string} sex          Sex
+   * @param {string} dob          Date of birth
+   * @param {string} state        State of residence
+   * @param {string} city         City of residence
+   * @param {string} country      Country of residence
+   * @param {string} beneficiary  Next of kin
+   * @return {object} user
+   */
   async update(req, res, next) {
     try {
       const token = await checkToken(req);
@@ -249,7 +143,134 @@ const UserController = {
   },
 
   /**
-     * Change user type
+     * Get User Bank
+     * @description This returns the bank details of a user
+     * @return {object} bank
+     */
+  async bank(req, res, next) {
+    try {
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        // TODO: get user balance from blockchain lib
+        const user_wallet = await Wallet.findById(user.wallet)
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User balance gotten successfully',
+          data: user_wallet.bank
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user bank details',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Get User Balance
+     * @description This returns the balance from all wallets of a user
+     * @return {object} balance
+     */
+  async balance(req, res, next) {
+    try {
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        // TODO: get user balance from blockchain lib
+        const user_wallet = await Wallet.findById(user.wallet)
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User balance gotten successfully',
+          data: { naira: user_wallet.balance, sit: 0 }
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user balance',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Get User Transactions
+     * @description This returns the transactions on all wallets of a user
+     * @return {object} balance
+     */
+  async transactions(req, res, next) {
+    try {
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        const transactions = TransactionModel.find({ user: user._id })
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User transactions gotten successfully',
+          data: transactions
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error getting user transactions',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+     * Change User Type
+     * @description This updates a user's type and permissions
+     * @param {string}  id    User's ID
+     * @param {string}  type  User type
      * @return {object} user
      */
   async changeType(req, res, next) {
@@ -296,7 +317,10 @@ const UserController = {
   },
 
   /**
-     * Change user group
+     * Change User Group
+     * @description This updates a user's group and Access level
+     * @param {string}  id     User's ID
+     * @param {string}  group  User group
      * @return {object} user
      */
   async changeGroup(req, res, next) {
@@ -344,7 +368,10 @@ const UserController = {
   },
 
   /**
-     * Change user employment status
+     * Change User Employment Status
+     * @description This updates a user's employment status
+     * @param {string}  id          User's ID
+     * @param {string}  employment  User employment status
      * @return {object} user
      */
   async changeEmployment(req, res, next) {
@@ -391,6 +418,111 @@ const UserController = {
     }
   },
 
+  /**
+   * Buy Token
+   * @description Buy an SIT token
+   * @param amount amount of tokens
+   * @return {object} user
+   */
+  async buy(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.amount)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        // TODO: Get price of token
+        // TODO: Subtract price from user balance
+        // TODO: Call buy token function
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User balance gotten successfully',
+          data: null
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error purchasing tokens',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Sell Token
+   * @description Sell an SIT token
+   * @param amount amount of tokens
+   * @return {object} user
+   */
+  async sell(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.amount)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+      const user = await UserModel.findById(token.data.id)
+
+      if (user) {
+        // TODO: Get price of token
+        // TODO: Add price from user naira balance
+        // TODO: Call sell token function
+
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User balance gotten successfully',
+          data: null
+        })
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'User not found',
+      })
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error purchasing tokens',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Redis Cache User
+   * @description Add or Update redis user caching
+   * @param user User object
+   */
   async addUserOrUpdateCache(user) {
     try {
       const sttpUsers = await getAsync('STTP_users');
