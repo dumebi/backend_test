@@ -47,6 +47,7 @@ const DividendController = {
    * Create Dividend
    * @description Creates a user dividend
    * @param {string} group  User group
+   * @param {string} name   Dividend name
    * @param {string} amount Dividend amount
    * @param {string} date   Payment date
    * @param {string} status Dividend status
@@ -54,7 +55,7 @@ const DividendController = {
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.group, req.body.amount, req.body.date, req.body.status)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date, req.body.status)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -69,6 +70,7 @@ const DividendController = {
       }
       const dividend = new DividendModel({
         dividendId: generateTransactionReference(),
+        name: req.body.name,
         group: req.body.group,
         amount: req.body.amount,
         date: req.body.date,
@@ -181,6 +183,7 @@ const DividendController = {
      * Update Dividend
      * @description Update a dividend
      * @param {string} group        User group
+     * @param {string} name         Dividend name
      * @param {string} amount       Dividend amount
      * @param {string} date         Dividend date
      * @param {string} status       Dividend status

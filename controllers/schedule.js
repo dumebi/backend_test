@@ -58,6 +58,7 @@ const ScheduleController = {
    * Create Schedule
    * @description Create a schedule
    * @param {string} group  User group
+   * @param {string} name   Schedule name
    * @param {string} amount Schedule amount
    * @param {string} date   Schedule amount
    * @param {string} status Schedule status
@@ -66,7 +67,7 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.group, req.body.amount, req.body.date, req.body.status)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date, req.body.status)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -81,6 +82,7 @@ const ScheduleController = {
       }
       const schedule = new ScheduleModel({
         scheduleId: generateTransactionReference(),
+        name: req.body.name,
         group: req.body.group,
         amount: req.body.amount,
         date: req.body.date,
@@ -193,6 +195,7 @@ const ScheduleController = {
      * Update Schedule
      * @description Update a schedule
      * @param {string} group        User group
+     * @param {string} name         Schedule name
      * @param {string} amount       Schedule amount
      * @param {string} date         Schedule date
      * @param {string} status       Schedule status
