@@ -92,6 +92,8 @@ const ScheduleController = {
 
       await schedule.save()
 
+      // TODO: create blockchain schedule
+
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: schedule });
     } catch (error) {
       console.log('error >> ', error)
