@@ -41,6 +41,7 @@ Users (UR)
 
 Application State :
 Shareholder Added
+Shareholder Updated
 Schedule Created
 Schedule Pending Approval
 Schedule Approved
@@ -69,3 +70,48 @@ TDD & Sprints
 Add shareholders to contract
 Define shareholders SIT categories
 Enable and disable shareholders (Update shareholders details)
+
+ERRO Handling :
+
+SUCCESS;
+UNVERIFIED_HOLDER;
+SEND_TRANSFER_BLOCKED;
+RECEIPT_TRANSFER_BLOCKED;
+TOKEN_GRANULARITY_ERROR;
+TRANSFER_VERIFIED_ERROR;
+INSUFFICIENT_BALANCE_ERROR;
+INVALID_AMOUNT_ERROR;
+SPENDER_BALANCE_ERROR;
+ACCOUNT_WITHHOLD_ERROR;
+MOVE_LIEN_ERROR;
+UNIQUE_SHAREHOLDER_ERROR;
+
+
+What is left :
+
+Test with Remix
+Write Solidity test
+Write Javascript Test
+write the Library
+Write Oraclize for detectrestriction
+Write Upgradability Functions, function to disable(If this function is called, no interaction can occur to the contract unless it is enabled ahain, ) an to selfDestroy
+Oraclize.
+
+Optimization Check
+Ensure all delecate functionality is ascertained with assert()
+Implement state transition using enums and access restriction patterns (game)
+A modifier that is called with every involved function call, checks for the current timestamp and transitions to the next stage (This can be used instead of a scheduler, it's game)
+Implement emergency stop for contract, using state transition and enums and also access restriction for those who are able to detect the emergnce state of the contract
+Implement upgrade smart contracts : 
+
+Challenges :
+Large contract size failing to deploy : Solution : Factor constant logics into libraries, Use external storag with proxy(delegateCall). This also works for upgradability | Try to eliminate loops in contracts | Clear out unused variables | refactor multiple functions with base logic to a single function | Define similar types side by side
+- Factoring contract and logics into other contracts and libraries. (Challenges on this : My solution is to break the contract into storage contract, main logic contract and libraries with functionalities)
+
+Upgradability
+- For Key storage contract,have authorizers address allowed to change the state of storage contract
+- Have a mapping for all types
+Note :
+Add claim ownership to owner library
+- Add function to retrieve record of sit in any category
+- get schedule info

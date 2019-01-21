@@ -6,6 +6,7 @@ pragma solidity >=0.4.0 <0.6.0;
  * @dev Math operations with safety checks that revert on error
  */
 library SafeMath {
+        
     function mul(uint256 a, uint256 b) internal pure returns (uint256) {
         if (a == 0) {
             return 0;
@@ -20,17 +21,16 @@ library SafeMath {
         uint256 c = a / b;
         return c;
     }
+
     function sub(uint256 a, uint256 b) internal pure returns (uint256) {
         require(b <= a);
         uint256 c = a - b;
-
         return c;
     }
 
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
         uint256 c = a + b;
         require(c >= a);
-
         return c;
     }
 
