@@ -445,6 +445,7 @@ const UserController = {
         // TODO: Get price of token
         // TODO: Subtract price from user balance
         // TODO: Call buy token function
+        // TODO: Add to transaction
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -495,6 +496,7 @@ const UserController = {
         // TODO: Get price of token
         // TODO: Add price from user naira balance
         // TODO: Call sell token function
+        // TODO: Add to transaction
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
