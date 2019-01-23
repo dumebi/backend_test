@@ -1,12 +1,12 @@
 /* eslint-disable no-undef */
-const TokenContract = artifacts.require('Token');
-const MessagesLibrary = artifacts.require('MessagesAndCodes');
-const AuthorizerLib = artifacts.require('Authorizer');
-const OwnerLib = artifacts.require('Ownable');
-const TokenFuncLib = artifacts.require('TokenFunc');
-const TokenScheduleLib = artifacts.require('TokenScheduler');
+const TokenContract = artifacts.require("Token");
+const MessagesLibrary = artifacts.require("MessagesAndCodes");
+const AuthorizerLib = artifacts.require("Authorizer");
+const OwnerLib = artifacts.require("Ownable");
+const TokenFuncLib = artifacts.require("TokenFunc");
+const TokenScheduleLib = artifacts.require("TokenScheduler");
 
-module.exports = (deployer) => {
+module.exports = deployer => {
   deployer.then(async () => {
     await deployer.deploy(MessagesLibrary);
     await deployer.deploy(OwnerLib);
@@ -18,6 +18,12 @@ module.exports = (deployer) => {
     await deployer.link(AuthorizerLib, TokenContract);
     await deployer.link(TokenFuncLib, TokenContract);
     await deployer.link(TokenScheduleLib, TokenContract);
-    await deployer.deploy(TokenContract, 'SIT', 'Sterling Investment Token', 1, "0x51b369542d38211d1d52ab377b7e59067cf08594");
-  })
-}
+    await deployer.deploy(
+      TokenContract,
+      "SIT",
+      "Sterling Investment Token",
+      1,
+      "0x028fe9acfed2df2953decb25ee2c4ff5c3da01d3"
+    );
+  });
+};

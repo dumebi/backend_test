@@ -19,10 +19,12 @@ library TokenFunc {
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateAdded);
     event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
     event NewLien(address _from, address indexed _to, uint _amount, uint indexed _dateAdded, uint indexed _lienPeriod);
-    event MovedToTradable(address indexed _holder, string indexed _sitCat, uint256 catIndex);
+    event MovedToTradable(address indexed _holder, TokenCat _sitCat, uint256 catIndex);
     event NewShareholder(address indexed __holder);
-    event shareHolderUpdated(address indexed _holder,bool updateData, string _updateSpecification);
-    event Withdrawn(address initiator, address indexed _holder, string indexed _sitCat, uint256 _amount, bytes _data);
+    event shareHolderUpdated(address indexed _holder,bool updateData, uint8 _updateSpecification);
+    event Withdrawn(address initiator, address indexed _holder, TokenCat _sitCat, uint256 _amount, bytes _data);
+    
+    enum TokenCat { Tradable, Lien, Allocated, Vesting }
     
     struct Data {
         uint256 uTotalSupply;
@@ -56,7 +58,7 @@ library TokenFunc {
 
     struct Tradable {
         uint amount;
-        uint dateGiven;
+        uint dateAdded;
     }
     
     struct SitBalanceByCat {
@@ -138,14 +140,18 @@ library TokenFunc {
         return _msgCode.messages[restrictionCode];
     }
     
-    function getRecordByCat(Data storage self, MessagesAndCodes.Data storage _msgCode, address _holder, string memory _sitCat, uint _catIndex) internal returns (uint256 amount, uint256 dateAdded, uint256 lienPeriod, bool isMovedToTradable) {
-        if (Utils.stringsEqual("lien", _sitCat)) {
+    function getRecordByCat(Data storage self, address _holder, TokenCat _sitCat, uint _catIndex) internal view returns (uint256 amount, uint256 dateAdded, uint256 lienPeriod, bool isMovedToTradable) {
+        
+        if (TokenCat.Tradable == _sitCat) {
+            Tradable memory _tradable = self.mTradables[_holder][_catIndex];
+            return(_tradable.amount, _tradable.dateAdded, 0, true);
+        } else if (TokenCat.Lien == _sitCat) {
             Lien memory _lien = self.mLiens[_holder][_catIndex];
             return(_lien.amount, _lien.dateAdded, _lien.lienPeriod, _lien.isMovedToTradable);
-        } else  if (Utils.stringsEqual("vesting", _sitCat)) {
+        } else  if (TokenCat.Vesting == _sitCat) {
             Vesting memory _vesting = self.mVestings[_holder][_catIndex];
             return(_vesting.amount, _vesting.dateAdded, 0, _vesting.isMovedToTradable);
-        } else  if (Utils.stringsEqual("allocated", _sitCat)) {
+        } else  if (TokenCat.Allocated == _sitCat) {
             Allocated memory _allocate = self.mAllocations[_holder][_catIndex];
             return(_allocate.amount, _allocate.dateAdded,0, _allocate.isMovedToTradable);
         } 
@@ -175,19 +181,19 @@ library TokenFunc {
         return true;
     }    
     
-    function moveToTradable(Data storage self, MessagesAndCodes.Data storage _msgCode, address _holder, string memory _sitCat, uint catIndex) internal returns (bool success) {
-        if (Utils.stringsEqual("lien", _sitCat)) {
+    function moveToTradable(Data storage self, MessagesAndCodes.Data storage _msgCode, address _holder, TokenCat _sitCat, uint catIndex) internal returns (bool success) {
+        if (TokenCat.Tradable == _sitCat) {
             require(self.mLiens[_holder][catIndex].dateAdded.add(self.mLiens[_holder][catIndex].lienPeriod) >= now, _msgCode.messages[_msgCode.code.errorStringToCode["MOVE_LIEN_ERROR"]]);
             self.mLiens[_holder][catIndex].isMovedToTradable = true;
             self.mBalances[_holder].add(self.mLiens[_holder][catIndex].amount);
             _addToTradable(self,_holder, self.mLiens[_holder][catIndex].amount, now);
             emit MovedToTradable(_holder,_sitCat, catIndex);
-        } else  if (Utils.stringsEqual("vesting", _sitCat)) {
+        } else  if (TokenCat.Vesting == _sitCat) {
             self.mVestings[_holder][catIndex].isMovedToTradable = true;
             self.mBalances[_holder].add(self.mVestings[_holder][catIndex].amount);
             _addToTradable (self, _holder, self.mVestings[_holder][catIndex].amount, now);
             emit MovedToTradable(_holder,_sitCat, catIndex);
-        } else  if (Utils.stringsEqual("allocated", _sitCat)) {
+        } else  if (TokenCat.Allocated == _sitCat) {
             self.mAllocations[_holder][catIndex].isMovedToTradable = true;
             self.mBalances[_holder].add(self.mAllocations[_holder][catIndex].amount);
             _addToTradable (self, _holder, self.mAllocations[_holder][catIndex].amount, now);
@@ -209,31 +215,31 @@ library TokenFunc {
         return (self.shareHolders[_holder].isEnabled, self.shareHolders[_holder].isWithhold, self.shareHolders[_holder].beneficiary, self.mBalances[_holder], self.shareHolders[_holder].sitBalances.allocated, self.shareHolders[_holder].sitBalances.vesting, self.shareHolders[_holder].sitBalances.lien);
     }
 
-    function updateShareHolder(Data storage self, address _holder, bool _updateData, string memory _updateSpec) internal returns(bool) { 
+    function updateShareHolder(Data storage self, address _holder, bool _updateData, uint8 _updateSpec) internal returns(bool) { 
 
-        if (Utils.stringsEqual(_updateSpec, "validation")) {
+        if (_updateSpec == 1) {
             self.shareHolders[_holder].isEnabled = _updateData;
-            emit shareHolderUpdated(_holder, _updateData, _updateSpec);
+            emit shareHolderUpdated(_holder, _updateData, 1);
             return true;
-        } else if (Utils.stringsEqual(_updateSpec, "access")) {
+        } else if (_updateSpec == 0) {
             self.shareHolders[_holder].isWithhold = _updateData;
-            emit shareHolderUpdated(_holder, _updateData, _updateSpec);
+            emit shareHolderUpdated(_holder, _updateData, 0);
             return true;
         }
         return false;
     }
     
     
-    function withdraw(Data storage self, MessagesAndCodes.Data storage _msgCode, uint8 _granularity, address _coinBase, address _holder, uint256 _amount, string memory _sitCat, bytes memory _reason) internal returns (bytes memory reason) {
+    function withdraw(Data storage self, MessagesAndCodes.Data storage _msgCode, uint8 _granularity, address _coinBase, address _holder, uint256 _amount, TokenCat _sitCat, bytes memory _reason) internal returns (bytes memory reason) {
 
         require(_amount % _granularity == 0, _msgCode.messages[_msgCode.code.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
-        if (Utils.stringsEqual("lien", _sitCat)) {
+        if (TokenCat.Lien == _sitCat) {
             self.shareHolders[_holder].sitBalances.lien.sub(_amount);
-        } else  if (Utils.stringsEqual("vesting", _sitCat)) {
+        } else  if (TokenCat.Vesting == _sitCat) {
             self.shareHolders[_holder].sitBalances.vesting.sub(_amount);
-        } else  if (Utils.stringsEqual("allocated", _sitCat)) {
+        } else if (TokenCat.Allocated == _sitCat) {
             self.shareHolders[_holder].sitBalances.allocated.sub(_amount);
-        } else if (Utils.stringsEqual("tradable", _sitCat)) {
+        } else if (TokenCat.Tradable == _sitCat) {
             self.mBalances[_holder].sub(_amount);
         }
         self.mBalances[_coinBase].add(_amount);

@@ -51,14 +51,14 @@ contract Token is IERC20, IERC1404 {
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateAdded);
     event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
     event NewLien(address _from, address indexed _to, uint _amount, uint indexed _startDate, uint indexed _lienPeriod);
-    event MovedToTradable(address indexed _holder, string indexed _sitCat, uint256 catIndex);
+    event MovedToTradable(address indexed _holder, TokenFunc.TokenCat _sitCat, uint256 catIndex);
     event NewShareholder(address indexed __holder);
-    event shareHolderUpdated(address indexed _holder,bool updateData, string _updateSpecification);
-    event NewSchedule(uint256 _scheduleId, string _scheduleType, uint256 _amount, bytes _data);
+    event shareHolderUpdated(address indexed _holder,bool updateData, uint8 _updateSpecification);
+    event NewSchedule(uint256 _scheduleId, TokenScheduler.ScheduleType _scheduleType, uint256 _amount, bytes _data);
     event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
     event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
-    event Minted(string indexed _from, address indexed _holder, string indexed _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
-    event Withdrawn(address initiator, address indexed _holder, string indexed _sitCat, uint256 _amount, bytes _data);
+    event Minted(uint8 _from, address indexed _holder, TokenFunc.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
+    event Withdrawn(address initiator, address indexed _holder, TokenFunc.TokenCat _sitCat, uint256 _amount, bytes _data);
     
 
     string public sName;
@@ -75,7 +75,7 @@ contract Token is IERC20, IERC1404 {
         MessagesAndCodes.init(messagesAndCodes);
     }
     
-    function addAuthorizer(address _approver, string memory _type) public returns(bool success)  {
+    function addAuthorizer(address _approver, TokenScheduler.ScheduleType _type) public onlyOwner returns(bool success)  {
         Authorizer.addAuthorizer(authorizer, _approver, _type);
         success = true;
     }
@@ -151,11 +151,11 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc.messageForTransferRestriction(messagesAndCodes, restrictionCode);
     }
     
-    function getRecordByCat(address _holder, string memory _sitCat, uint _catIndex) public returns (uint256 amount, uint256 dateAdded, uint256 lienPeriod, bool isMovedToTradable) {
-        (amount, dateAdded, lienPeriod, isMovedToTradable) = TokenFunc.getRecordByCat(tokenFunc, messagesAndCodes, _holder, _sitCat, _catIndex);
+    function getRecordByCat(address _holder, TokenFunc.TokenCat _sitCat, uint _catIndex) public view returns (uint256 amount, uint256 dateAdded, uint256 lienPeriod, bool isMovedToTradable) {
+        (amount, dateAdded, lienPeriod, isMovedToTradable) = TokenFunc.getRecordByCat(tokenFunc, _holder, _sitCat, _catIndex);
     }
     
-    function moveToTradable(address _holder, string memory _sitCat, uint _catIndex) public onlyOwner returns (bool success) {
+    function moveToTradable(address _holder, TokenFunc.TokenCat _sitCat, uint _catIndex) public onlyOwner returns (bool success) {
         require(isValid(_holder), messagesAndCodes.messages[messagesAndCodes.code.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
         success = TokenFunc.moveToTradable(tokenFunc, messagesAndCodes, _holder, _sitCat, _catIndex);
     }
@@ -168,7 +168,7 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc.getShareHolder(tokenFunc, _holder);
     }
 
-    function updateShareHolder(address _holder, bool _updateData, string memory _updateSpec) public onlyOwner returns(bool success ) { 
+    function updateShareHolder(address _holder, bool _updateData, uint8 _updateSpec) public onlyOwner returns(bool success ) { 
 
         success = TokenFunc.updateShareHolder(tokenFunc, _holder, _updateData, _updateSpec);
     }
@@ -190,17 +190,25 @@ contract Token is IERC20, IERC1404 {
         return tokenFunc.shareHolders[_holder].isWithhold;
     }
     
-    function createSchedule (uint256 _scheduleId, uint256 _amount, string memory _scheduleType, bytes memory _data) public onlyOwner returns(uint256 scheduleId) {
+    function createSchedule (uint256 _scheduleId, uint256 _amount, TokenScheduler.ScheduleType _scheduleType, bytes memory _data) public onlyOwner returns(uint256 scheduleId) {
         scheduleId = TokenScheduler.createSchedule(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
+    function getSchedule (uint _scheduleId) public view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, TokenScheduler.ScheduleType scheduleType ) {
+        return TokenScheduler.getSchedule(tokenScheduler, _scheduleId);
+    }
+    
+    function getScheduleAuthorizer (uint _scheduleId, uint _authorizerIndex) public view returns(address authorizerAddress, bytes memory reason) {
+        return TokenScheduler.getScheduleAuthorizer(tokenScheduler, _scheduleId, _authorizerIndex);
+    }
+    
     function approveSchedule( uint256 _scheduleId, bytes memory _reason) public onlyAuthorizer returns(uint256 scheduleId)  {
-        string memory _authorizerType = authorizer.mAuthorizers[msg.sender].authorizerType;
+        TokenScheduler.ScheduleType _authorizerType = authorizer.mAuthorizers[msg.sender].authorizerType;
         scheduleId = TokenScheduler.approveSchedule(tokenScheduler, _scheduleId, _reason, _authorizerType);
     } 
     
     function rejectSchedule( uint256 _scheduleId, bytes memory _reason) public onlyAuthorizer returns(uint256 scheduleId)  {
-        string memory _authorizerType = authorizer.mAuthorizers[msg.sender].authorizerType;
+        TokenScheduler.ScheduleType _authorizerType = authorizer.mAuthorizers[msg.sender].authorizerType;
         scheduleId = TokenScheduler.rejectSchedule(tokenScheduler, _scheduleId, _reason, _authorizerType);
     } 
     
@@ -208,7 +216,7 @@ contract Token is IERC20, IERC1404 {
         scheduleId = TokenScheduler.removeSchedule(tokenScheduler, _scheduleId, _reason);
     } 
 
-    function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, string memory _sitCat, uint256 _extraDataData, bytes memory _data) public onlyOwner returns (bool success) {
+    function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, TokenFunc.TokenCat _sitCat, uint256 _lienPeriod, bytes memory _data) public onlyOwner returns (bool success) {
         
         if (TokenFunc.totalSupply(tokenFunc).add(_amount) < TokenFunc.totalSupply(tokenFunc)) {
             success = false;
@@ -216,10 +224,10 @@ contract Token is IERC20, IERC1404 {
         }
         require(isValid(_holder), messagesAndCodes.messages[messagesAndCodes.code.errorStringToCode["RECEIPT_TRANSFER_BLOCKED"]]);
         
-        success = TokenScheduler.mint(tokenScheduler, tokenFunc, messagesAndCodes, uGranularity, aCoinbaseAcct, _scheduleIndex, _holder, _amount, _sitCat, _extraDataData, _data );
+        success = TokenScheduler.mint(tokenScheduler, tokenFunc, messagesAndCodes, uGranularity, aCoinbaseAcct, _scheduleIndex, _holder, _amount, _sitCat, _lienPeriod, _data );
     }
     
-    function withdraw(address _holder, uint256 _amount, string memory _sitCat, bytes memory _reason) public onlyOwner returns (bytes memory reason) {
+    function withdraw(address _holder, uint256 _amount, TokenFunc.TokenCat _sitCat, bytes memory _reason) public onlyOwner returns (bytes memory reason) {
         if (_amount < 0) {
             return "";
         }

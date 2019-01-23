@@ -18,7 +18,7 @@ library MessagesAndCodes {
     }
     
     function init(Data storage self) internal {
-        // addMessage(self, "SUCCESS", "Success");
+        addMessage(self, "SUCCESS", "Success");
     }
     
     function messageIsEmpty (string memory _message) internal pure returns (bool isEmpty) {

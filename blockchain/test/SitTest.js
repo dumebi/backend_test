@@ -1,5 +1,6 @@
 var SIT = artifacts.require("SIT");
 
+
 contract('SIT Contract', async function(accounts) {
   console.log("account >> ", accounts[0])
   it("Should return true if two strings are equal", function() {
