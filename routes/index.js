@@ -44,6 +44,7 @@ router.post('/users/sell', middleware.isUser, UserController.sell);
  * User Profile Routes
  */
 router.get('/users/bank', middleware.isUser, UserController.bank);
+// router.patch('/users/bank', middleware.isUser, UserController.changeBank);
 router.patch('/users/', middleware.isUser, UserController.update);
 router.get('/users/:id', middleware.isUser, UserController.one);
 router.get('/users/', middleware.isAdmin, UserController.all);

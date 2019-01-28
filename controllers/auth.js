@@ -189,6 +189,9 @@ const AuthController = {
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }
+      if (user.activated === false) {
+        return res.status(401).json({ status: 'failed', message: 'User account has been deactivated' });
+      }
       const jwtToken = createToken(email, user._id, user.type);
       user.token = jwtToken;
       await user.save();
