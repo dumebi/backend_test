@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require('express');
 const AuthController = require('../controllers/auth')
 const UserController = require('../controllers/user');
@@ -6,6 +7,12 @@ const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
 const middleware = require('../helpers/middleware')
 // const sanitize = require("../helpers/sanitization.js");
+=======
+const express = require("express");
+const AuthController = require("../controllers/auth");
+const testController = require("../controllers/test");
+const sanitize = require("../helpers/sanitization.js");
+>>>>>>> oluchi
 
 const router = express.Router();
 
@@ -21,6 +28,8 @@ router.patch('/users/change-pass', middleware.isUser, AuthController.changePass)
 router.patch('/users/activate/:id', AuthController.activate);
 router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
 
+//  Test Routes For Blockchain
+router.get("/test", testController.sample);
 
 /**
  * User Model routes

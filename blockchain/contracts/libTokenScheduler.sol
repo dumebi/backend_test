@@ -81,6 +81,7 @@ library TokenScheduler  {
             self.mMintSchedules[_scheduleId].authorizedBy[0] = authorising;
         } else if (_scheduleInstance.scheduleType == ScheduleType.PayScheme)  {
             require(_authorizerType == TokenScheduler.ScheduleType.PayScheme, "You are not authorized to reject this schedule");
+            require(!_scheduleInstance.isApproved, "This schedule has already been approved");
             require(!self.trackApproves[msg.sender], "You have already approved this schedule!");
             
             Authorising memory authorising;
@@ -89,9 +90,9 @@ library TokenScheduler  {
             
             self.mMintSchedules[_scheduleId].authorizedBy[_scheduleInstance.authorizedCount] = authorising;
             self.trackApproves[msg.sender] = true;
-            _scheduleInstance.authorizedCount = _scheduleInstance.authorizedCount + 1;
+            self.mMintSchedules[_scheduleId].authorizedCount = _scheduleInstance.authorizedCount + 1;
             
-            if ( _scheduleInstance.authorizedCount >= 3) {
+            if ( _scheduleInstance.authorizedCount >= 2) {
                 self.mMintSchedules[_scheduleId].isApproved = true;
                 self.mMintSchedules[_scheduleId].isRejected = false;
                 delete _scheduleInstance.authorizedCount;
@@ -112,6 +113,7 @@ library TokenScheduler  {
         if (_scheduleInstance.scheduleType == ScheduleType.PayScheme)  {
             require(_scheduleInstance.scheduleType == _authorizerType, "You are restricted from rejecting this schedule");
             self.mMintSchedules[_scheduleId].isRejected = true;
+            self.mMintSchedules[_scheduleId].isApproved = false;
             self.mMintSchedules[_scheduleId].authorizedBy[0] = Authorising(msg.sender, _reason);
         } else if (_scheduleInstance.scheduleType == ScheduleType.UpfrontScheme)  {
             require(_scheduleInstance.scheduleType == _authorizerType, "You are restricted from rejecting this schedule");
@@ -123,7 +125,7 @@ library TokenScheduler  {
         return _scheduleId;
     } 
     
-        function removeSchedule(Data storage self, uint256 _scheduleId, bytes memory _reason) internal returns(uint256)  {
+    function removeSchedule(Data storage self, uint256 _scheduleId, bytes memory _reason) internal returns(uint256)  {
         require(self.mMintSchedules[_scheduleId].amount == self.mMintSchedules[_scheduleId].activeAmount, "This schedule cannot be removed! Tokens have already been minted on it");
 
         delete self.mMintSchedules[_scheduleId];
@@ -131,7 +133,7 @@ library TokenScheduler  {
         return _scheduleId;
     } 
     
-    function mint(Data storage self, TokenFunc.Data storage tokenFunc, MessagesAndCodes.Data storage _msgCode, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, TokenFunc.TokenCat _sitCat, uint256 _lienPeriod, bytes memory _data) internal returns (bool success) {
+    function mint(Data storage self, TokenFunc.Data storage tokenFunc, MessagesAndCodes.Data storage _msgCode, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, TokenFunc.TokenCat _sitCat, uint256 _duration, bytes memory _data) internal returns (bool success) {
         
         require(self.mMintSchedules[_scheduleIndex].isActive, "Inactive schedule");
         require(self.mMintSchedules[_scheduleIndex].isApproved, "Unauthorized schedule");
@@ -142,26 +144,26 @@ library TokenScheduler  {
 
         if (TokenFunc.TokenCat.Lien  == _sitCat) {
             tokenFunc.shareHolders[_holder].sitBalances.lien = tokenFunc.shareHolders[_holder].sitBalances.lien.add(_amount);
-            TokenFunc._addToLien(tokenFunc,_holder, _amount, now, _lienPeriod);
+            TokenFunc._addToLien(tokenFunc,_holder, _amount, now, _duration);
         } else  if (TokenFunc.TokenCat.Vesting  == _sitCat) {
             tokenFunc.shareHolders[_holder].sitBalances.vesting = tokenFunc.shareHolders[_holder].sitBalances.vesting.add(_amount);
             TokenFunc._addToVesting (tokenFunc, _holder, _amount, now);
         } else  if (TokenFunc.TokenCat.Allocated  == _sitCat) {
             tokenFunc.shareHolders[_holder].sitBalances.allocated = tokenFunc.shareHolders[_holder].sitBalances.allocated.add(_amount);
-            TokenFunc._addToAllocated (tokenFunc, _holder, _amount, now);
+            TokenFunc._addToAllocated (tokenFunc, _holder, _amount, now, _duration);
         } else if (TokenFunc.TokenCat.Tradable  == _sitCat) {
             tokenFunc.mBalances[_holder] = tokenFunc.mBalances[_holder].add(_amount);
-            TokenFunc._addToTradable(tokenFunc, _holder, _amount, now);
         }
         
         if (TokenFunc.balanceOf(tokenFunc, _coinBase) >= _amount) {
-            tokenFunc.mBalances[_coinBase].sub(_amount);
+            tokenFunc.mBalances[_coinBase] = tokenFunc.mBalances[_coinBase].sub(_amount);
             _from = 0;
         } else {
             tokenFunc.uTotalSupply = tokenFunc.uTotalSupply.add(_amount);
             _from = 1;
         }
-        self.mMintSchedules[_scheduleIndex].activeAmount.sub(_amount);
+        
+        self.mMintSchedules[_scheduleIndex].activeAmount = self.mMintSchedules[_scheduleIndex].activeAmount.sub(_amount);
         
         if (self.mMintSchedules[_scheduleIndex].activeAmount <= 0) {
             self.mMintSchedules[_scheduleIndex].isActive = false;
