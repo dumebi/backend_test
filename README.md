@@ -108,16 +108,26 @@ Implement upgrade smart contracts :
 
 Challenges :
 Large contract size failing to deploy : Solution : Factor constant logics into libraries, Use external storag with proxy(delegateCall). This also works for upgradability | Try to eliminate loops in contracts | Clear out unused variables | refactor multiple functions with base logic to a single function | Define similar types side by side |Continue to refactor into libraries|Use shorter types for struct elements and sort them such that short types are grouped together.|Move duplicate functionality into generic functions or function modifiers (even if it means more function parameters).|Instead of creating multiple getters (or multiple public members), create bundled getters that return multiple values at once.|Use local variables to reference storage array elements.|Remove some constant functions that are not critical to the contract.\
-
+the tx doesn't have the correct nonce. account has nonce of: 0 tx has nonce of: 6 =>
 Nounce : Setting the nounce on an account for each transaction was a problem as they was no efficient way of getting the nounce of the previously mined block and if a transaction fails, the nounce of that transaction wont be counted, making it hard to get the correct nounce
+Getting gas price and extimating gas => There was no way to easily determine what gas price was more attractive to miners, as the only way i saw was to make and api call to EthergasStation and if for any reason this fails, the entire process was sabotaged.
+Geting Gas Estimate for a transaction => The way i knew how to do this was to use the web3 estimateGas function which infers and estimates gas based on the previous transaction,but the down side of this is that if the previous transaction was not properly implement this returns an error,
 
 - Factoring contract and logics into other contracts and libraries. (Challenges on this : My solution is to break the contract into storage contract, main logic contract and libraries with functionalities, use bytes instead of strings(bytes is raw, but string is UTF-8))
 
-Upgradability
+- Made all library functions internal, else it throws error
+  Upgradability
 
 - For Key storage contract,have authorizers address allowed to change the state of storage contract
 - Have a mapping for all types
   Note :
   Add claim ownership to owner library
-- Add function to retrieve record of sit in any category
-- get schedule info
+- Add function to get the token equivalence in local currencies
+- Function to get authorizer by index
+- Create a function to manage nounce
+- Be able to get records by index
+- implement developers and admin roles,make permissions strict
+- Add an exchange mapping for all users
+- messages and codes should be handled offline
+- Check for key management
+- Return counts for all array

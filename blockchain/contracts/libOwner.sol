@@ -14,8 +14,8 @@ library Ownable {
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-    function init(Data storage self) internal {
-        self._owner = msg.sender;
+    function init(Data storage self, address owner) internal {
+        self._owner = owner;
         emit OwnershipTransferred(address(0), self._owner);
     }
 
