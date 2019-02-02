@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-const Constants = require("./httpStatus");
+// const Constants = require("./httpStatus");
 require("dotenv").config();
 
 exports.config = {
@@ -92,13 +92,13 @@ exports.checkToken = async (req, res, next) => {
     if (req.body.token) {
       token = req.body.token;
     }
-    if (!token) {
-      return {
-        status: "failed",
-        data: Constants.UNAUTHORIZED,
-        message: "Not authorized"
-      };
-    }
+    // if (!token) {
+    //   return {
+    //     status: "failed",
+    //     data: Constants.UNAUTHORIZED,
+    //     message: "Not authorized"
+    //   };
+    // }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
     // if (user_id && decryptedToken.id !== user_id) {
     //   return {
@@ -114,18 +114,18 @@ exports.checkToken = async (req, res, next) => {
       data: decryptedToken
     };
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return {
-        status: "failed",
-        data: Constants.UNAUTHORIZED,
-        message: "Token expired"
-      };
-    }
-    return {
-      status: "failed",
-      data: Constants.UNAUTHORIZED,
-      message: "failed to authenticate token"
-    };
+    // if (error.name === "TokenExpiredError") {
+    //   return {
+    //     status: "failed",
+    //     data: Constants.UNAUTHORIZED,
+    //     message: "Token expired"
+    //   };
+    // }
+    // return {
+    //   status: "failed",
+    //   data: Constants.UNAUTHORIZED,
+    //   message: "failed to authenticate token"
+    // };
   }
 };
 
