@@ -56,7 +56,7 @@ exports.Token = class {
         message: "Shareholder already added before!"
       }
     ];
-    messages.forEach(async message => {
+    messages.forEach(async function(message) {
       await this.addErrorMessage(
         privateKey,
         fromAddress,
