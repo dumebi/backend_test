@@ -7,7 +7,7 @@
 
 const debug = require('debug')('sttp:server');
 const http = require('http');
-const app = require('../app');
+const app = require('../index');
 require('dotenv').config();
 
 /**

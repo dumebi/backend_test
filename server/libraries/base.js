@@ -2,9 +2,9 @@
 const Web3 = require('web3')
 const contract = require('truffle-contract')
 const path = require('path')
-const utils = require('../helpers/utils')
 const ethUtil = require("ethereumjs-util")
 const EthereumTx = require("ethereumjs-tx")
+const utils = require('../helpers/utils')
 
 
 // const UserContractJson = require(path.join(
@@ -27,6 +27,7 @@ const web3 = new Web3(provider)
  * Get Coinbase address and amount, store them.
  */
 exports.getCoinbase = () => {
+  console.log('coinbase')
   try {
     web3.eth.getCoinbase((err, account) => {
       if (err === null) {
@@ -38,9 +39,10 @@ exports.getCoinbase = () => {
             console.log(coinbase, coinbase_amount)
           }
         })
+      } else {
+        console.log(err)
       }
     })
-    
   } catch (err) {
     console.log(err)
   }
@@ -52,5 +54,3 @@ exports.coinbase = coinbase
 exports.coinbase_amount = coinbase_amount
 exports.ethUtil = ethUtil
 exports.EthereumTx = EthereumTx
-
-

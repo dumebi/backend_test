@@ -8,6 +8,7 @@ const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
 const redis = require('redis');
+const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
@@ -77,5 +78,7 @@ app.use((err, req, res, next) => {
   // This responds to the request
   res.status(httpErr || 500).json(err);
 });
+
+base.getCoinbase()
 
 module.exports = app;
