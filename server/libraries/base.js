@@ -19,6 +19,8 @@ let coinbase = ''
 const provider = utils.config.blockchain
 const web3 = new Web3(provider)
 
+console.log(provider)
+
 // Read JSON and attach RPC connection (Provider)
 // const UserContract = contract(UserContractJson)
 // UserContract.setProvider(provider)
@@ -31,10 +33,12 @@ exports.getCoinbase = () => {
   try {
     web3.eth.getCoinbase((err, account) => {
       if (err === null) {
+        console.log(err, coinbase)
         coinbase = account
         // $('#account').text(account);
         web3.eth.getBalance(account, (error, balance) => {
           if (error === null) {
+            console.log(error, balance)
             coinbase_amount = web3.utils.fromWei(balance, 'ether')
             console.log(coinbase, coinbase_amount)
           }
@@ -44,6 +48,7 @@ exports.getCoinbase = () => {
       }
     })
   } catch (err) {
+    console.log('error')
     console.log(err)
   }
 }

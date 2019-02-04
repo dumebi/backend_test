@@ -11,7 +11,7 @@ exports.config = {
 }
 
 if (process.env.NODE_ENV === 'development') {
-  this.config.blockchain = process.env.GANACHE
+  this.config.blockchain = `${process.env.GANACHE}`
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
