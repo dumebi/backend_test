@@ -14,23 +14,27 @@ const { web3, EthereumTx } = require("./../libraries/base");
 
 var accounts;
 var contractInst;
-beforeEach(() => {
-  accounts = web3.eth.getAccounts();
+beforeEach(async () => {
+  accounts = await web3.eth.getAccounts();
   const { compiledTokenContract } = require("../libraries/deploy/compile.js");
 
-  const deployedContractAddr = "0xfe7a80a5f425db9b8de32e84381927da3eb1b273";
+  const deployedContractAddr = "0x41a49bd0940ef8f3f575c3fe848a171b0902e9f9";
   const contractABI = compiledTokenContract.abi;
-  contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
+  const contract = await new web3.eth.Contract(
+    contractABI,
+    deployedContractAddr
+  );
+  contractInst = contract.methods;
 });
 
 describe("Token deployment", () => {
-  it("Has value for token properties after deployment", async (accounts, contractInst) => {
-    const result = await contractInst.owner().call({ from: fromAddress });
+  it("Has value for token properties after deployment", async () => {
+    const result = await contractInst.owner().call({ from: accounts[0] });
+    console.log("result << ", result);
     assert.equal(
       accounts[0],
       result,
       "The owner address is different form expeted owner"
     );
-    done();
   });
 });
