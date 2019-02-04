@@ -5,6 +5,7 @@ const path = require('path')
 const ethUtil = require("ethereumjs-util")
 const EthereumTx = require("ethereumjs-tx")
 const utils = require('../helpers/utils')
+const ganache = require("ganache-cli");
 
 
 // const UserContractJson = require(path.join(
@@ -18,8 +19,8 @@ let coinbase = ''
 // Setup RPC connection
 const provider = utils.config.blockchain
 const web3 = new Web3(provider)
-
 console.log(provider)
+
 
 // Read JSON and attach RPC connection (Provider)
 // const UserContract = contract(UserContractJson)
@@ -28,9 +29,9 @@ console.log(provider)
 /**
  * Get Coinbase address and amount, store them.
  */
-exports.getCoinbase = () => {
-  console.log('coinbase')
+exports.getCoinbase = async () => {
   try {
+    console.log('coinbase')
     web3.eth.getCoinbase((err, account) => {
       if (err === null) {
         console.log(err, coinbase)
