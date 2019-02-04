@@ -131,3 +131,16 @@ Geting Gas Estimate for a transaction => The way i knew how to do this was to us
 - messages and codes should be handled offline
 - Check for key management
 - Return counts for all array
+
+Error Codes
+
+- 0xA0 Transfer Verified - Unrestricted
+- 0xA1 Transfer Verified - On-Chain approval for restricted token
+- 0xA2 Transfer Verified - Off-Chain approval for restricted token
+- 0xA3 Transfer Blocked - Sender lockup period not ended
+- 0xA4 Transfer Blocked - Sender balance insufficient
+- 0xA5 Transfer Blocked - Sender not eligible
+- 0xA6 Transfer Blocked - Receiver not eligible
+- 0xA7 Transfer Blocked - Identity restriction
+- 0xA8 Transfer Blocked - Token restriction
+- 0xA9 Transfer Blocked - Token granularity
