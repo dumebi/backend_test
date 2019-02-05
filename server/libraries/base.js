@@ -27,7 +27,7 @@ console.log(provider)
 // UserContract.setProvider(provider)
 
 /**
- * Get Coinbase address and amount, store them.
+ * Get Coinbase address and amount
  */
 exports.getCoinbase = async () => {
   try {
