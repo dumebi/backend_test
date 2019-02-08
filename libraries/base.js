@@ -9,7 +9,13 @@ let coinbase = "";
 
 // Setup RPC connection
 const provider = utils.config.blockchain;
-const web3 = new Web3(provider);
+const wsProvider = new Web3.providers.WebsocketProvider("ws://localhost:7545");
+const web3 = new Web3(wsProvider);
+// const ganache = require("ganache-cli");
+// const server = ganache.server();
+// server.listen(7545, function(err, blockchain) {
+//   console.log("blockchain >> ", blockchain);
+// });
 
 /**
  * Get Coinbase address and amount, store them.

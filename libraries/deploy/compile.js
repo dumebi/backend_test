@@ -47,6 +47,11 @@ const InterfaceIERCs = path.join(
   "../../blockchain/contracts",
   "iERCs.sol"
 );
+const InterfaceSharing = path.join(
+  __dirname,
+  "../../blockchain/contracts",
+  "libSharing.sol"
+);
 
 const solTokenContract = fs.readFileSync(TokenContract, "utf8");
 const solMessagesLibrary = fs.readFileSync(MessagesLibrary, "utf8");
@@ -57,6 +62,7 @@ const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
 const solUtilsLib = fs.readFileSync(TokenUtilsLib, "utf8");
 const solSafeMathLib = fs.readFileSync(TokenSafeMathLib, "utf8");
 const solIERCsLib = fs.readFileSync(InterfaceIERCs, "utf8");
+const solSharingLib = fs.readFileSync(InterfaceSharing, "utf8");
 
 var input = {
   language: "Solidity",
@@ -112,6 +118,8 @@ function getImports(dependency) {
       return { contents: solSafeMathLib };
     case "iERCs.sol":
       return { contents: solIERCsLib };
+    case "libSharing.sol":
+      return { contents: solSharingLib };
     default:
       return { error: "File not found" };
   }

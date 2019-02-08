@@ -69,11 +69,6 @@ SIT Sales Offering => AU,UR
 SIT Purchase Offering => AD,AU,UR
 SIT Purchase => AD, AU, UR
 
-TDD & Sprints
-Add shareholders to contract
-Define shareholders SIT categories
-Enable and disable shareholders (Update shareholders details)
-
 ERRO Handling :
 
 SUCCESS;
@@ -89,12 +84,23 @@ ACCOUNT_WITHHOLD_ERROR;
 MOVE_LIEN_ERROR;
 UNIQUE_SHAREHOLDER_ERROR;
 
+SCHEDULE
+NOTALLOWED_ERROR => "This schedule cannot be rejected! Tokens have already been minted on it" || "This schedule cannot be removed! Tokens have already been minted on it"
+INVALID_ERROR => "This is for inactive schedules
+SCHEDULE_APPROVED_ERROR => "This schedule has already been approved!"
+SCHEDULE_REJECTED_ERROR => "This schedule has already been rejected!"
+
+TRANSFERS
+INVALID_ERROR => "This is for invalid amounts that tends to have a reverse effect on the transaction (i.e 0, -1)
+
+GENERAL
+UNAUTHORIZED_ERROR => "Only contract owner can initiate this transaction" | "Only contract manager can initiate this transaction" | "Only contract administrators can initiate this transaction" | "You are not listed as an authorizer."
+
 What is left :
 
 Test with Remix
 Write Solidity test
 Write Javascript Test
-write the Library
 Write Oraclize for detectrestriction
 Write Upgradability Functions, function to disable(If this function is called, no interaction can occur to the contract unless it is enabled ahain, ) an to selfDestroy
 Oraclize.
@@ -132,15 +138,44 @@ Geting Gas Estimate for a transaction => The way i knew how to do this was to us
 - Check for key management
 - Return counts for all array
 
-Error Codes
-
-- 0xA0 Transfer Verified - Unrestricted
-- 0xA1 Transfer Verified - On-Chain approval for restricted token
-- 0xA2 Transfer Verified - Off-Chain approval for restricted token
-- 0xA3 Transfer Blocked - Sender lockup period not ended
-- 0xA4 Transfer Blocked - Sender balance insufficient
-- 0xA5 Transfer Blocked - Sender not eligible
-- 0xA6 Transfer Blocked - Receiver not eligible
-- 0xA7 Transfer Blocked - Identity restriction
-- 0xA8 Transfer Blocked - Token restriction
-- 0xA9 Transfer Blocked - Token granularity
+const messages = [
+{
+errorCode: "UNVERIFIED_HOLDER",
+message: "Only verified SIT holders can perform this transaction"
+},
+{
+errorCode: "RECEIPT_TRANSFER_BLOCKED",
+message: "Recipient not authorized"
+},
+{ errorCode: "SEND_TRANSFER_BLOCKED", message: "Sender not authorized" },
+{
+errorCode: "TOKEN_GRANULARITY_ERROR",
+message: "Token cannot be granular below the specified granularity"
+},
+{
+errorCode: "TRANSFER_VERIFIED_ERROR",
+message: "Off-Chain approval for restricted token"
+},
+{
+errorCode: "INSUFFICIENT_BALANCE_ERROR",
+message: "You do not have sufficient balance for this transaction"
+},
+{
+errorCode: "INVALID_AMOUNT_ERROR",
+message: "Token amount specified is invalid"
+},
+{
+errorCode: "SPENDER_BALANCE_ERROR",
+message: "Amount specified is morethan spendable amount"
+},
+{ errorCode: "ACCOUNT_WITHHOLD_ERROR", message: "Account on hold" },
+{
+errorCode: "MOVE_LIEN_ERROR",
+message:
+"Lien cannot be moved to tradable balance, lien period not over yet"
+},
+{
+errorCode: "UNIQUE_SHAREHOLDER_ERROR",
+message: "Shareholder already added before!"
+}
+];
