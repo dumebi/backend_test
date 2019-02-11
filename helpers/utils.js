@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-const Constants = require("./httpStatus");
+const Constants = require("./status");
 require("dotenv").config();
 
 exports.config = {
@@ -12,7 +12,7 @@ exports.config = {
 };
 if (process.env.NODE_ENV === "development") {
   this.config.blockchain = process.env.GANACHE;
-  this.config.mongo = process.env.MONGO_DB_DEV_EXCHANGE;
+  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE;
   this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`;
   this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`;
   this.config.db = "exchange-test";
