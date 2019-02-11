@@ -129,53 +129,29 @@ Geting Gas Estimate for a transaction => The way i knew how to do this was to us
   Note :
   Add claim ownership to owner library
 - Add function to get the token equivalence in local currencies
-- Function to get authorizer by index
 - Create a function to manage nounce
-- Be able to get records by index
-- implement developers and admin roles,make permissions strict
 - Add an exchange mapping for all users
-- messages and codes should be handled offline
 - Check for key management
-- Return counts for all array
 
-const messages = [
-{
 errorCode: "UNVERIFIED_HOLDER",
 message: "Only verified SIT holders can perform this transaction"
-},
-{
+
 errorCode: "RECEIPT_TRANSFER_BLOCKED",
 message: "Recipient not authorized"
-},
-{ errorCode: "SEND_TRANSFER_BLOCKED", message: "Sender not authorized" },
-{
+errorCode: "SEND_TRANSFER_BLOCKED", message: "Sender not authorized"
 errorCode: "TOKEN_GRANULARITY_ERROR",
 message: "Token cannot be granular below the specified granularity"
-},
-{
 errorCode: "TRANSFER_VERIFIED_ERROR",
 message: "Off-Chain approval for restricted token"
-},
-{
 errorCode: "INSUFFICIENT_BALANCE_ERROR",
 message: "You do not have sufficient balance for this transaction"
-},
-{
 errorCode: "INVALID_AMOUNT_ERROR",
 message: "Token amount specified is invalid"
-},
-{
 errorCode: "SPENDER_BALANCE_ERROR",
 message: "Amount specified is morethan spendable amount"
-},
-{ errorCode: "ACCOUNT_WITHHOLD_ERROR", message: "Account on hold" },
-{
+errorCode: "ACCOUNT_WITHHOLD_ERROR", message: "Account on hold"
 errorCode: "MOVE_LIEN_ERROR",
 message:
 "Lien cannot be moved to tradable balance, lien period not over yet"
-},
-{
 errorCode: "UNIQUE_SHAREHOLDER_ERROR",
 message: "Shareholder already added before!"
-}
-];

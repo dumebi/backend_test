@@ -11,6 +11,7 @@ library MessagesAndCodes {
         NOTFOUND_ERROR,
         NOTALLOWED_ERROR,
         UNVERIFIED_HOLDER,
+        INVALID_PARAMS_ERROR,
         RECEIPT_TRANSFER_BLOCKED,
         SEND_TRANSFER_BLOCKED,
         TOKEN_GRANULARITY_ERROR,
@@ -41,6 +42,8 @@ library MessagesAndCodes {
             return "NOTFOUND_ERROR";
         }else if(_code == uint8(Reason.NOTALLOWED_ERROR)){
             return "NOTALLOWED_ERROR";
+        }else if(_code == uint8(Reason.INVALID_PARAMS_ERROR)){
+            return "INVALID_PARAMS_ERROR";
         }else if(_code == uint8(Reason.UNVERIFIED_HOLDER)){
             return "UNVERIFIED_HOLDER";
         }else if(_code == uint8(Reason.RECEIPT_TRANSFER_BLOCKED)){

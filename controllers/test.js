@@ -12,21 +12,22 @@ module.exports = {
       //   "0xBb723B459F84c24665a89159d94701321864e5d0",
       //   "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6"
       // );
-      // const result2 = await token.getOwner(
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0"
-      // );
-      // const result3 = await token.getTokenInfo(
-      //   "0x1f08822bb986329241ba2cfe4209167506483c4f"
-      // );
-      // const result4 = await token.getTokenbase(
-      //   "0xBb723B459F84c24665a89159d94701321864e5d0"
-      // );
-      // const result5 = await token.getTotalSupply();
-      // const result6 = await token.getTokenbaseBal(result1);
-      // const result7 = await token.getBalance(
-      //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
-      //   "0x1f08822bb986329241ba2cfe4209167506483c4f"
-      // );
+      const result2 = await token.getOwner(
+        "0xbb723b459f84c24665a89159d94701321864e5d0"
+      );
+      const result3 = await token.getTokenInfo(
+        "0x1f08822bb986329241ba2cfe4209167506483c4f"
+      );
+      const result4 = await token.getTokenbase(
+        "0xBb723B459F84c24665a89159d94701321864e5d0"
+      );
+      const result5 = await token.getTotalSupply();
+      const result6 = await token.getTokenbaseBal(result1);
+      const result7 = await token.getBalance(
+        "0x1f08822bb986329241ba2cfe4209167506483c4f",
+        "0x1f08822bb986329241ba2cfe4209167506483c4f"
+      );
+      return res.send({ result2, result3, result4, result5, result6, result7 });
       // ========================== Authorizer Activity ========================
       // const result1 = await token.addAuthorizer(
       //   "82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0",

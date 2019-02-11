@@ -27,7 +27,6 @@ library Sharing {
     }
     
     struct DataSchedule {
-        uint256[] scheduleIndex;
         mapping(uint256 => Schedule) mMintSchedules;
         mapping (address => bool) trackApproves;
     }
