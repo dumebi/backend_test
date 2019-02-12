@@ -155,3 +155,10 @@ message:
 "Lien cannot be moved to tradable balance, lien period not over yet"
 errorCode: "UNIQUE_SHAREHOLDER_ERROR",
 message: "Shareholder already added before!"
+
+Error Handling
+
+Handle Nounce Error
+Handle Revert Error(solidity error handling)
+Handle Runtime Error
+Handle Argument Error

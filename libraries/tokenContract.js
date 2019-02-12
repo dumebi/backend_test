@@ -6,6 +6,42 @@ const contractABI = compiledTokenContract.abi;
 const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
 exports.Token = class {
+
+  constructor (key, owner) {
+    this.key = key
+    this.owner = owner
+  }
+
+  errorHandler(error){
+    console.log("er > ", error)
+    // solidity error
+    if (error.name == "RuntimeError"){
+      console.log("RuntimeError")
+      return {
+        ok : false,
+        reason : error.reason,
+        field : error.arg
+      }
+    }
+    if (error.code == "-32000"){
+      console.log("32000")
+      return {
+        ok : false,
+        reason : error.reason,
+        field : error.arg
+      }
+      
+    }
+    if (!error.reason){
+      console.log("Error >> ", error)
+      return {
+        ok : false,
+        reason : error.Error
+      }
+      
+    }
+  }
+
   /**
    * @def : This function allows the owner transfer ownership to another account
    * @dev : This function should be called by the contract owner
@@ -16,7 +52,7 @@ exports.Token = class {
    *  transactionId : {}
    * }
    */
-  async transferOwnership(_privateKey, fromAddress, newOwner) {
+  async transferOwnership(fromAddress, _privateKey, newOwner) {
     try {
       const isValidAddress = await web3.utils.isAddress(newOwner);
       if (!isValidAddress) {
@@ -55,181 +91,12 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
-  /**
-   * @def : This function allows the manager add and error message
-   * @dev : This function should be called by the contract manager/developer
-   * @params : {
-   *  errorString : "Error code string",
-   *  message : "Actual error message"
-   * }
-   * @returns : {
-   *  transactionId : {}
-   * }
-   */
-  async addErrorMessage(_privateKey, fromAddress, errorString, message) {
-    try {
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
-      if (!isValidFrom) {
-        return "Invalid initiator address";
-      }
 
-      const gasPrice = 4;
-      const data = await contractInst.methods
-        .addMessage(errorString, message)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, "hex");
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .addMessage(errorString, message)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
-
-      return transactionId;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * @def : This function allows the manager update and error message
-   * @dev : This function should be called by the contract manager/developer
-   * @params : {
-   *  errorString : "Error code string",
-   *  message : "Actual error message"
-   * }
-   * @returns : {
-   *  errorCodeString(string)
-   *  transactionId : {}
-   * }
-   */
-  async updateErrorMessage(_privateKey, fromAddress, errorString, message) {
-    try {
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
-      if (!isValidFrom) {
-        return "Invalid initiator address";
-      }
-
-      const gasPrice = 4;
-      const data = await contractInst.methods
-        .updateMessage(errorString, message)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, "hex");
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .updateMessage(errorString, message)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
-
-      return transactionId;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * @def : This function allows the manager remove an error message
-   * @dev : This function should be called by the contract manager/developer
-   * @params : {
-   *  errorString : "Error code string"
-   * }
-   * @returns : {
-   *  transactionId : {}
-   * }
-   */
-  async removeErrorMessage(_privateKey, fromAddress, errorString) {
-    try {
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
-      if (!isValidFrom) {
-        return "Invalid initiator address";
-      }
-
-      const gasPrice = 4;
-      const data = await contractInst.methods
-        .removeMessage(errorString)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, "hex");
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .removeMessage(errorString)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
-
-      return transactionId;
-    } catch (error) {
-      throw error;
-    }
-  }
-
+  
   /**
    * @def : This function returns the owner address (Super Admin)
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
@@ -243,7 +110,7 @@ exports.Token = class {
       const result = await token.owner().call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -260,7 +127,7 @@ exports.Token = class {
       const result = await token.aManager().call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -288,7 +155,7 @@ exports.Token = class {
         granularity
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -302,10 +169,10 @@ exports.Token = class {
   async getTokenbase(fromAddress) {
     try {
       const token = await contractInst.methods;
-      const result = await token.aCoinbaseAcct().call({ from: fromAddress });
+      const result = await token.aTokenbase().call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -324,7 +191,7 @@ exports.Token = class {
         .call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -341,21 +208,7 @@ exports.Token = class {
       const result = await token.totalSupply().call();
       return result;
     } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * @def : This function returns the total number of authorizers in the contract
-   * @dev : Can be called by either the Owner | Manage/developer | Admins
-   */
-  async getAuthorizerCount(fromAddress) {
-    try {
-      const token = await contractInst.methods;
-      const result = await token.countAuthorizer().call({ from: fromAddress });
-      return result;
-    } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -372,6 +225,7 @@ exports.Token = class {
    */
   async addAuthorizer(_privateKey, fromAddress, authorizer, type) {
     try {
+      
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
         return "Invalid authorizer address";
@@ -409,7 +263,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -423,8 +277,9 @@ exports.Token = class {
    *  transactionId: {}
    * }
    */
-  async removeAuthorizer(_privateKey, fromAddress, authorizer) {
+  async removeAuthorizer(_privateKey, fromAddress , authorizer) {
     try {
+      
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
         return "Invalid authorizer address";
@@ -462,7 +317,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -478,11 +333,11 @@ exports.Token = class {
    *  type(string)
    * }
    */
-  async getAuthorizer(fromAddress, authorizer, authorizerId) {
+  async getAuthorizer(fromAddress, authorizer) {
     try {
       const token = await contractInst.methods;
       const result = await token
-        .getAuthorizer(authorizer, authorizerId)
+        .getAuthorizer(authorizer)
         .call({ from: fromAddress });
 
       return {
@@ -490,7 +345,7 @@ exports.Token = class {
         type: result.authorizerType == 0 ? "Pay Scheme" : "Upfront Scheme"
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -518,7 +373,7 @@ exports.Token = class {
         reason
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -536,7 +391,7 @@ exports.Token = class {
 
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -554,7 +409,7 @@ exports.Token = class {
 
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -569,7 +424,7 @@ exports.Token = class {
         .call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -630,7 +485,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -692,7 +547,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -713,7 +568,7 @@ exports.Token = class {
         .call({ from: fromAddress });
       return result;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -776,7 +631,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -841,10 +696,10 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
-
+  
   /**
    * @def : This function returns a shareholder details
    * @dev : Called anyone
@@ -883,7 +738,7 @@ exports.Token = class {
         lien
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -953,7 +808,70 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @def : This function allows the contract owner | admins add a shareholder
+   * @dev : Called by Owner | Admins
+   * @params : {
+   *  holder : "address of the shareholder",
+   *  isEnabled : "accepts a boolean field, sets the shareholder to valid or not",
+   *  isWithhold : "accepts a boolean field, sets the shareholder to withhold or not"
+   * }
+   */
+
+  async removeShareholder(
+    _privateKey,
+    fromAddress,
+    holder
+  ) {
+    try {
+      const isValidAddress = await web3.utils.isAddress(holder);
+
+      if (!isValidAddress) {
+        return "Invalid from address";
+      }
+
+      const gasPrice = 2000;
+
+      const data = await contractInst.methods
+        .removeShareholder(holder)
+        .encodeABI();
+
+      const privateKey = Buffer.from(_privateKey, "hex");
+
+      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+
+      const gasUsed = await contractInst.methods
+        .removeShareholder(holder)
+        .estimateGas({
+          from: fromAddress
+        });
+
+      const txParams = {
+        nonce: nounce,
+        gasLimit: gasUsed || 1200000,
+        gasPrice: gasPrice.high * 1000000000,
+        from: fromAddress,
+        to: deployedContractAddr,
+        data,
+        chainId: 5777
+      };
+
+      const tx = await new EthereumTx(txParams);
+
+      tx.gasPrice = tx.sign(privateKey);
+
+      const serializedTx = tx.serialize();
+      const transactionId = await web3.eth.sendSignedTransaction(
+        "0x" + serializedTx.toString("hex")
+      );
+
+      return transactionId;
+    } catch (error) {
+      return this.errorHandler(error);
     }
   }
 
@@ -981,7 +899,7 @@ exports.Token = class {
         duration,
         isMovedToTradable
       } = await contractInst.methods
-        .getRecordByCat(
+        .recordsByCat(
           holder,
           category == "Tradable"
             ? 0
@@ -1003,7 +921,7 @@ exports.Token = class {
         isMovedToTradable
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1077,7 +995,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1132,7 +1050,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1175,7 +1093,7 @@ exports.Token = class {
         isRejected
       };
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1225,7 +1143,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1275,7 +1193,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1373,7 +1291,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1453,7 +1371,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 
@@ -1546,7 +1464,7 @@ exports.Token = class {
 
       return transactionId;
     } catch (error) {
-      throw error;
+      return this.errorHandler(error);
     }
   }
 };

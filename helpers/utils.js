@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-// const Constants = require("./httpStatus");
+const Constants = require("./status");
 require("dotenv").config();
 
 exports.config = {
@@ -12,7 +12,7 @@ exports.config = {
 };
 if (process.env.NODE_ENV === "development") {
   this.config.blockchain = process.env.GANACHE;
-  this.config.mongo = process.env.MONGO_DB_DEV_EXCHANGE;
+  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE;
   this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`;
   this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`;
   this.config.db = "exchange-test";
@@ -92,40 +92,40 @@ exports.checkToken = async (req, res, next) => {
     if (req.body.token) {
       token = req.body.token;
     }
-    // if (!token) {
-    //   return {
-    //     status: "failed",
-    //     data: Constants.UNAUTHORIZED,
-    //     message: "Not authorized"
-    //   };
-    // }
+    if (!token) {
+      return {
+        status: "failed",
+        data: Constants.UNAUTHORIZED,
+        message: "Not authorized"
+      };
+    }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    // if (user_id && decryptedToken.id !== user_id) {
-    //   return {
-    //     status: 'failed',
-    //     data: Constants.UNAUTHORIZED,
-    //     message: 'Not authorized'
-    //   }
-    // }
-    // let dateNow = new Date()
-    // console.log(isExpiredToken)
+    if (user_id && decryptedToken.id !== user_id) {
+      return {
+        status: 'failed',
+        data: Constants.UNAUTHORIZED,
+        message: 'Not authorized'
+      }
+    }
+    let dateNow = new Date()
+    console.log(isExpiredToken)
     return {
       status: "success",
       data: decryptedToken
     };
   } catch (error) {
-    // if (error.name === "TokenExpiredError") {
-    //   return {
-    //     status: "failed",
-    //     data: Constants.UNAUTHORIZED,
-    //     message: "Token expired"
-    //   };
-    // }
-    // return {
-    //   status: "failed",
-    //   data: Constants.UNAUTHORIZED,
-    //   message: "failed to authenticate token"
-    // };
+    if (error.name === "TokenExpiredError") {
+      return {
+        status: "failed",
+        data: Constants.UNAUTHORIZED,
+        message: "Token expired"
+      };
+    }
+    return {
+      status: "failed",
+      data: Constants.UNAUTHORIZED,
+      message: "failed to authenticate token"
+    };
   }
 };
 
