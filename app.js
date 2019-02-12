@@ -7,15 +7,15 @@ const winston = require("winston");
 const cors = require("cors");
 const compression = require("compression");
 const flash = require("connect-flash");
-const redis = require("redis");
+// const redis = require("redis");
 
 const app = express();
 require("./helpers/connection").start();
 
-const client = redis.createClient();
-client.on("connect", () => {
-  console.log("connected to redis server");
-});
+// const client = redis.createClient();
+// client.on("connect", () => {
+//   console.log("connected to redis server");
+// });
 
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
