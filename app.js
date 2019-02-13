@@ -13,10 +13,10 @@ const app = express();
 require('dotenv').config();
 require('./helpers/connection').start();
 
-const client = redis.createClient();
-client.on('connect', () => {
-  console.log('connected to redis server');
-})
+// const client = redis.createClient();
+// client.on('connect', () => {
+//   console.log('connected to redis server');
+// })
 
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
@@ -49,6 +49,7 @@ app.use(logger('dev'));
 
 /* Application Routes */
 app.use('/v1/', require('./routes'));
+require("./libraries/events.js");
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

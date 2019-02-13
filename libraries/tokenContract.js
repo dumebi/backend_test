@@ -1,16 +1,16 @@
 const { web3, EthereumTx } = require("./base.js");
 const { compiledTokenContract } = require("./deploy/compile.js");
 
-const deployedContractAddr = "0x1620782a3d70b48720af013cc8d206b2a90727e5";
+const deployedContractAddr = "0xe074dcdb03bfd885e090e2e56c0b2feaa6aedf8d";
 const contractABI = compiledTokenContract.abi;
 const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
 exports.Token = class {
 
-  constructor (key, owner) {
-    this.key = key
-    this.owner = owner
-  }
+  // constructor (key, owner) {
+  //   this.key = key
+  //   this.owner = owner
+  // }
 
   errorHandler(error){
     console.log("er > ", error)
@@ -207,6 +207,165 @@ exports.Token = class {
       const token = await contractInst.methods;
       const result = await token.totalSupply().call();
       return result;
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @def : This function allows the contract owner change contract manager
+   * @dev : Can be called by only the owner
+   * @params : {
+   *  admin : "address of the new account to be made manager",}
+   * @returns : {
+        transactionId: {}
+   * }
+   */
+  async changeManager(_privateKey, fromAddress, manager) {
+    try {
+      
+      const isValidAddress = await web3.utils.isAddress(manager);
+      if (!isValidAddress) {
+        return "Invalid manager address";
+      }
+
+      const privateKey = Buffer.from(_privateKey, "hex");
+      const data = await contractInst.methods
+        .changeManager(manager)
+        .encodeABI();
+
+      const gasPrice = 2000;
+      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const gasUsed = await contractInst.methods
+      .changeManager(manager)
+        .estimateGas({
+          from: fromAddress
+        });
+
+      const txParams = {
+        nonce: nounce,
+        gasLimit: gasUsed || 1200000,
+        gasPrice: gasPrice * 1000000000,
+        from: fromAddress,
+        to: deployedContractAddr,
+        data,
+        chainId: 5777
+      };
+
+      const tx = await new EthereumTx(txParams);
+      tx.sign(privateKey);
+      const serializedTx = tx.serialize();
+      const transactionId = await web3.eth.sendSignedTransaction(
+        "0x" + serializedTx.toString("hex")
+      );
+
+      return transactionId;
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @def : This function allows the contract owner add an admin to the contract
+   * @dev : Can be called by only the owner
+   * @params : {
+   *  admin : "address of the account to be made an admin",}
+   * @returns : {
+        transactionId: {}
+   * }
+   */
+  async addAdmin(_privateKey, fromAddress, admin) {
+    try {
+      
+      const isValidAddress = await web3.utils.isAddress(admin);
+      if (!isValidAddress) {
+        return "Invalid admin address";
+      }
+
+      const privateKey = Buffer.from(_privateKey, "hex");
+      const data = await contractInst.methods
+        .addAdmin(admin)
+        .encodeABI();
+
+      const gasPrice = 2000;
+      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const gasUsed = await contractInst.methods
+      .addAdmin(admin)
+        .estimateGas({
+          from: fromAddress
+        });
+
+      const txParams = {
+        nonce: nounce,
+        gasLimit: gasUsed || 1200000,
+        gasPrice: gasPrice * 1000000000,
+        from: fromAddress,
+        to: deployedContractAddr,
+        data,
+        chainId: 5777
+      };
+
+      const tx = await new EthereumTx(txParams);
+      tx.sign(privateKey);
+      const serializedTx = tx.serialize();
+      const transactionId = await web3.eth.sendSignedTransaction(
+        "0x" + serializedTx.toString("hex")
+      );
+
+      return transactionId;
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+/**
+   * @def : This function allows the contract owner remove an admin from the contract
+   * @dev : Can be called by either the Owner | Admins
+   * @params : {
+   *  admin : "address of the account to be removed as an admin"
+   * }
+   * @returns : {
+   *  transactionId: {}
+   * }
+   */
+  async removeAdmin(_privateKey, fromAddress , admin) {
+    try {
+      
+      const isValidAddress = await web3.utils.isAddress(admin);
+      if (!isValidAddress) {
+        return "Invalid admin address";
+      }
+
+      const privateKey = Buffer.from(_privateKey, "hex");
+      const data = await contractInst.methods
+        .removeAdmin(admin)
+        .encodeABI();
+
+      const gasPrice = 2000;
+      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const gasUsed = await contractInst.methods
+        .removeAdmin(admin)
+        .estimateGas({
+          from: fromAddress
+        });
+
+      const txParams = {
+        nonce: nounce,
+        gasLimit: gasUsed || 1200000,
+        gasPrice: gasPrice * 1000000000,
+        from: fromAddress,
+        to: deployedContractAddr,
+        data,
+        chainId: 5777
+      };
+
+      const tx = await new EthereumTx(txParams);
+      tx.sign(privateKey);
+      const serializedTx = tx.serialize();
+      const transactionId = await web3.eth.sendSignedTransaction(
+        "0x" + serializedTx.toString("hex")
+      );
+
+      return transactionId;
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -875,6 +1034,46 @@ exports.Token = class {
     }
   }
 
+
+  /**
+   * @def : This function returns count of shareholder total records in any category
+   * @dev : Called anyone
+   * @params : {
+   *  holder : "address of the shareholder",
+   *  category : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
+   * }
+   * @returns : {
+        amount : |Amount,
+        dateAdded : "Date added",
+        duration 
+        isWithdrawn,: "This can mean lien period for Liens or dueDate for Allocated",
+        isMovedToTradable : "Weather or not the record has been moved to tradable"
+   * }
+   */
+
+  async totalRecordsPerCat(fromAddress, holder, category) {
+    try {
+      const result = await contractInst.methods
+        .totalRecordsByCat(
+          holder,
+          category == "Tradable"
+            ? 0
+            : category == "Lien"
+            ? 1
+            : category == "Allocated"
+            ? 2
+            : category == "Vesting"
+            ? 3
+            : "00"
+        )
+        .call({ from: fromAddress });
+
+      return result
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
   /**
    * @def : This function returns a shareholder details
    * @dev : Called anyone
@@ -886,7 +1085,8 @@ exports.Token = class {
    * @returns : {
         amount : |Amount,
         dateAdded : "Date added",
-        duration : "This can mean lien period for Liens or dueDate for Allocated",
+        duration 
+        isWithdrawn,: "This can mean lien period for Liens or dueDate for Allocated",
         isMovedToTradable : "Weather or not the record has been moved to tradable"
    * }
    */
@@ -897,17 +1097,18 @@ exports.Token = class {
         amount,
         dateAdded,
         duration,
+        isWithdrawn,
         isMovedToTradable
       } = await contractInst.methods
-        .recordsByCat(
+        .recordByCat(
           holder,
           category == "Tradable"
             ? 0
-            : shareCat == "Lien"
+            : category == "Lien"
             ? 1
-            : shareCat == "Allocated"
+            : category == "Allocated"
             ? 2
-            : shareCat == "Vesting"
+            : category == "Vesting"
             ? 3
             : "00",
           recordId
@@ -918,6 +1119,7 @@ exports.Token = class {
         amount,
         dateAdded,
         duration,
+        isWithdrawn,
         isMovedToTradable
       };
     } catch (error) {

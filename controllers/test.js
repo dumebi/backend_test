@@ -1,8 +1,5 @@
 const { Token } = require("../libraries/tokenContract.js");
-const token = new Token(
-  "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-  "0xbb723b459f84c24665a89159d94701321864e5d0"
-);
+const token = new Token();
 
 module.exports = {
   sample: async function(req, res, next) {
@@ -12,6 +9,18 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0xbb723b459f84c24665a89159d94701321864e5d0"
       // );
+
+      // const result1 = await token.addAdmin(
+      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
+      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
+      //   "0xfe52ba0ae495784058d9b5d21743c24eab9bffc1"
+      // );
+      // const result1 = await token.removeAdmin(
+      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
+      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
+      //   "0xfe52ba0ae495784058d9b5d21743c24eab9bffc1"
+      // );
+      // return res.send({ result1 });
       // const result2 = await token.getOwner(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0"
       // );
@@ -25,7 +34,7 @@ module.exports = {
       // const result6 = await token.getTokenbaseBal(result4);
       // const result7 = await token.getBalance(
       //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
-      //   "0x1f08822bb986329241ba2cfe4209167506483c4f"
+      //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba"
       // );
       // ========================== Authorizer Activity ========================
       // const result1 = await token.addAuthorizer(
@@ -42,10 +51,10 @@ module.exports = {
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
       //   0
       // );
-      // const result1 = await token.addShareholder(
+      // const result2 = await token.addShareholder(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6",
+      //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba",
       //   true,
       //   false
       // );
@@ -74,9 +83,9 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f"
       // );
-      // return res.send({ result3});
+      // return res.send({ result2});
       // ====================== For Schedules and Minting ========================
-      // const result1 = await token.createSchedule(
+      // const result3 = await token.createSchedule(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   1,
@@ -88,7 +97,7 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   1
       // );
-      // const result3 = await token.approveSchedule(
+      // const result4 = await token.approveSchedule(
       //   "3c10300074f325d4ccd979a21a494a7d9042371b707dda64320817375b160097",
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
       //   1,
@@ -112,8 +121,8 @@ module.exports = {
       //   1,
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   10,
-      //   "Tradable",
-      //   0,
+      //   "Lien",
+      //   "1549974280",
       //   "This is an upfront minting to Uche"
       // );
       // const result7 = await token.withdraw(
@@ -137,46 +146,35 @@ module.exports = {
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6",
       //   3
-      // );
+      // // );
       // const result3 = await token.getAllowance(
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6"
       // );
-      const result4 = await token.transferFrom(
-        "82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0",
-        "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6",
-        "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
-        "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba",
-        0
-      );
-      return res.send({ result4});
-      // ====================== For Error Messages ==========================
-      // const result1 = await token.addErrorMessage(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "SEND_TRANSFER_BLOCKED",
-      //   "Sender not authorized"
+      // const result4 = await token.transferFrom(
+      //   "82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0",
+      //   "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6",
+      //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
+      //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba",
+      //   1
       // );
-      // const result2 = await token.updateErrorMessage(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "success",
-      //   "Was successful!"
-      // );
-      // const result3 = await token.removeErrorMessage(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "success"
-      // );
+      // return res.send({  result1, result2, result3, result4});
+      // return res.send({ result3});
       // =================== For Share Category ===================
+      const result1 = await token.totalRecordsPerCat(
+        "0xbb723b459f84c24665a89159d94701321864e5d0",
+        "0x1f08822bb986329241ba2cfe4209167506483c4f",
+        "Lien"
+      );
+
+      return res.send({ result1});
       // const result1 = await token.getRecordByCat(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
-      //   "Tradable",
+      //   "Lien",
       //   0
       // );
-      // return res.send({ result1 });
       // const result2 = await token.makeTradable(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
