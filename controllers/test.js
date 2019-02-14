@@ -37,12 +37,12 @@ module.exports = {
       //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba"
       // );
       // ========================== Authorizer Activity ========================
-      // const result1 = await token.addAuthorizer(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
-      //   "Upfront Scheme"
-      // );
+      const result1 = await token.addAuthorizer(
+        "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
+        "0xbb723b459f84c24665a89159d94701321864e5d0",
+        "0x45d2387c6c99c49b859feffbc029d7e605106298",
+        "Upfront Scheme"
+      );
       // const result2 = await token.removeAuthorizer(
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298"
       // );
@@ -162,11 +162,11 @@ module.exports = {
       // return res.send({  result1, result2, result3, result4});
       // return res.send({ result3});
       // =================== For Share Category ===================
-      const result1 = await token.totalRecordsPerCat(
-        "0xbb723b459f84c24665a89159d94701321864e5d0",
-        "0x1f08822bb986329241ba2cfe4209167506483c4f",
-        "Lien"
-      );
+      // const result1 = await token.totalRecordsPerCat(
+      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
+      //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
+      //   "Lien"
+      // );
 
       return res.send({ result1});
       // const result1 = await token.getRecordByCat(
