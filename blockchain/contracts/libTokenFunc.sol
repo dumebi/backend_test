@@ -10,17 +10,16 @@ library TokenFunc {
     using SafeMath for uint256;
     
     
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-    event NewTradable(address indexed _from, address indexed _to, uint _amount, uint indexed _date);
-    event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateAdded);
-    event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
-    event NewLien(address _from, address indexed _to, uint _amount, uint indexed _dateAdded, uint indexed _lienPeriod);
-    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 catIndex);
+    event Transfer(address indexed _from, address indexed _to, uint256 _amount);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
+    event NewAllocated(address indexed _to, uint _amount, uint indexed _dateAdded);
+    event NewVesting(address indexed _to, uint _amount, uint indexed _date);
+    event NewLien(address indexed _to, uint _amount, uint indexed _dateAdded, uint indexed _lienPeriod);
+    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 _recordId);
     event NewShareholder(address indexed __holder);
     event shareHolderUpdated(address indexed _holder,bool _isEnabled, bool _isWithhold);
-    event shareHolderRemoved(address _holder);
-    event Withdrawn(address initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
+    event shareHolderRemoved(address indexed _holder);
+    event Withdrawn(address _initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
     
 
     function totalSupply(Sharing.DataToken storage self) internal view  returns (uint256) {
@@ -114,19 +113,19 @@ library TokenFunc {
     
     function _addToAllocated (Sharing.DataToken storage self, address _holder, uint _amount, uint _dateAdded, uint _dateDue) internal returns(bool success) {
         self.mAllocations[_holder].push(Sharing.Allocated(_amount, _dateAdded, _dateDue, false, false));
-        emit NewAllocated(msg.sender, _holder, _amount, _dateAdded);
+        emit NewAllocated(_holder, _amount, _dateAdded);
         return true;
     }
     
     function _addToVesting (Sharing.DataToken storage self, address _holder, uint _amount, uint _dateAdded) internal returns(bool success) {
         self.mVestings[_holder].push(Sharing.Vesting(_amount, _dateAdded, false, false));
-        emit NewVesting(msg.sender, _holder, _amount, _dateAdded);
+        emit NewVesting(_holder, _amount, _dateAdded);
         return true;
     }
     
     function _addToLien (Sharing.DataToken storage self, address _holder, uint _amount, uint _dateAdded, uint _lienPeriod) internal returns(bool success) {
         self.mLiens[_holder].push(Sharing.Lien(_amount, _dateAdded, _lienPeriod, false, false));
-        emit NewLien(msg.sender, _holder, _amount, _dateAdded, _lienPeriod);
+        emit NewLien(_holder, _amount, _dateAdded, _lienPeriod);
         return true;
     }    
     
@@ -171,7 +170,7 @@ library TokenFunc {
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function removeShareHolder(Sharing.DataToken storage self, address _holder, bool _isEnabled, bool _isWithhold) internal returns(string memory success) { 
+    function removeShareHolder(Sharing.DataToken storage self, address _holder) internal returns(string memory success) { 
         delete self.shareHolders[_holder];
         emit shareHolderRemoved(_holder);
         return  MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
@@ -198,7 +197,7 @@ library TokenFunc {
         } else if (Sharing.TokenCat.Tradable == _sitCat) {
             if(balanceOf(self, _holder) < _amount){
                 return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR));
-            }
+            } 
             self.mBalances[_holder] = self.mBalances[_holder].sub(_amount);
         }
         

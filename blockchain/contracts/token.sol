@@ -52,29 +52,9 @@ contract Token is IERC20, IERC1404 {
             require(!tokenFunc.shareHolders[msg.sender].isWithhold, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.ACCOUNT_WITHHOLD_ERROR)));
             _;
         }
-        _;
+        // _;
     }
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    event NewAuthorizer(address indexed _authorizer, Sharing.ScheduleType indexed _type);
-    event AuthorizerRemoved(address indexed _authorizer);
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-    event NewTradable(address indexed _from, address indexed _to, uint _amount, uint indexed _date);
-    event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateAdded);
-    event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
-    event NewLien(address _from, address indexed _to, uint _amount, uint indexed _dateAdded, uint indexed _lienPeriod);
-    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 catIndex);
-    event NewShareholder(address indexed __holder);
-    event shareHolderUpdated(address indexed _holder,bool _isEnabled, bool _isWithhold);
-    event shareHolderRemoved(address _holder);
-    event Withdrawn(address initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
-    event NewSchedule(uint256 _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _data);
-    event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
-    event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
-    event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
-    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
-    
 
     string public sName;
     string public sSymbol;
@@ -120,11 +100,6 @@ contract Token is IERC20, IERC1404 {
         success = true;
     }
 
-    function totalAuthorizer() public view returns (uint) {
-        return authorizer.mAuthorizers.length;
-    }
-    
-    
     function getAuthorizer(address _approver) public view onlyAdmin returns (address authorizerAddr, Sharing.ScheduleType authorizerType) {
         return Authorizer.getAuthorizer(authorizer, _approver);
     }
@@ -199,6 +174,10 @@ contract Token is IERC20, IERC1404 {
 
         success = TokenFunc.updateShareHolder(tokenFunc, _holder, isEnabled, isWithhold);
     }
+    
+    // function removeShareHolder(address _holder) public onlyAdmin returns(string memory success) { 
+    //         return  TokenFunc.removeShareHolder(tokenFunc, _holder);
+    // }
 
     function isValid(address _holder) public view returns (bool) {
         if (_holder != Ownable.owner(ownable)) {

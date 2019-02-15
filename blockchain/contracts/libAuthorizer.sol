@@ -25,7 +25,7 @@ library Authorizer {
     }
     
     function getAuthorizer(Sharing.DataAuthorizer storage self, address _approver) internal view returns (address authorizer, Sharing.ScheduleType authorizerType) {
-        require(!self.authorizerToIndex[_approver].isUnique, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTFOUND_ERROR)));
+        require(self.authorizerToIndex[_approver].isUnique, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTFOUND_ERROR)));
         return (self.mAuthorizers[self.authorizerToIndex[_approver].index].authorizer, self.mAuthorizers[self.authorizerToIndex[_approver].index].authorizerType);
     }
     

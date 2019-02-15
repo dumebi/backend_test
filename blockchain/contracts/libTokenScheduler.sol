@@ -8,11 +8,11 @@ import "./libSharing.sol";
 library TokenScheduler  {
     using SafeMath for uint256;
     
-    event NewSchedule(uint256 _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _data);
-    event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
-    event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
+    event NewSchedule(uint256 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
+    event ScheduleApproved(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for approval
+    event ScheduleRejected(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for rejection
     event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
-    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
+    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _reason);
     
     
     function createSchedule (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) internal returns(string memory success ) {
@@ -87,7 +87,7 @@ library TokenScheduler  {
                 delete self.trackApproves[self.mMintSchedules[_scheduleId].authorizedBy[2].authorizer];
             }
         }
-        emit ScheduleApproved(_scheduleId, msg.sender, _reason);
+        emit ScheduleApproved(_scheduleId, _reason);
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
 
     } 
@@ -111,7 +111,7 @@ library TokenScheduler  {
             self.mMintSchedules[_scheduleId].isApproved = false;
             self.mMintSchedules[_scheduleId].authorizedBy[0] = Sharing.Authorising(msg.sender, _reason);
         }
-        emit ScheduleRejected(_scheduleId, msg.sender, _reason);
+        emit ScheduleRejected(_scheduleId, _reason);
         
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
