@@ -4,6 +4,7 @@ const UserController = require('../controllers/user');
 const TransactionController = require('../controllers/transaction');
 const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
+const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
 // const sanitize = require("../helpers/sanitization.js");
 
@@ -36,8 +37,11 @@ router.get('/users/balance', middleware.isUser, UserController.balance);
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
 // router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
 // router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
-router.post('/users/buy', middleware.isUser, UserController.buy);
-router.post('/users/sell', middleware.isUser, UserController.sell);
+router.post('/users/exchange/buy', middleware.isUser, TokenController.buy);
+router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
+router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
+router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
+router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /**
@@ -47,7 +51,7 @@ router.get('/users/bank', middleware.isUser, UserController.bank);
 // router.patch('/users/bank', middleware.isUser, UserController.changeBank);
 router.patch('/users/', middleware.isUser, UserController.update);
 router.get('/users/:id', middleware.isUser, UserController.one);
-router.get('/users/', middleware.isAdmin, UserController.all);
+router.get('/users/', UserController.all);
 
 /**
  * Admin Routes
@@ -68,5 +72,8 @@ router.patch('/admin/dividend/:dividend_id', middleware.isAdmin, DividendControl
 router.patch('/admin/dividend/enable/:dividend_id', middleware.isAdmin, DividendController.enable);
 router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, DividendController.enable);
 
-router.post('/admin/transactions', middleware.isAdmin, TransactionController.all);
+router.get('/admin/transactions', middleware.isAdmin, TransactionController.all);
+
+router.get('/admin/token/init', middleware.isAdmin, TokenController.init);
+router.post('/admin/token/price', middleware.isAdmin, TokenController.setPrice);
 module.exports = router;

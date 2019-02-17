@@ -138,6 +138,9 @@ const AuthController = {
       let newUser = JSON.stringify(user)
       newUser = JSON.parse(newUser)
       delete newUser.password;
+      delete newUser.mnemonic;
+      delete newUser.privateKey;
+      delete newUser.publicKey;
 
       await addUserOrUpdateCache(newUser)
 
@@ -184,7 +187,7 @@ const AuthController = {
       }
       const email = req.body.email;
       const password = req.body.password;
-      const user = await UserModel.findOne({ email }).select('+password');
+      const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password').populate('wallet');
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
@@ -230,7 +233,7 @@ const AuthController = {
         })
       }
       // const email = Buffer.from(req.params.id, 'base64').toString()
-      const user = await UserModel.findById(req.params.id);
+      const user = await UserModel.findById(req.params.id, { mnemonic: 0, publicKey: 0, privateKey: 0 });
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = true;
@@ -269,7 +272,7 @@ const AuthController = {
           message: 'some parameters were not supplied'
         })
       }
-      const user = await UserModel.findById(req.params.id);
+      const user = await UserModel.findById(req.params.id, { mnemonic: 0, publicKey: 0, privateKey: 0 });
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = false;
@@ -364,7 +367,7 @@ const AuthController = {
 
       const user = await UserModel.findOne({
         email: req.body.email
-      }).select('+recover_token');
+      }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+recover_token');
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       if (!user.validateToken(token)) {
         return res.json({ result: 'error', message: 'Wrong Token' })

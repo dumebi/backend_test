@@ -1,7 +1,9 @@
 /* eslint-disable no-undef */
+const mongoose = require('mongoose');
 const expect = require('chai').expect
 const supertest = require('supertest')
 const { config } = require('../helpers/utils');
+
 
 const api = supertest(`${config.host}`)
 
@@ -10,6 +12,35 @@ describe('Admin Test', () => {
   let user_id = ''
   let admin_jwt = ''
   const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlkIjoiNWMzN2E0ODZjMmRhYzgxNzM2ZjE4MmNiIiwidHlwZSI6IkFkbWluIiwiaWF0IjoxNTQ3NDk4MzAzLCJleHAiOjE1NDc1ODQ3MDN9.Q9TtOXm1w2zG6oXZ9td9pWOd2Eaa92Du3Soql22DIcI'
+
+  before(async () => {
+    // await mongoose.connect(utils.config.mongo, { useNewUrlParser: true });
+    console.log(config.mongo);
+    await mongoose.connect(config.mongo, { useNewUrlParser: true });
+    await mongoose.connection.db.dropDatabase();
+  });
+
+  it('Should signin an admin ', (done) => {
+    api
+      .post('users/login')
+      .set('Accept', 'application/json')
+      .send({
+        email: 'admin@gmail.com',
+        password: 'John'
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(user_email)
+        expect(res.body.data.password).to.not.equal(user_pass)
+        user_address = res.body.data.address;
+        user_jwt = res.body.data.token;
+        user_wallet = res.body.data.wallet;
+        user_id = res.body.data._id;
+        done()
+      })
+  }).timeout(10000)
 
   it('Should create a user', (done) => {
     const fname = 'John'

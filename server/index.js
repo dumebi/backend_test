@@ -7,28 +7,11 @@ const winston = require('winston');
 const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
-// const redis = require('redis');
 const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
 require('./helpers/connection').start();
-
-// const client = redis.createClient(process.env.REDIS_URL);
-// client.on('connect', () => {
-//   console.log('connected to redis server');
-// })
-
-// Redis Client Setup
-const redis = require('redis');
-const client = redis.createClient({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-  retry_strategy: () => 1000
-});
-client.on('connect', () => {
-  console.log('connected to redis server');
-})
 
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 

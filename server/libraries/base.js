@@ -19,7 +19,6 @@ let coinbase = ''
 // Setup RPC connection
 const provider = utils.config.blockchain
 const web3 = new Web3(provider)
-console.log(provider)
 
 
 // Read JSON and attach RPC connection (Provider)
@@ -31,10 +30,10 @@ console.log(provider)
  */
 exports.getCoinbase = async () => {
   try {
-    console.log('coinbase')
+    // console.log('coinbase')
     web3.eth.getCoinbase((err, account) => {
       if (err === null) {
-        console.log(err, coinbase)
+        // console.log(err, coinbase)
         coinbase = account
         // $('#account').text(account);
         web3.eth.getBalance(account, (error, balance) => {

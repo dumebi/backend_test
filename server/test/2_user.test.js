@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+const mongoose = require('mongoose');
 const expect = require('chai').expect
 const supertest = require('supertest')
 const { config } = require('../helpers/utils');
@@ -13,6 +14,12 @@ describe('User Test', () => {
   let user_wallet = ''
   const user_email = 'johndoe@gmail.com'
   const user_pass = 'John'
+
+  after(async () => {
+    await mongoose.connection.db.dropDatabase();
+    await mongoose.connection.close();
+    await mongoose.disconnect();
+  });
 
   it('Should signin a user', (done) => {
     api
@@ -34,7 +41,7 @@ describe('User Test', () => {
         user_id = res.body.data._id;
         done()
       })
-  }).timeout(10000)
+  }).timeout(20000)
 
   it('Should send a forgot password token', (done) => {
     api

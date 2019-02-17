@@ -16,10 +16,11 @@ const UserController = {
    * @return {object[]} users
    */
   async all(req, res, next) {
+    console.log()
     try {
       let users = {}
       const result = await getAsync('STTP_users');
-      // console.log(result)
+      console.log(result)
       if (result != null && JSON.parse(result).length > 0) {
         users = JSON.parse(result);
       } else {
