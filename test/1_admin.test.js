@@ -8,10 +8,10 @@ const { config } = require('../helpers/utils');
 const api = supertest(`${config.host}`)
 
 describe('Admin Test', () => {
-  let user_jwt = ''
   let user_id = ''
+  let admin_id = ''
   let admin_jwt = ''
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsImlkIjoiNWMzN2E0ODZjMmRhYzgxNzM2ZjE4MmNiIiwidHlwZSI6IkFkbWluIiwiaWF0IjoxNTQ3NDk4MzAzLCJleHAiOjE1NDc1ODQ3MDN9.Q9TtOXm1w2zG6oXZ9td9pWOd2Eaa92Du3Soql22DIcI'
+  const token = ''
 
   before(async () => {
     // await mongoose.connect(utils.config.mongo, { useNewUrlParser: true });
@@ -20,32 +20,10 @@ describe('Admin Test', () => {
     await mongoose.connection.db.dropDatabase();
   });
 
-  it('Should signin an admin ', (done) => {
-    api
-      .post('users/login')
-      .set('Accept', 'application/json')
-      .send({
-        email: 'admin@gmail.com',
-        password: 'John'
-      })
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.email).to.equal(user_email)
-        expect(res.body.data.password).to.not.equal(user_pass)
-        user_address = res.body.data.address;
-        user_jwt = res.body.data.token;
-        user_wallet = res.body.data.wallet;
-        user_id = res.body.data._id;
-        done()
-      })
-  }).timeout(10000)
-
   it('Should create a user', (done) => {
     const fname = 'John'
     const lname = 'Doe'
-    const email = `johndoe${Math.floor(Math.random() * 1000)}@gmail.com`
+    const email = 'johndoe@gmail.com'
     const phone = '2348184364720'
     const sex = 'Male'
     const dob = '15-01-1992'
@@ -89,7 +67,6 @@ describe('Admin Test', () => {
         expect(res.body.data.group).to.equal(group)
         expect(res.body.data.staffId).to.equal(staffId)
         expect(res.body.data.password).to.not.equal(password)
-        user_jwt = res.body.data.token;
         user_id = res.body.data._id
         done()
       })
@@ -98,7 +75,7 @@ describe('Admin Test', () => {
   it('Should create a admin', (done) => {
     const fname = 'Admin'
     const lname = 'Admin'
-    const email = `admin${Math.floor(Math.random() * 1000)}@gmail.com`
+    const email = 'admin@gmail.com'
     const phone = '2348184364720'
     const sex = 'Male'
     const dob = '15-01-1992'
@@ -143,6 +120,51 @@ describe('Admin Test', () => {
         expect(res.body.data.staffId).to.equal(staffId)
         expect(res.body.data.password).to.not.equal(password)
         admin_jwt = res.body.data.token;
+        user_address = res.body.data.address;
+        user_wallet = res.body.data.wallet;
+        admin_id = res.body.data._id;
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should activate a user', (done) => {
+    api
+      .patch(`users/activate/${user_id}`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User activated')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should activate a admin', (done) => {
+    api
+      .patch(`users/activate/${admin_id}`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User activated')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should signin an admin ', (done) => {
+    api
+      .post('users/login')
+      .set('Accept', 'application/json')
+      .send({
+        email: 'admin@gmail.com',
+        password: 'John'
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
         done()
       })
   }).timeout(10000)
@@ -271,7 +293,7 @@ describe('Admin Test', () => {
 
   it('Should deactivate a user', (done) => {
     api
-      .patch(`users/deactivate/${user_id}`)
+      .patch(`users/deactivate/${admin_id}`)
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)

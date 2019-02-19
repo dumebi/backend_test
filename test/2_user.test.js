@@ -9,17 +9,11 @@ const api = supertest(`${config.host}`)
 describe('User Test', () => {
   let user_id = ''
   let user_jwt = ''
-  let user_token = ''
+  let user_rec_token = ''
   let user_address = ''
   let user_wallet = ''
   const user_email = 'johndoe@gmail.com'
   const user_pass = 'John'
-
-  after(async () => {
-    await mongoose.connection.db.dropDatabase();
-    await mongoose.connection.close();
-    await mongoose.disconnect();
-  });
 
   it('Should signin a user', (done) => {
     api
@@ -53,7 +47,7 @@ describe('User Test', () => {
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
-        user_token = res.body.data
+        user_rec_token = res.body.data
         done()
       })
   }).timeout(10000)
@@ -66,7 +60,7 @@ describe('User Test', () => {
       .send({
         email: user_email,
         password,
-        token: user_token
+        token: user_rec_token
       })
       .expect(200)
       .end((err, res) => {

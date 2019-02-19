@@ -14,7 +14,7 @@ const router = express.Router();
  * Auth Routes
  */
 // router.get('/users/token', AuthController.token);
-router.post('/users/create', middleware.isAdmin, AuthController.addUsers);
+router.post('/users/create', AuthController.addUsers);
 router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
