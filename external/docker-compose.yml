@@ -15,4 +15,8 @@ services:
     container_name: rabbitmq
     ports:
       - 5672:5672
-  
+  #ganachecli:
+  #  image: trufflesuite/ganache-cli:latest
+  #  command: ganache-cli -h 0.0.0.0 -a 3 -e 10000000000000 --secure -u 0 -u 1 -u 2 -s 20
+  #  ports:
+  #   - 8545:8545
