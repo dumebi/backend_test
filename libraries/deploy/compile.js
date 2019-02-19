@@ -59,7 +59,6 @@ const solAuthorizerLib = fs.readFileSync(AuthorizerLib, "utf8");
 const solOwnerLib = fs.readFileSync(OwnerLib, "utf8");
 const solTokenFuncLib = fs.readFileSync(TokenFuncLib, "utf8");
 const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
-const solUtilsLib = fs.readFileSync(TokenUtilsLib, "utf8");
 const solSafeMathLib = fs.readFileSync(TokenSafeMathLib, "utf8");
 const solIERCsLib = fs.readFileSync(InterfaceIERCs, "utf8");
 const solSharingLib = fs.readFileSync(InterfaceSharing, "utf8");

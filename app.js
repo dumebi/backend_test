@@ -49,7 +49,7 @@ app.use(logger('dev'));
 
 /* Application Routes */
 app.use('/v1/', require('./routes'));
-require("./libraries/events.js");
+// require("./libraries/events.js");
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
