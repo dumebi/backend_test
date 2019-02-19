@@ -11,8 +11,9 @@ const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
-require('./helpers/connection').start();
-
+require('./helpers/connection').mongo();
+require('./helpers/connection').rabbitmq();
+require('./helpers/connection').subscribe();
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
 // logger settings

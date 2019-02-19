@@ -7,7 +7,8 @@ exports.config = {
   jwt: process.env.JWT_SECRET,
   blockchain: 'https://rinkeby.infura.io/afn70dBlA0QivCgkPipn',
   mongo: '',
-  host: ''
+  host: '',
+  amqp_url: ''
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -15,11 +16,13 @@ if (process.env.NODE_ENV === 'development') {
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
+  this.config.amqp_url = `${process.env.AMQP_URL}`
 } else {
   this.config.blockchain = process.env.GETH
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
+  this.config.amqp_url = `${process.env.AMQP_URL}`
 }
 
 exports.sendMail = (params, callback) => {

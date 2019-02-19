@@ -584,7 +584,7 @@ const TokenController = {
           message: usertoken.message
         })
       }
-      const sellTransaction = new TransactionModel({
+      const PriceTransaction = new TransactionModel({
         user: usertoken.data.id,
         type: TransactionModel.Type.PRICE,
         from: usertoken.data.id, // sender
@@ -593,7 +593,7 @@ const TokenController = {
         status: TransactionModel.Status.COMPLETED,
       })
 
-      await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { price: req.body.price }), sellTransaction.save()])
+      await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { price: req.body.price }), PriceTransaction.save()])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price has been set successfully' });
     } catch (error) {
       console.log('error >> ', error)

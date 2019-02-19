@@ -4,12 +4,12 @@ const EthAccount = require('../libraries/ethUser.js');
 // const validate = require('../helpers/validation.js');
 const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
-const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const {
-  paramsNotValid, sendMail, createToken, config, checkToken
+  paramsNotValid, createToken, config, checkToken
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
-const { addUserOrUpdateCache } = require('../controllers/user');
+const { deepCopy } = require('../controllers/user');
+const publisher = require('../helpers/rabbitmq');
 
 const AuthController = {
   /**
@@ -133,30 +133,11 @@ const AuthController = {
       const jwtToken = createToken(user.email, user._id, user.type);
       user.token = jwtToken;
 
-      await user.save()
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-      delete newUser.mnemonic;
-      delete newUser.privateKey;
-      delete newUser.publicKey;
-
-      await addUserOrUpdateCache(newUser)
+      const newUser = deepCopy(user)
 
       const link = `${config.host}/users/activate/${Buffer.from(user.email).toString('base64')}`
 
-      const userTokenMailBody = sendUserSignupEmail(user, link)
-      const mailparams = {
-        email: user.email,
-        body: userTokenMailBody,
-        subject: 'Activate your account'
-      };
-      sendMail(mailparams, (error, result) => {
-        console.log(error)
-        console.log(result)
-      });
-
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser }), publisher.queue('SEND_USER_SIGNUP_EMAIL', { user, link })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -197,14 +178,10 @@ const AuthController = {
       }
       const jwtToken = createToken(email, user._id, user.type);
       user.token = jwtToken;
-      await user.save();
-      // Deep copy
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
+      const newUser = deepCopy(user)
+      // await addUserOrUpdateCache(newUser)
 
-      await addUserOrUpdateCache(newUser)
-
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -237,14 +214,8 @@ const AuthController = {
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = true;
-      await user.save();
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User activated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -276,14 +247,8 @@ const AuthController = {
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = false;
-      await user.save();
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User deactivated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -322,16 +287,7 @@ const AuthController = {
       user.recover_token = user.encrypt(token);
       await user.save();
 
-      const userTokenMailBody = sendUserToken(user, token)
-      const mailparams = {
-        email: user.email,
-        body: userTokenMailBody,
-        subject: 'Recover your password'
-      };
-      sendMail(mailparams, (error, result) => {
-        console.log(error)
-        console.log(result)
-      });
+      await Promise.all([user.save(), publisher.queue('SEND_USER_TOKEN_EMAIL', { user, token })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
     } catch (error) {
       console.log('error >> ', error)
@@ -377,14 +333,8 @@ const AuthController = {
       user.password = user.encrypt(password);
       user.token = jwtToken;
 
-      // Deep copy
-      await user.save()
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -458,11 +408,9 @@ const AuthController = {
       const user = await UserModel.findById(token.data.id);
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       user.password = user.encrypt(req.body.password);
-      await user.save()
 
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
+      const newUser = deepCopy(user)
+      await Promise.all([user.save()])
 
       return res.status(HttpStatus.OK).json({
         status: 'success',

@@ -15,4 +15,20 @@ services:
     container_name: rabbitmq
     ports:
       - 5672:5672
+    # subscriber:
+    #   build: 
+    #     dockerfile: Dockerfile
+    #     context: ../worker
+    #   volumes:
+    #     - ../worker:/app
+    #   depends_on:
+    #     - rabbitMQ
+    # environment:
+    #   - REDIS_HOST=redis
+    #   - REDIS_PORT=6379
+    #   - PGUSER=postgres
+    #   - PGHOST=postgres
+    #   - PGDATABASE=postgres
+    #   - PGPASSWORD=postgres_password
+    #   - PGPORT=5432
   
