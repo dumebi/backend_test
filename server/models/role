@@ -1,0 +1,26 @@
+/** THIS CAPTURED THE USERS AND PROFILES INFORMATION
+ * FailedMax : Max number of failed login attempt
+ * Failed : Number of failed login attempt
+ * mnemonics : This is the user's account recorvery seed phrase, encrypted and backedup for  them.
+ */
+const { Schema, model } = require('mongoose')
+
+const RoleSchema = new Schema(
+  {
+    role: {
+      type: Schema.Types.String, unique: true, required: true, dropDups: true
+    },
+    permissions: [
+      {
+        method: { type: Schema.Types.String, unique: true, required: true },
+        action: { type: Schema.Types.Array, required: true },
+        slug: { type: Schema.Types.String, unique: true, required: true },
+      }
+    ]
+  },
+  { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } }
+)
+
+const Role = model('Role', RoleSchema)
+
+module.exports = Role
