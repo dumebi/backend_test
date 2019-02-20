@@ -5,13 +5,13 @@ require('dotenv').config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
-  blockchain: 'https://rinkeby.infura.io/afn70dBlA0QivCgkPipn',
+  blockchain: '',
   mongo: '',
   host: ''
 }
 
 if (process.env.NODE_ENV === 'development') {
-  this.config.blockchain = `${process.env.GANACHE}`
+  this.config.blockchain = process.env.GANACHE
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
@@ -27,14 +27,19 @@ exports.sendMail = (params, callback) => {
   // let from_email = params.from_email;
   const body = params.body;
   const subject = params.subject;
-  if (email == null || body == null || subject == null) { return { status: 'failed', err: 'the required parameters were not supplied' }; }
+  if (email == null || body == null || subject == null) {
+    return {
+      status: "failed",
+      err: "the required parameters were not supplied"
+    };
+  }
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: "smtp.gmail.com",
     port: 465,
-    service: 'Gmail',
+    service: "Gmail",
     auth: {
-      user: 'dikejude49@gmail.com',
-      pass: 'dyke2010'
+      user: "dikejude49@gmail.com",
+      pass: "dyke2010"
     }
   });
 
@@ -52,15 +57,16 @@ exports.sendMail = (params, callback) => {
       callback(error, info.response);
     }
   });
-}
+};
 
 exports.generateTransactionReference = () => {
   // 463309364588305
-  let text = '';
-  const possible = '0123456789';
-  for (let i = 0; i < 15; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-  return ''.concat(text);
-}
+  let text = "";
+  const possible = "0123456789";
+  for (let i = 0; i < 15; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  return "".concat(text);
+};
 
 exports.paramsNotValid = (...args) => args
   .map(param => param !== undefined && param != null && param !== '')
@@ -85,12 +91,12 @@ exports.checkToken = async (req, res, next) => {
     }
     if (!token) {
       return {
-        status: 'failed',
+        status: "failed",
         data: Constants.UNAUTHORIZED,
-        message: 'Not authorized'
-      }
+        message: "Not authorized"
+      };
     }
-    const decryptedToken = await jwt.verify(token, this.config.jwt)
+    const decryptedToken = await jwt.verify(token, this.config.jwt);
     // if (user_id && decryptedToken.id !== user_id) {
     //   return {
     //     status: 'failed',
@@ -101,7 +107,7 @@ exports.checkToken = async (req, res, next) => {
     // let dateNow = new Date()
     // console.log(isExpiredToken)
     return {
-      status: 'success',
+      status: "success",
       data: decryptedToken
     }
   } catch (error) {
@@ -118,7 +124,7 @@ exports.checkToken = async (req, res, next) => {
       message: 'failed to authenticate token'
     }
   }
-}
+};
 
 /**
  * Create Jwt token
@@ -128,6 +134,6 @@ exports.createToken = (email, id, type) => {
     const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken
   } catch (error) {
-    return false
+    return false;
   }
-}
+};

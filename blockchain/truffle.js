@@ -19,8 +19,8 @@ module.exports = {
     development: {
       host: 'localhost',
       port: 7545,
-      network_id: '*', // Match any network id
-      gas: 8000000000,
+      network_id: "*", // Match any network id
+      gas: 300000000,
       allowUnlimitedContractSize: true
     },
     geth: {
