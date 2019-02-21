@@ -71,23 +71,24 @@ exports.generateTransactionReference = () => {
   return "".concat(text);
 };
 
-exports.paramsNotValid = (...args) => args
-  .map(param => param !== undefined && param != null && param !== '')
-  .includes(false)
+exports.paramsNotValid = (...args) =>
+  args
+    .map(param => param !== undefined && param != null && param !== "")
+    .includes(false);
 
 /**
  * Check token was sent
  */
 exports.checkToken = async (req, res, next) => {
   try {
-    let token = null
+    let token = null;
     if (req.headers.authorization) {
       token = req.headers.authorization;
-      const tokenArray = token.split(' ');
-      token = tokenArray[1]
+      const tokenArray = token.split(" ");
+      token = tokenArray[1];
     }
     if (req.query.token) {
-      token = req.query.token
+      token = req.query.token;
     }
     if (req.body.token) {
       token = req.body.token
@@ -114,15 +115,15 @@ exports.checkToken = async (req, res, next) => {
       data: decryptedToken
     }
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return {
-        status: 'failed',
+        status: "failed",
         data: Constants.UNAUTHORIZED,
-        message: 'Token expired'
-      }
+        message: "Token expired"
+      };
     }
     return {
-      status: 'failed',
+      status: "failed",
       data: Constants.UNAUTHORIZED,
       message: 'failed to authenticate token'
     }

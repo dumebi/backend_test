@@ -5,20 +5,12 @@ const EthereumTx = require("ethereumjs-tx")
 const utils = require('../helpers/utils')
 
 
-// const UserContractJson = require(path.join(
-//   __dirname,
-//   '../blockchain/build/contracts/SterlingUser.json'
-// ))
-
 let coinbase_amount = 0;
 let coinbase = "";
 
 // Setup RPC connection
 const provider = utils.config.blockchain;
 const web3 = new Web3(provider);
-// Read JSON and attach RPC connection (Provider)
-// const UserContract = contract(UserContractJson)
-// UserContract.setProvider(provider)
 
 /**
  * Get Coinbase address and amount

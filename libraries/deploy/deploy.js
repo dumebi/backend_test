@@ -1,14 +1,11 @@
-var bip39 = require("bip39");
+var fs = require("fs");
 const { web3, EthereumTx } = require("../base");
 var linker = require("solc/linker");
 
 const {
   compiledTokenContract,
   compiledMessagesLibrary,
-  compiledAuthorizerLib,
-  compiledOwnerLib,
-  compiledTokenFuncLib,
-  compiledTokenScheduleLib
+  compiledTokenFuncLib
 } = require("./compile.js");
 
 //Get all accounts
@@ -19,46 +16,26 @@ async function deploy() {
     let msgLib = await new web3.eth.Contract(compiledMessagesLibrary.abi)
       .deploy({ data: compiledMessagesLibrary.evm.bytecode.object })
       .send({ from: accounts[1], gas: "6500000" });
-
-    // let authorizer = await new web3.eth.Contract(compiledAuthorizerLib.abi)
-    //   .deploy({ data: compiledAuthorizerLib.evm.bytecode.object })
-    //   .send({ from: accounts[1], gas: "6500000" });
-
-    // let owner = await new web3.eth.Contract(compiledOwnerLib.abi)
-    //   .deploy({ data: compiledOwnerLib.evm.bytecode.object })
-    //   .send({ from: accounts[1], gas: "6500000" });
-
     let tokenFunc = await new web3.eth.Contract(compiledTokenFuncLib.abi)
       .deploy({ data: compiledTokenFuncLib.evm.bytecode.object })
       .send({ from: accounts[1], gas: "6500000" });
 
-    // let tokenSchedule = await new web3.eth.Contract(
-    //   compiledTokenScheduleLib.abi
-    // )
-    //   .deploy({ data: compiledTokenScheduleLib.evm.bytecode.object })
-    //   .send({ from: accounts[0], gas: "6500000" });
-
-    // const MyContract = await new web3.eth.Contract(compiledTokenContract.abi);
-    // var bytecodeWithParam = MyContract.new.getData(
-    //   "SIT",
-    //   "Sterling Investment Token",
-    //   1,
-    //   "0x0b544BaabB787e3A9CcD68e6ca3e7a9A753fE50E",
-    //   { data: compiledTokenContract.evm.bytecode }
-    // );
-
-    // let token = await MyContract(compiledTokenContract.abi)
-    //   .deploy({ data: bytecodeWithParam })
-    //   .send({ from: accounts[0], gas: "6500000" });
-    // const tokenToHex = await web3.utils.toHex(
-    //   compiledTokenContract.evm.bytecode
-    // );
-    console.log(compiledTokenContract.evm.bytecode);
     compiledTokenContract.evm.bytecode.object = await linker.linkBytecode(
       compiledTokenContract.evm.bytecode.object,
       {
         $87be8fe1683d613b14bf4e174735ea236d$: msgLib.options.address,
         $78db8394021623a37b514b2cea0f60d732$: tokenFunc.options.address
+      }
+    );
+
+    fs.writeFile(
+      path.join(__dirname, "token.json"),
+      output.contracts["Token"]["Token"],
+      function(err) {
+        if (err) {
+          return console.log(err);
+        }
+        console.log("Token Json written t file");
       }
     );
 

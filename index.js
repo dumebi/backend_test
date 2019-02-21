@@ -19,15 +19,15 @@ require('./helpers/connection').subscribe();
 // logger settings
 const appLogger = winston.createLogger({
   transports: [
-    new (winston.transports.File)({
-      name: 'info-file',
-      filename: 'logs/sttp.log',
-      level: 'info'
+    new winston.transports.File({
+      name: "info-file",
+      filename: "logs/sttp.log",
+      level: "info"
     }),
-    new (winston.transports.File)({
-      name: 'error-file',
-      filename: 'logs/sttp.log',
-      level: 'error'
+    new winston.transports.File({
+      name: "error-file",
+      filename: "logs/sttp.log",
+      level: "error"
     })
   ]
 });
@@ -35,23 +35,22 @@ const appLogger = winston.createLogger({
 // Midelware stack
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(cookieParser());
 app.use(cors());
 app.use(compression());
 app.use(flash());
-app.use(logger('dev'));
-
+app.use(logger("dev"));
 
 /* Application Routes */
-app.use('/v1/', require('./routes'));
+app.use("/v1/", require("./routes"));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   const error = {
     status: 404,
-    success: 'failed',
-    message: 'Page Not Found'
+    success: "failed",
+    message: "Page Not Found"
   };
   next(error);
 });
@@ -62,13 +61,13 @@ app.use((err, req, res, next) => {
   appLogger.error(err);
 
   //  Remove Error's `stack` property. We don't want users to see this at the production env
-  if (req.app.get('env') !== 'development') {
+  if (req.app.get("env") !== "development") {
     delete err.stack;
     delete err.devError;
   }
 
-  const httpErr = err.http
-  delete err.http
+  const httpErr = err.http;
+  delete err.http;
 
   // This responds to the request
   res.status(httpErr || 500).json(err);

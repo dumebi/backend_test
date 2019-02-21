@@ -13,8 +13,8 @@ require('dotenv').config();
 module.exports = {
   mongo() {
     mongoose.promise = global.promise;
-    mongoose.connect(utils.config.mongo,
-      {
+    mongoose
+      .connect(utils.config.mongo, {
         keepAlive: true,
         useNewUrlParser: true,
         useCreateIndex: true,

@@ -118,17 +118,6 @@ function getImports(dependency) {
 }
 
 var output = JSON.parse(solc.compile(JSON.stringify(input), getImports));
-// console.log(
-//   "output >> ",
-//   output.contracts["Token"]["Token"].evm.bytecode.object
-// );
-// for (var contractName in output.contracts["TokenScheduler"]) {
-//   console.log(
-//     contractName +
-//       ": " +
-//       output.contracts["TokenScheduler"][contractName].evm.bytecode.opcodes
-//   );
-// }
 
 module.exports = {
   compiledTokenContract: output.contracts["Token"]["Token"],
