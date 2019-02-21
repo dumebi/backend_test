@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
 const Constants = require('./status')
@@ -23,6 +24,33 @@ if (process.env.NODE_ENV === 'development') {
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
   this.config.amqp_url = `${process.env.AMQP_URL}`
+=======
+const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
+const Constants = require("./status");
+const config = require("../config");
+// require("dotenv").config();
+
+exports.config = {
+  jwt: config.JWT_SECRET,
+  blockchain: "",
+  mongo: "",
+  userHost: "",
+  adminHost: ""
+};
+if (config.NODE_ENV === "development") {
+  this.config.blockchain = config.GANACHE;
+  this.config.mongo = config.MONGO_LAB_DEV_EXCHANGE;
+  this.config.userHost = `http://localhost:${config.PORT}/v1/user/`;
+  this.config.adminHost = `http://localhost:${config.PORT}/v1/admin/`;
+  this.config.db = "exchange-test";
+} else {
+  this.config.blockchain = config.GETH;
+  this.config.mongo = config.MONGO_DB_PROD_EXCHANGE;
+  this.config.userHost = `http://localhost:${config.PORT}/v1/user/`;
+  this.config.adminHost = `http://localhost:${config.PORT}/v1/admin/`;
+  this.config.db = "exchange";
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
 }
 
 exports.sendMail = (params, callback) => {
@@ -47,7 +75,11 @@ exports.sendMail = (params, callback) => {
   });
 
   const mailOptions = {
+<<<<<<< HEAD
     from: 'Sterling Support <support@sterlingbankng.com>',
+=======
+    from: "Sterling Support <support@sterlingbankng.com>",
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
     to: email,
     subject,
     html: body
@@ -71,26 +103,31 @@ exports.generateTransactionReference = () => {
   return "".concat(text);
 };
 
-exports.paramsNotValid = (...args) => args
-  .map(param => param !== undefined && param != null && param !== '')
-  .includes(false)
+exports.paramsNotValid = (...args) =>
+  args
+    .map(param => param !== undefined && param != null && param !== "")
+    .includes(false);
 
 /**
  * Check token was sent
  */
 exports.checkToken = async (req, res, next) => {
   try {
-    let token = null
+    let token = null;
     if (req.headers.authorization) {
       token = req.headers.authorization;
-      const tokenArray = token.split(' ');
-      token = tokenArray[1]
+      const tokenArray = token.split(" ");
+      token = tokenArray[1];
     }
     if (req.query.token) {
-      token = req.query.token
+      token = req.query.token;
     }
     if (req.body.token) {
+<<<<<<< HEAD
       token = req.body.token
+=======
+      token = req.body.token;
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
     }
     if (!token) {
       return {
@@ -112,20 +149,29 @@ exports.checkToken = async (req, res, next) => {
     return {
       status: "success",
       data: decryptedToken
+<<<<<<< HEAD
     }
+=======
+    };
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return {
-        status: 'failed',
+        status: "failed",
         data: Constants.UNAUTHORIZED,
-        message: 'Token expired'
-      }
+        message: "Token expired"
+      };
     }
     return {
-      status: 'failed',
+      status: "failed",
       data: Constants.UNAUTHORIZED,
+<<<<<<< HEAD
       message: 'failed to authenticate token'
     }
+=======
+      message: "failed to authenticate token"
+    };
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
   }
 };
 
@@ -134,8 +180,15 @@ exports.checkToken = async (req, res, next) => {
  */
 exports.createToken = (email, id, type) => {
   try {
+<<<<<<< HEAD
     const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken
+=======
+    const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, {
+      expiresIn: 60 * 60 * 24
+    });
+    return jwtToken;
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
   } catch (error) {
     return false;
   }

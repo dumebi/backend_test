@@ -1,12 +1,21 @@
 const UserModel = require('../models/user.js');
 const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
+<<<<<<< HEAD
+=======
+const Wallet = require('../models/wallet.js');
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
 const { getAsync, client } = require('../helpers/redis');
 const {
   paramsNotValid, checkToken
 } = require('../helpers/utils');
+<<<<<<< HEAD
 const publisher = require('../helpers/rabbitmq');
 
+=======
+
+
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
 const UserController = {
 
   /**
@@ -15,11 +24,18 @@ const UserController = {
    * @return {object[]} users
    */
   async all(req, res, next) {
+<<<<<<< HEAD
     console.log()
     try {
       let users = {}
       const result = await getAsync('STTP_users');
       console.log(result)
+=======
+    try {
+      let users = {}
+      const result = await getAsync('STTP_users');
+      // console.log(result)
+>>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
       if (result != null && JSON.parse(result).length > 0) {
         users = JSON.parse(result);
       } else {
