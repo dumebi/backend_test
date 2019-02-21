@@ -1,11 +1,12 @@
-const { Token } = require("../libraries/tokenContract.js");
+const { Token } = require('../libraries/tokenContract.js');
+
 const token = new Token(
-  "82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0",
-  "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6"
+  '82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0',
+  '0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6'
 );
 
 module.exports = {
-  sample: async function(req, res, next) {
+  async sample(req, res, next) {
     try {
       // const result1 = await token.transferOwnership(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -182,7 +183,7 @@ module.exports = {
       //   0
       // );
     } catch (error) {
-      console.log("error >> ", error);
+      console.log('error >> ', error);
     }
   }
 };
