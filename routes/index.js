@@ -7,6 +7,7 @@ const DividendController = require('../controllers/dividend');
 const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
 const testController = require("../controllers/test");
+const walletController = require("../controllers/wallet");
 // const sanitize = require("../helpers/sanitization.js");
 
 const router = express.Router();
@@ -37,14 +38,20 @@ router.get('/users/employment-status', middleware.isAdmin, AuthController.employ
  */
 router.get('/users/balance', middleware.isUser, UserController.balance);
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
-// router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
-// router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
 router.post('/users/exchange/buy', middleware.isUser, TokenController.buy);
 router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
 router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
+
+/** 
+ * Naira Wallet Routes
+ */
+router.get('/wallet/:id', middleware.isUser, walletController.balance);
+router.post('/wallet/fund/:id', middleware.isUser, walletController.fund);
+router.post('/wallet/withdraw/:id', middleware.isUser, walletController.withdraw);
+
 
 /**
  * User Profile Routes
