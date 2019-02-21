@@ -283,12 +283,8 @@ const UserController = {
         { safe: true, multi: true, new: true }
       )
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -334,12 +330,8 @@ const UserController = {
       )
 
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -385,12 +377,8 @@ const UserController = {
       )
 
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -420,6 +408,7 @@ const UserController = {
    */
   async addUserOrUpdateCache(user) {
     try {
+      console.log(user)
       const sttpUsers = await getAsync('STTP_users');
       if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
         const users = JSON.parse(sttpUsers);
@@ -432,8 +421,8 @@ const UserController = {
   },
 
   /**
-   * Redis Cache User
-   * @description Add or Update redis user caching
+   * Deep Copy
+   * @description copy mongo object into  a user object
    * @param user User object
    */
   deepCopy(user) {

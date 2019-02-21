@@ -9,6 +9,7 @@ const {
   paramsNotValid, sendMail, createToken, config, checkToken
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
+const publisher = require('../helpers/rabbitmq');
 
 
 const TokenController = {
@@ -52,7 +53,7 @@ const TokenController = {
   async marketBuy(token, buyer, amount) {
     let result;
     const sellOffers = await OfferModel.find({
-      token: token._id, type: 'Sell', sold: false, user: { $ne: buyer }
+      token, type: 'Sell', sold: false, user: { $ne: buyer }
     }).sort('price');
     if (sellOffers.length > 0) {
       const lowestSellOffer = sellOffers[0];
@@ -82,6 +83,9 @@ const TokenController = {
       const tokenPrice = await TokenModel.findOne({ name: 'STTP' });
       result = await TokenController.limitBuy(token, tokenPrice.price, buyer, amount)
     }
+    // await Promise.all([publisher.queue('MARKET_BUY_PROCESSED', {
+    //   result, buyer
+    // })])
     return result
   },
 
@@ -96,7 +100,7 @@ const TokenController = {
   async marketSell(token, seller, amount) {
     let result;
     const buyOffers = await OfferModel.find({
-      token: token._id, type: 'Buy', sold: false, user: { $ne: seller }
+      token, type: 'Buy', sold: false, user: { $ne: seller }
     }).sort('-price');
     if (buyOffers.length > 0) {
       const highestBuyOffer = buyOffers[0];
@@ -129,6 +133,9 @@ const TokenController = {
       console.log(tokenPrice)
       result = await TokenController.limitSell(token, tokenPrice.price, seller, amount)
     }
+    // await Promise.all([publisher.queue('MARKET_SELL_PROCESSED', {
+    //   result, seller
+    // })])
     return result
   },
 
@@ -141,16 +148,16 @@ const TokenController = {
    * @param {object} seller Offer Seller
    */
   async limitSell(token, price, seller, amount) {
-    console.log(price, amount)
+    console.log(price, amount, token)
     let result;
-    // const token = await TokenModel.findById({ name: 'STTP' });
     const buyOffers = await OfferModel.find({
-      token: token._id,
+      token,
       type: 'Buy',
       sold: false,
       price,
       user: { $ne: seller }
-    }).sort('amount');
+    });
+    console.log(buyOffers.length)
     if (buyOffers.length > 0) {
       const lowestBuyOffer = buyOffers[0];
       if (lowestBuyOffer.amount < amount) {
@@ -193,6 +200,9 @@ const TokenController = {
         message: 'Buy process completed successfully'
       }
     }
+    await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
+      result, seller
+    })])
     return result
   },
 
@@ -209,7 +219,6 @@ const TokenController = {
     const sellOffers = await OfferModel.find({
       token, type: 'Sell', sold: false, price, user: { $ne: buyer }
     }).sort('amount');
-    console.log(sellOffers.length)
     if (sellOffers.length > 0) {
       const lowestSellOffer = sellOffers[0];
       if (lowestSellOffer.amount < amount) {
@@ -264,6 +273,9 @@ const TokenController = {
         }
       }
     }
+    // await Promise.all([publisher.queue('LIMIT_BUY_PROCESSED', {
+    //   result, buyer
+    // })])
     return result
   },
 
@@ -338,7 +350,7 @@ const TokenController = {
       return {
         http: HttpStatus.OK,
         status: 'success',
-        message: 'Buy process completed successfully'
+        message: 'Exchange Transaction completed successfully'
       }
     } catch (error) {
       console.log('error >> ', error)
@@ -422,23 +434,28 @@ const TokenController = {
         })
       }
       const user = await UserModel.findById(usertoken.data.id)
+      // TODO: check if users exist
+      // console.log('usertoken')
+      // console.log(user)
       const token = await TokenModel.findOne({ name: 'STTP' });
-
       const price = req.body.price;
       const amount = req.body.amount;
-
-      let result;
-
       if (price) {
-        result = await TokenController.limitBuy(token._id, price, user._id, amount)
+        // result = await TokenController.limitBuy(token._id, price, user._id, amount)
+        await Promise.all([publisher.queue('LIMIT_BUY', {
+          token: token._id, price, user: user._id, amount
+        })])
       } else {
-        result = await TokenController.marketBuy(token._id, user._id, amount)
+        // result = await TokenController.marketBuy(token._id, user._id, amount)
+        await Promise.all([publisher.queue('MARKET_BUY', {
+          token: token._id, user: user._id, amount
+        })])
       }
 
-      if (result.status === 'success') {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order processed successfully' });
-      }
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
+      // if (result.status === 'success') {
+      // }
+      // return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order is being processed' });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -476,19 +493,23 @@ const TokenController = {
 
       const price = req.body.price;
       const amount = req.body.amount;
-
-      let result;
-
       if (price) {
-        result = await TokenController.limitSell(token._id, price, user._id, amount)
+        await Promise.all([publisher.queue('LIMIT_SELL', {
+          token: token._id, price, user: user._id, amount
+        })])
+        // result = await TokenController.limitSell(token._id, price, user._id, amount)
       } else {
-        result = await TokenController.marketSell(token._id, user._id, amount)
+        await Promise.all([publisher.queue('MARKET_SELL', {
+          token: token._id, user: user._id, amount
+        })])
+        // result = await TokenController.marketSell(token._id, user._id, amount)
       }
 
-      if (result.status === 'success') {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order processed successfully' });
-      }
-      return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
+      // if (result.status === 'success') {
+        
+      // }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order is being processed' });
+      // return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -593,8 +614,12 @@ const TokenController = {
         status: TransactionModel.Status.COMPLETED,
       })
 
-      await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { price: req.body.price }), PriceTransaction.save()])
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price has been set successfully' });
+      const token = await TokenModel.findOne({ name: 'STTP' });
+      if (token) {
+        await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { price: req.body.price }), PriceTransaction.save()])
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price has been set successfully' });
+      }
+      return res.status(HttpStatus.OK).json({ status: 'failed', message: 'Please initialize token' });
     } catch (error) {
       console.log('error >> ', error)
       const err = {

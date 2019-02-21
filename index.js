@@ -48,7 +48,7 @@ app.use('/v1/', require('./routes'));
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  let error = {
+  const error = {
     status: 404,
     success: 'failed',
     message: 'Page Not Found'

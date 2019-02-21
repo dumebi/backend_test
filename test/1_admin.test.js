@@ -3,22 +3,25 @@ const mongoose = require('mongoose');
 const expect = require('chai').expect
 const supertest = require('supertest')
 const { config } = require('../helpers/utils');
+const WalletModel = require('../models/wallet');
 
 
 const api = supertest(`${config.host}`)
 
 describe('Admin Test', () => {
   let user_id = ''
+  let user2_id = ''
   let admin_id = ''
   let admin_jwt = ''
   const token = ''
 
   before(async () => {
-    // await mongoose.connect(utils.config.mongo, { useNewUrlParser: true });
     console.log(config.mongo);
+    // this.timeout(13000); // A very long environment setup.
+    // await setTimeout(done, 20000);
     await mongoose.connect(config.mongo, { useNewUrlParser: true });
     await mongoose.connection.db.dropDatabase();
-  });
+  })
 
   it('Should create a user', (done) => {
     const fname = 'John'
@@ -68,6 +71,58 @@ describe('Admin Test', () => {
         expect(res.body.data.staffId).to.equal(staffId)
         expect(res.body.data.password).to.not.equal(password)
         user_id = res.body.data._id
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should create another user', (done) => {
+    const fname = 'John2'
+    const lname = 'Doe2'
+    const email = 'johndoe2@gmail.com'
+    const phone = '2348184364721'
+    const sex = 'Male'
+    const dob = '15-01-1992'
+    const password = 'John'
+    const vesting = true
+    const type = 'User'
+    const employment = 'Employed'
+    const group = 'Senior Executive'
+    const staffId = `${Math.floor(Math.random() * 1000000)}`
+    api
+      .post('users/create')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${token}`)
+      .send({
+        fname,
+        lname,
+        email,
+        phone,
+        sex,
+        dob,
+        password,
+        vesting,
+        type,
+        employment,
+        group,
+        staffId
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(email)
+        expect(res.body.data.fname).to.equal(fname)
+        expect(res.body.data.lname).to.equal(lname)
+        expect(res.body.data.phone).to.equal(phone)
+        expect(res.body.data.sex).to.equal(sex)
+        expect(res.body.data.dob).to.equal(dob)
+        expect(res.body.data.vesting).to.equal(vesting)
+        expect(res.body.data.type).to.equal(type)
+        expect(res.body.data.employment).to.equal(employment)
+        expect(res.body.data.group).to.equal(group)
+        expect(res.body.data.staffId).to.equal(staffId)
+        expect(res.body.data.password).to.not.equal(password)
+        user2_id = res.body.data._id
         done()
       })
   }).timeout(10000)
@@ -127,6 +182,32 @@ describe('Admin Test', () => {
       })
   }).timeout(10000)
 
+  it('Should deactivate a user', (done) => {
+    api
+      .patch(`users/deactivate/${admin_id}`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User deactivated')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should activate a admin', (done) => {
+    api
+      .patch(`users/activate/${admin_id}`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User activated')
+        done()
+      })
+  }).timeout(10000)
+
   it('Should activate a user', (done) => {
     api
       .patch(`users/activate/${user_id}`)
@@ -140,9 +221,9 @@ describe('Admin Test', () => {
       })
   }).timeout(10000)
 
-  it('Should activate a admin', (done) => {
+  it('Should activate a user', (done) => {
     api
-      .patch(`users/activate/${admin_id}`)
+      .patch(`users/activate/${user2_id}`)
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
@@ -291,16 +372,7 @@ describe('Admin Test', () => {
       })
   }).timeout(10000)
 
-  it('Should deactivate a user', (done) => {
-    api
-      .patch(`users/deactivate/${admin_id}`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('User deactivated')
-        done()
-      })
-  }).timeout(10000)
+  it('Set fee for everyone', async () => {
+    await WalletModel.updateMany({}, { balance: 100000 });
+  }).timeout(20000)
 })

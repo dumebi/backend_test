@@ -179,7 +179,6 @@ const AuthController = {
       const jwtToken = createToken(email, user._id, user.type);
       user.token = jwtToken;
       const newUser = deepCopy(user)
-      // await addUserOrUpdateCache(newUser)
 
       await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
@@ -285,7 +284,6 @@ const AuthController = {
         charset: 'numeric'
       });
       user.recover_token = user.encrypt(token);
-      await user.save();
 
       await Promise.all([user.save(), publisher.queue('SEND_USER_TOKEN_EMAIL', { user, token })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
@@ -347,43 +345,6 @@ const AuthController = {
       next(err)
     }
   },
-
-  // /**
-  //    * Send token to a user
-  //    * @param {string} email
-  //    * @return {null}
-  //    */
-  // async token(req, res, next) {
-  //   try {
-  //     if (paramsNotValid(req.body.email)) {
-  //       return res.status(HttpStatus.PRECONDITION_FAILED).json({
-  //         status: 'failed',
-  //         message: 'some parameters were not supplied'
-  //       })
-  //     }
-  //     const email = req.body.email;
-  //     const user = await UserModel.findOne({ email });
-  //     if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
-
-  //     const token = randomstring.generate({
-  //       length: 5,
-  //       charset: 'numeric'
-  //     });
-  //     user.recover_token = user.encrypt(token);
-  //     await user.save();
-
-  //     return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
-  //   } catch (error) {
-  //     console.log('error >> ', error)
-  //     const err = {
-  //       http: HttpStatus.BAD_REQUEST,
-  //       status: 'failed',
-  //       message: 'Error getting user',
-  //       devError: error
-  //     }
-  //     next(err)
-  //   }
-  // },
 
   /**
      * Change User Password
