@@ -15,20 +15,8 @@ services:
     container_name: rabbitmq
     ports:
       - 5672:5672
-    # subscriber:
-    #   build: 
-    #     dockerfile: Dockerfile
-    #     context: ../worker
-    #   volumes:
-    #     - ../worker:/app
-    #   depends_on:
-    #     - rabbitMQ
-    # environment:
-    #   - REDIS_HOST=redis
-    #   - REDIS_PORT=6379
-    #   - PGUSER=postgres
-    #   - PGHOST=postgres
-    #   - PGDATABASE=postgres
-    #   - PGPASSWORD=postgres_password
-    #   - PGPORT=5432
-  
+  #ganachecli:
+  #  image: trufflesuite/ganache-cli:latest
+  #  command: ganache-cli -h 0.0.0.0 -a 3 -e 10000000000000 --secure -u 0 -u 1 -u 2 -s 20
+  #  ports:
+  #   - 8545:8545

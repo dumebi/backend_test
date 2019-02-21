@@ -6,7 +6,7 @@ COPY . .
 
 # EXPOSE 7000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]
 
 # ENV JWT_SECRET="mysuperjwtsecret"
 # ENV GANACHE="http://localhost:7545"
