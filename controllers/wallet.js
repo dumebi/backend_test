@@ -54,4 +54,4 @@ const walletController = {
 
 };
 
-module.exports = UserController;
+module.exports = walletController;

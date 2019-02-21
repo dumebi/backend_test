@@ -49,8 +49,8 @@ router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.canc
  * Naira Wallet Routes
  */
 router.get('/wallet/:id', middleware.isUser, walletController.balance);
-router.post('/wallet/fund/:id', middleware.isUser, walletController.fund);
-router.post('/wallet/withdraw/:id', middleware.isUser, walletController.withdraw);
+// router.post('/wallet/fund/:id', middleware.isUser, walletController.fund);
+// router.post('/wallet/withdraw/:id', middleware.isUser, walletController.withdraw);
 
 
 /**
