@@ -7,6 +7,7 @@ package-lock.json
 
 # Mac specific
 .DS_Store
+.vs
 
 # Logs
 logs

@@ -46,7 +46,7 @@ app.use(logger('dev'));
 app.use('/v1/', require('./routes'));
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
+app.use((next) => {
   let error = {
     status: 404,
     success: 'failed',
@@ -56,7 +56,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // We log the error internaly
   appLogger.error(err);
 
