@@ -84,8 +84,8 @@ contract Token is IERC20, IERC1404 {
         uGranularity = _granular;
         aCoinbaseAcct = _coinbase;
         aManager = msg.sender;
-        Ownable.init(ownable, owner);
-        MessagesAndCodes.init(messagesAndCodes);
+        // Ownable.init(ownable, owner);
+        // MessagesAndCodes.init(messagesAndCodes);
     }
     
     // function changeManager(address newManager) public onlyManager returns(bool success)  {

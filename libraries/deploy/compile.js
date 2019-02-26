@@ -1,65 +1,65 @@
-const solc = require("solc");
-const path = require("path");
-const fs = require("fs");
+const solc = require('solc');
+const path = require('path');
+const fs = require('fs');
 
 const TokenContract = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "token.sol"
+  '../../blockchain/contracts',
+  'token.sol'
 );
 const MessagesLibrary = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libMsgCode.sol"
+  '../../blockchain/contracts',
+  'libMsgCode.sol'
 );
 const AuthorizerLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libAuthorizer.sol"
+  '../../blockchain/contracts',
+  'libAuthorizer.sol'
 );
 const OwnerLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libOwner.sol"
+  '../../blockchain/contracts',
+  'libOwner.sol'
 );
 const TokenFuncLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libTokenFunc.sol"
+  '../../blockchain/contracts',
+  'libTokenFunc.sol'
 );
 const TokenScheduleLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libTokenScheduler.sol"
+  '../../blockchain/contracts',
+  'libTokenScheduler.sol'
 );
 const TokenUtilsLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libUtils.sol"
+  '../../blockchain/contracts',
+  'libUtils.sol'
 );
 const TokenSafeMathLib = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "libSafeMath.sol"
+  '../../blockchain/contracts',
+  'libSafeMath.sol'
 );
 const InterfaceIERCs = path.join(
   __dirname,
-  "../../blockchain/contracts",
-  "iERCs.sol"
+  '../../blockchain/contracts',
+  'iERCs.sol'
 );
 
-const solTokenContract = fs.readFileSync(TokenContract, "utf8");
-const solMessagesLibrary = fs.readFileSync(MessagesLibrary, "utf8");
-const solAuthorizerLib = fs.readFileSync(AuthorizerLib, "utf8");
-const solOwnerLib = fs.readFileSync(OwnerLib, "utf8");
-const solTokenFuncLib = fs.readFileSync(TokenFuncLib, "utf8");
-const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
-const solUtilsLib = fs.readFileSync(TokenUtilsLib, "utf8");
-const solSafeMathLib = fs.readFileSync(TokenSafeMathLib, "utf8");
-const solIERCsLib = fs.readFileSync(InterfaceIERCs, "utf8");
+const solTokenContract = fs.readFileSync(TokenContract, 'utf8');
+const solMessagesLibrary = fs.readFileSync(MessagesLibrary, 'utf8');
+const solAuthorizerLib = fs.readFileSync(AuthorizerLib, 'utf8');
+const solOwnerLib = fs.readFileSync(OwnerLib, 'utf8');
+const solTokenFuncLib = fs.readFileSync(TokenFuncLib, 'utf8');
+const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, 'utf8');
+const solUtilsLib = fs.readFileSync(TokenUtilsLib, 'utf8');
+const solSafeMathLib = fs.readFileSync(TokenSafeMathLib, 'utf8');
+const solIERCsLib = fs.readFileSync(InterfaceIERCs, 'utf8');
 
 var input = {
-  language: "Solidity",
+  language: 'Solidity',
   sources: {
     Ownable: {
       content: solOwnerLib
@@ -86,8 +86,8 @@ var input = {
       runs: 200
     },
     outputSelection: {
-      "*": {
-        "*": ["abi", "evm.bytecode"]
+      '*': {
+        '*': ['abi', 'evm.bytecode']
       }
     }
   }
@@ -96,34 +96,34 @@ var input = {
 function getImports(dependency) {
   // console.log("Searching for dependency: ", dependency);
   switch (dependency) {
-    case "libUtils.sol":
+    case 'libUtils.sol':
       return { contents: solUtilsLib };
-    case "libOwner.sol":
+    case 'libOwner.sol':
       return { contents: solOwnerLib };
-    case "libMsgCode.sol":
+    case 'libMsgCode.sol':
       return { contents: solMessagesLibrary };
-    case "libAuthorizer.sol":
+    case 'libAuthorizer.sol':
       return { contents: solAuthorizerLib };
-    case "libTokenScheduler.sol":
+    case 'libTokenScheduler.sol':
       return { contents: solTokenScheduleLib };
-    case "libTokenFunc.sol":
+    case 'libTokenFunc.sol':
       return { contents: solTokenFuncLib };
-    case "libSafeMath.sol":
+    case 'libSafeMath.sol':
       return { contents: solSafeMathLib };
-    case "iERCs.sol":
+    case 'iERCs.sol':
       return { contents: solIERCsLib };
     default:
-      return { error: "File not found" };
+      return { error: 'File not found' };
   }
 }
 
 var output = JSON.parse(solc.compile(JSON.stringify(input), getImports));
 
 module.exports = {
-  compiledTokenContract: output.contracts["Token"]["Token"],
-  compiledMessagesLibrary: output.contracts["MsgCode"]["MessagesAndCodes"],
-  compiledAuthorizerLib: output.contracts["Authorizer"]["Authorizer"],
-  compiledOwnerLib: output.contracts["Ownable"]["Ownable"],
-  compiledTokenFuncLib: output.contracts["TokenFunc"]["TokenFunc"],
-  compiledTokenScheduleLib: output.contracts["TokenScheduler"]["TokenScheduler"]
+  compiledTokenContract: output.contracts['Token']['Token'],
+  compiledMessagesLibrary: output.contracts['MsgCode']['MessagesAndCodes'],
+  compiledAuthorizerLib: output.contracts['Authorizer']['Authorizer'],
+  compiledOwnerLib: output.contracts['Ownable']['Ownable'],
+  compiledTokenFuncLib: output.contracts['TokenFunc']['TokenFunc'],
+  compiledTokenScheduleLib: output.contracts['TokenScheduler']['TokenScheduler']
 };

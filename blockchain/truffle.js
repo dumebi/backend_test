@@ -17,20 +17,17 @@ module.exports = {
   // to customize your Truffle configuration!
   networks: {
     development: {
-      host: "localhost",
-      port: 7545,
-      network_id: "*", // Match any network id
-<<<<<<< HEAD
-      gas: 300000000,
-=======
-      gas: 8000000000,
->>>>>>> 36a8fee4e427f91acf3ace77e9a415ba266e0945
-      allowUnlimitedContractSize: true
+      host: 'localhost',
+      port: 8545,
+      network_id: '*', // Match any network id
+      gas: 7984452, // Block Gas Limit same as latest on Mainnet https://ethstats.net/
+      gasPrice: 2000000000,
+      // allowUnlimitedContractSize: true
     },
     geth: {
-      host: "localhost",
+      host: 'localhost',
       port: 8545,
-      network_id: "4224",
+      network_id: '4224',
       gas: 4612388
     },
     solc: {

@@ -1,12 +1,12 @@
 // Import libraries
 const Web3 = require('web3')
-const ethUtil = require("ethereumjs-util")
-const EthereumTx = require("ethereumjs-tx")
+const ethUtil = require('ethereumjs-util')
+const EthereumTx = require('ethereumjs-tx')
 const utils = require('../helpers/utils')
 
 
 let coinbase_amount = 0;
-let coinbase = "";
+let coinbase = '';
 
 // Setup RPC connection
 const provider = utils.config.blockchain;
