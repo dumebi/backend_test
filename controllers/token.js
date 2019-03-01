@@ -591,7 +591,7 @@ const TokenController = {
    */
   async setPrice(req, res, next) {
     try {
-      if (paramsNotValid(req.body.min, req.body.max)) {
+      if (paramsNotValid(req.body.min, req.body.max, req.body.price)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -606,11 +606,13 @@ const TokenController = {
       }
       const min = req.body.min
       const max = req.body.max
+      const price = req.body.price
       const PriceTransaction = new TransactionModel({
         user: usertoken.data.id,
         type: TransactionModel.Type.PRICE,
         from: usertoken.data.id, // sender
         wallet: TransactionModel.Wallet.NAIRA,
+        amount: price,
         min,
         max,
         status: TransactionModel.Status.COMPLETED,
@@ -618,7 +620,7 @@ const TokenController = {
 
       const token = await TokenModel.findOne({ name: 'STTP' });
       if (token) {
-        await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { min, max }), PriceTransaction.save()])
+        await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { min, max, price }), PriceTransaction.save()])
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price has been set successfully' });
       }
       return res.status(HttpStatus.OK).json({ status: 'failed', message: 'Please initialize token' });
