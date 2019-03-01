@@ -44,18 +44,60 @@ const DividendController = {
   },
 
   /**
+    * Get Dividend
+    * @description Get dividend
+    * @param {string} group   User group
+    * @param {string} to      to date
+    * @param {string} from    from date
+    * @param {string} status  Dividend status
+    * @return {object[]} dividends
+    */
+  async one(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.dividend_id)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+
+      console.log(req.params.dividend_id)
+      const dividend = await DividendModel.findById(req.params.dividend_id)
+      if (dividend) {
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Dividend disabled successfully', data: dividend });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Dividend not found' });
+    } catch (error) {
+      console.log(error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get dividend',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
    * Create Dividend
    * @description Creates a user dividend
    * @param {string} group  User group
    * @param {string} name   Dividend name
    * @param {string} amount Dividend amount
    * @param {string} date   Payment date
-   * @param {string} status Dividend status
    * @return {object} dividend
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date, req.body.status)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -73,7 +115,7 @@ const DividendController = {
         name: req.body.name,
         group: req.body.group,
         amount: req.body.amount,
-        date: req.body.date,
+        date: new Date(req.body.date),
         enabled: false,
         createdby: token.data.id
       })
@@ -101,7 +143,7 @@ const DividendController = {
    */
   async enable(req, res, next) {
     try {
-      if (paramsNotValid(req.body.dividend_id)) {
+      if (paramsNotValid(req.params.dividend_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -115,15 +157,22 @@ const DividendController = {
         })
       }
 
-      const dividend = DividendModel.findById(req.body.dividend_id)
+      const dividend = await DividendModel.findByIdAndUpdate(
+        req.params.dividend_id,
+        { enabled: true, authorizedby: token.data.id },
+        { safe: true, multi: true, new: true }
+      )
       if (dividend) {
-        dividend.enabled = true
-        dividend.authorizedby = token.data.id
-        await dividend.save()
-
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Dividend enabled successfully', data: dividend });
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'Dividend enabled successfully',
+          data: dividend
+        })
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Dividend not found' });
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'Dividend not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -144,7 +193,7 @@ const DividendController = {
    */
   async disable(req, res, next) {
     try {
-      if (paramsNotValid(req.body.dividend_id)) {
+      if (paramsNotValid(req.params.dividend_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -158,15 +207,22 @@ const DividendController = {
         })
       }
 
-      const dividend = DividendModel.findById(req.body.dividend_id)
+      const dividend = await DividendModel.findByIdAndUpdate(
+        req.params.dividend_id,
+        { enabled: false, disabledby: token.data.id },
+        { safe: true, multi: true, new: true }
+      )
       if (dividend) {
-        dividend.enabled = false
-        dividend.disabledby = token.data.id
-        await dividend.save()
-
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Dividend disabled successfully', data: dividend });
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'Dividend disabled successfully',
+          data: dividend
+        })
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Dividend not found' });
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'Dividend not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -192,7 +248,7 @@ const DividendController = {
      */
   async update(req, res, next) {
     try {
-      if (paramsNotValid(req.body.dividend_id)) {
+      if (paramsNotValid(req.params.dividend_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -211,7 +267,7 @@ const DividendController = {
       delete req.body.authorizedby
       delete req.body.disabledby
       const dividend = await DividendModel.findByIdAndUpdate(
-        req.body.dividend_id,
+        req.params.dividend_id,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )

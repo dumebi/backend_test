@@ -27,9 +27,10 @@ const DividendSchema = new Schema({
     default: DividendStatus.PENDING,
     required: true
   },
+  enabled: { type: Schema.Types.Boolean, default: false },
   createdby: { type: Schema.ObjectId, ref: 'User', required: true },
-  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true },
-  disabledby: { type: Schema.ObjectId, ref: 'User', required: true },
+  authorizedby: { type: Schema.ObjectId, ref: 'User' },
+  disabledby: { type: Schema.ObjectId, ref: 'User' },
 }, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
 
 const Dividend = model('Dividend', DividendSchema)

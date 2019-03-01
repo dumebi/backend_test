@@ -5,7 +5,7 @@ const {
 } = require('../helpers/utils');
 
 
-const UserController = {
+const TransactionController = {
   /**
     * Get transactions
     * @description Get all transactions
@@ -31,6 +31,7 @@ const UserController = {
       if (from && to) query.createdAt = { $lt: to, $gte: from }
 
       const transactions = await TransactionModel.find(query).sort({ createdAt: -1 })
+      console.log(transactions)
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Transactions retrieved', data: transactions });
     } catch (error) {
       const err = {
@@ -85,4 +86,4 @@ const UserController = {
   }
 };
 
-module.exports = UserController;
+module.exports = TransactionController;

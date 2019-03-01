@@ -441,18 +441,20 @@ const TokenController = {
       const price = req.body.price;
       const amount = req.body.amount;
       if (price) {
-        if (price < token.max && price > token.min) {
+        if (price <= token.max && price >= token.min) {
           await Promise.all([publisher.queue('LIMIT_BUY', {
             token: token._id, price, user: user._id, amount
           })])
+        } else {
+          return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Buy price is not within token price range' });
         }
-        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Buy price is not within token price range' });
         // result = await TokenController.limitBuy(token._id, price, user._id, amount)
+      } else {
+        await Promise.all([publisher.queue('MARKET_BUY', {
+          token: token._id, user: user._id, amount
+        })])
       }
       // result = await TokenController.marketBuy(token._id, user._id, amount)
-      await Promise.all([publisher.queue('MARKET_BUY', {
-        token: token._id, user: user._id, amount
-      })])
       // return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order is being processed' });
     } catch (error) {
@@ -495,18 +497,19 @@ const TokenController = {
 
 
       if (price) {
-        if (price < token.max && price > token.min) {
+        if (price <= token.max && price >= token.min) {
           await Promise.all([publisher.queue('LIMIT_SELL', {
             token: token._id, price, user: user._id, amount
           })])
+        } else {
+          return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Sell price is not within token price range' });
         }
-        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Sell price is not within token price range' });
         // result = await TokenController.limitSell(token._id, price, user._id, amount)
+      } else {
+        await Promise.all([publisher.queue('MARKET_SELL', {
+          token: token._id, user: user._id, amount
+        })])
       }
-
-      await Promise.all([publisher.queue('MARKET_SELL', {
-        token: token._id, user: user._id, amount
-      })])
       // result = await TokenController.marketSell(token._id, user._id, amount)
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order is being processed' });
     } catch (error) {

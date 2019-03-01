@@ -21,7 +21,7 @@ const ScheduleSchema = new Schema({
   },
   amount: { type: Schema.Types.String },
   date: { type: Schema.Types.Date },
-  enabled: { type: Schema.Types.Boolean },
+  enabled: { type: Schema.Types.Boolean, default: false },
   status: {
     type: Schema.Types.String,
     enum: Object.values(ScheduleStatus),
@@ -29,8 +29,8 @@ const ScheduleSchema = new Schema({
     required: true
   },
   createdby: { type: Schema.ObjectId, ref: 'User', required: true },
-  authorizedby: { type: Schema.ObjectId, ref: 'User', required: true },
-  disabledby: { type: Schema.ObjectId, ref: 'User', required: true },
+  authorizedby: { type: Schema.ObjectId, ref: 'User' },
+  disabledby: { type: Schema.ObjectId, ref: 'User' },
 }, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
 
 ScheduleSchema.statics.Status = ScheduleStatus

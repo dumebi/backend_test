@@ -15,7 +15,7 @@ const router = express.Router();
  * Auth Routes
  */
 // router.get('/users/token', AuthController.token);
-router.post('/users/create', AuthController.addUsers);
+router.post('/users/', AuthController.addUsers);
 router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
@@ -63,16 +63,18 @@ router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup)
 router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
 router.get('/admin/schedule/', middleware.isAdmin, ScheduleController.all);
-router.post('/admin/schedule/create', middleware.isAdmin, ScheduleController.create);
+router.post('/admin/schedule/', middleware.isAdmin, ScheduleController.create);
+router.get('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.one);
 router.patch('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.update);
 router.patch('/admin/schedule/enable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
 router.patch('/admin/schedule/disable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
 
 router.get('/admin/dividend/', middleware.isAdmin, DividendController.all);
-router.post('/admin/dividend/create', middleware.isAdmin, DividendController.create);
+router.post('/admin/dividend/', middleware.isAdmin, DividendController.create);
+router.get('/admin/dividend/:dividend_id', middleware.isAdmin, DividendController.one);
 router.patch('/admin/dividend/:dividend_id', middleware.isAdmin, DividendController.update);
 router.patch('/admin/dividend/enable/:dividend_id', middleware.isAdmin, DividendController.enable);
-router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, DividendController.enable);
+router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, DividendController.disable);
 
 router.get('/admin/transactions', middleware.isAdmin, TransactionController.all);
 
