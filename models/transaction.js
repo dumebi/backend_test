@@ -42,6 +42,8 @@ const TransactionSchema = new Schema(
     }, // Or token
     volume: { type: Schema.Types.Number },
     amount: { type: Schema.Types.Number },
+    min: { type: Schema.Types.Number },
+    max: { type: Schema.Types.Number },
     txHash: { type: Schema.Types.String },
     status: {
       type: Schema.Types.String,

@@ -441,19 +441,18 @@ const TokenController = {
       const price = req.body.price;
       const amount = req.body.amount;
       if (price) {
+        if (price < token.max && price > token.min) {
+          await Promise.all([publisher.queue('LIMIT_BUY', {
+            token: token._id, price, user: user._id, amount
+          })])
+        }
+        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Buy price is not within token price range' });
         // result = await TokenController.limitBuy(token._id, price, user._id, amount)
-        await Promise.all([publisher.queue('LIMIT_BUY', {
-          token: token._id, price, user: user._id, amount
-        })])
-      } else {
-        // result = await TokenController.marketBuy(token._id, user._id, amount)
-        await Promise.all([publisher.queue('MARKET_BUY', {
-          token: token._id, user: user._id, amount
-        })])
       }
-
-      // if (result.status === 'success') {
-      // }
+      // result = await TokenController.marketBuy(token._id, user._id, amount)
+      await Promise.all([publisher.queue('MARKET_BUY', {
+        token: token._id, user: user._id, amount
+      })])
       // return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order is being processed' });
     } catch (error) {
@@ -493,23 +492,23 @@ const TokenController = {
 
       const price = req.body.price;
       const amount = req.body.amount;
+
+
       if (price) {
-        await Promise.all([publisher.queue('LIMIT_SELL', {
-          token: token._id, price, user: user._id, amount
-        })])
+        if (price < token.max && price > token.min) {
+          await Promise.all([publisher.queue('LIMIT_SELL', {
+            token: token._id, price, user: user._id, amount
+          })])
+        }
+        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Sell price is not within token price range' });
         // result = await TokenController.limitSell(token._id, price, user._id, amount)
-      } else {
-        await Promise.all([publisher.queue('MARKET_SELL', {
-          token: token._id, user: user._id, amount
-        })])
-        // result = await TokenController.marketSell(token._id, user._id, amount)
       }
 
-      // if (result.status === 'success') {
-        
-      // }
+      await Promise.all([publisher.queue('MARKET_SELL', {
+        token: token._id, user: user._id, amount
+      })])
+      // result = await TokenController.marketSell(token._id, user._id, amount)
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order is being processed' });
-      // return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: result.message });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -592,7 +591,7 @@ const TokenController = {
    */
   async setPrice(req, res, next) {
     try {
-      if (paramsNotValid(req.body.price)) {
+      if (paramsNotValid(req.body.min, req.body.max)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -605,18 +604,21 @@ const TokenController = {
           message: usertoken.message
         })
       }
+      const min = req.body.min
+      const max = req.body.max
       const PriceTransaction = new TransactionModel({
         user: usertoken.data.id,
         type: TransactionModel.Type.PRICE,
         from: usertoken.data.id, // sender
         wallet: TransactionModel.Wallet.NAIRA,
-        amount: req.body.price,
+        min,
+        max,
         status: TransactionModel.Status.COMPLETED,
       })
 
       const token = await TokenModel.findOne({ name: 'STTP' });
       if (token) {
-        await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { price: req.body.price }), PriceTransaction.save()])
+        await Promise.all([TokenModel.findOneAndUpdate({ name: 'STTP' }, { min, max }), PriceTransaction.save()])
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price has been set successfully' });
       }
       return res.status(HttpStatus.OK).json({ status: 'failed', message: 'Please initialize token' });
