@@ -6,7 +6,7 @@ COPY . .
 VOLUME ["/app", "/app/node_modules"]
 
 # EXPOSE 7000
-
+CMD ["npm", "run", "seed"]
 CMD ["npm", "run", "dev"]
 
 # ENV JWT_SECRET="mysuperjwtsecret"

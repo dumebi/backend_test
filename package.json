@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=production node ./bin/www",
+    "seed": "NODE_ENV=development node ./models/dbSeeder.js",
     "dev": "NODE_ENV=development nodemon ./bin/www",
     "test": "NODE_ENV=development mocha test/*.test.js --reporter spec --exit --full-trace"
   },
@@ -56,6 +57,7 @@
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
     "redis-await": "^1.0.6",
+    "request": "^2.88.0",
     "serve-static": "^1.13.2",
     "soap": "^0.26.0",
     "solc": "^0.5.2",
@@ -63,7 +65,6 @@
     "utf8": "^3.0.0",
     "web3": "^1.0.0-beta.36",
     "winston": "^3.2.1",
-    "xml-js": "^1.6.11",
-    "xml2js": "^0.4.19"
+    "xml-js": "^1.6.11"
   }
 }

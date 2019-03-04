@@ -1,8 +1,7 @@
 const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
-const Wallet = require('../models/wallet');
-const {soap, soapFactory} = require('../helpers/soap');
-const {encrypt, decrypt} = require('../helpers/tripledescrypto');
+const WalletModel = require('../models/wallet');
+const {verifyAccount} = require('../helpers/ibs');
 const {
   checkToken
 } = require('../helpers/utils');
@@ -17,47 +16,30 @@ const walletController = {
      */
   async balance(req, res, next) {
     try {
+      
+      const userId = req.params.id
 
-      const jsonPayload = soapFactory.getRequestJSON(1, 201, 0070134307)
-      console.log("jsonPayload >> ", jsonPayload)
-      const xmlPayload = soapFactory.getSerializedXML(jsonPayload)
-      console.log("xmlPayload >> ", xmlPayload)
-      var encryptedPayload = await encrypt(xmlPayload);
-      console.log("encryptedPayload >> ", encryptedPayload)
-      var args = {IBSBridge: {Appid: 17, request: encryptedText}};
-      const soapResponse = await soap(args)
-      console.log("soapResponse >> ", soapResponse)
+      const wallet = await WalletModel.find({ user: userId })
+      console.log("wallet >> ", wallet)
+      if (wallet) {
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User naira wallet gotten successfully',
+          data: wallet.balance
+        })
+      }
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: 'There is no wallet associated to this user',
+        data: []
+      })
 
-      // const token = await checkToken(req);
-      // if (token.status === 'failed') {
-      //   return res.status(token.data).json({
-      //     status: 'failed',
-      //     message: token.message
-      //   })
-      // }
-
-      // const userId = req.params.id
-
-      // const wallet = await walletModel.find({ user: userId })
-      // console.log("wallet >> ", wallet)
-      // if (wallet) {
-      //   return res.status(HttpStatus.OK).json({
-      //     status: 'success',
-      //     message: 'User transactions gotten successfully',
-      //     data: wallet.balance
-      //   })
-      // }
-      // return res.status(HttpStatus.BAD_REQUEST).json({
-      //   status: 'failed',
-      //   message: 'There is no wallet associated to this user',
-      //   data: []
-      // })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
         http: HttpStatus.SERVER_ERROR,
         status: 'failed',
-        message: 'Error getting user wallet',
+        message: 'Error getting user naira wallet',
         devError: error
       }
       next(err)

@@ -1,42 +1,38 @@
-var Role = require('../models/userRolePermissions');
+var User = require('../models/user');
 var mongoose = require('mongoose');
 
 console.log('This script seeds startup data into the db.');
 
-//Get arguments passed on command line
-var argsPassed = process.argv.slice(2);
-if (!argsPassed[0].startsWith('mongodb://')) {
-    console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
-    return
-}
+require('./helpers/connection').start();
 
-const mongoDB =  argsPassed[0];
-mongoose.connect(mongoDB);
-mongoose.Promise = global.Promise;
-
-
-const roles = [
+const users = [
     {
-        role: "Admin",
-        permissions : []
-    },
-    {
-        role: "Authorizer",
-        permissions : []
-    },
-    {
-        role: "User",
-        permissions : []
+      fname: "Jude",
+      mname: "Ebuse",
+      lname: "Adams",
+      email: "meetenebelioluchi@gmail.com",
+      phone: "09088994563",
+      sex: "Female",
+      type: User.UserType.ADMIN,
+      staffId: "004502",
+      address: "Head Office, Marina",
+      employment: User.Employment.EMPLOYED,
+      group: User.UserGroup.ENTRYLEVEL,
+      beneficiary: "Dara",
+      activated: false,
+      enabled: true,
+      password: "12345678",
+      vesting: false
     }
 ]
 
 var dbSeeder =  async function() {
     try {
 
-        for (let i = 0; i < roles.length; i++) {
+        for (let i = 0; i < users.length; i++) {
 
-            let saveRole = new Role(roles[i]);
-            result = await saveRole.save()
+            let saveUser = new User(users[i]);
+            result = await saveUser.save()
             console.log('result >>> ',result, '\n')
         }
 

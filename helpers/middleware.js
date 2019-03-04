@@ -11,8 +11,7 @@ const {
 exports.isUser = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    //if (token.status === 'failed') {
-      if (true) {
+    if (token.status === 'failed') {
         // return res.status(token.data).json({
         //   status: 'failed',
         //   message: token.message
@@ -25,10 +24,10 @@ exports.isUser = async (req, res, next) => {
     ) {
       next()
     } else {
-      // return res.status(HttpStatus.UNAUTHORIZED).json({
-      //   status: 'failed',
-      //   data: 'Access not granted to this resource.'
-      // })
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        status: 'failed',
+        data: 'Access not granted to this resource.'
+      })
       next()
     }
   } catch (err) {
@@ -45,7 +44,6 @@ exports.isUser = async (req, res, next) => {
 exports.isAdmin = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    console.log(token)
     if (token.status === 'failed') {
       return res.status(token.data).json({
         status: 'failed',
