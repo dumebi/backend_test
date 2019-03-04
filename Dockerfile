@@ -9,8 +9,8 @@ COPY . .
 CMD ["npm", "run", "dev"]
 
 ENV JWT_SECRET="mysuperjwtsecret"
-ENV GANACHE="http://localhost:7545"
-ENV GETH="http://localhost:8545"
+#ENV GANACHE="http://localhost:7545"
+#ENV GETH="http://localhost:8545"
 ENV MONGO_LAB_PROD_EXCHANGE="mongodb://sttp:WatmXGma0qBlH8VOsHKeKBY90SOvviMYAtqQcEpqTdHV5ZTEWSPt5U9Sp0MDIXIOIviDWH1ALbayYpWxD7zmYQ==@sttp.documents.azure.com:10255/?ssl=true"
 ENV MONGO_LAB_DEV_EXCHANGE="mongodb://mongodb:27017/STTP"
 ENV TARGET_SERVER_HOST=""
