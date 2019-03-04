@@ -14,3 +14,5 @@ logs
 *.log
 npm-debug.log*
 yarn.lock
+.env
+Dockerfile
