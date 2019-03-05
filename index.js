@@ -7,7 +7,7 @@ const winston = require('winston');
 const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
-const base = require('./libraries/base')
+// const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
@@ -73,6 +73,6 @@ app.use((err, req, res, next) => {
   res.status(httpErr || 500).json(err);
 });
 
-base.getCoinbase()
+// base.getCoinbase()
 
 module.exports = app;
