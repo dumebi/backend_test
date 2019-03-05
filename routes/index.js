@@ -78,6 +78,6 @@ router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, Dividen
 
 router.get('/admin/transactions', middleware.isAdmin, TransactionController.all);
 
-router.get('/admin/token/init', middleware.isAdmin, TokenController.init);
-router.post('/admin/token/price', middleware.isAdmin, TokenController.setPrice);
+router.get('/admin/token/', middleware.isAdmin, TokenController.init);
+router.patch('/admin/token/', middleware.isAdmin, TokenController.setPrice);
 module.exports = router;

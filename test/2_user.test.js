@@ -1,5 +1,4 @@
 /* eslint-disable no-undef */
-const mongoose = require('mongoose');
 const expect = require('chai').expect
 const supertest = require('supertest')
 const { config } = require('../helpers/utils');
@@ -14,6 +13,9 @@ describe('User Test', () => {
   let user_wallet = ''
   const user_email = 'johndoe@gmail.com'
   const user_pass = 'John'
+  let user2_id = ''
+  let user2_jwt = ''
+  let user2_wallet = ''
 
   it('Should signin a user', (done) => {
     api
@@ -33,6 +35,29 @@ describe('User Test', () => {
         user_jwt = res.body.data.token;
         user_wallet = res.body.data.wallet;
         user_id = res.body.data._id;
+        done()
+      })
+  }).timeout(20000)
+
+  it('Should signin a second user', (done) => {
+    const mail = 'johndoe2@gmail.com'
+    const pass = 'John'
+    api
+      .post('users/login')
+      .set('Accept', 'application/json')
+      .send({
+        email: mail,
+        password: pass
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(mail)
+        expect(res.body.data.password).to.not.equal(pass)
+        user2_jwt = res.body.data.token;
+        user2_wallet = res.body.data.wallet;
+        user2_id = res.body.data._id;
         done()
       })
   }).timeout(20000)
@@ -143,6 +168,86 @@ describe('User Test', () => {
         // expect(res.body.data.city).to.equal(city)
         // expect(res.body.data.country).to.equal(country)
         // expect(res.body.data.beneficiary).to.equal(beneficiary)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Buy a token', (done) => {
+    const amount = 74
+    const price = 200
+    api
+      .post('users/exchange/buy')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .send({
+        price,
+        amount
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Buy order is being processed')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Sell a token', (done) => {
+    const amount = 14
+    const price = 200
+    api
+      .post('users/exchange/sell')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user2_jwt}`)
+      .send({
+        price,
+        amount
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Sell order is being processed')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Get order buy book', (done) => {
+    api
+      .get('users/exchange/buybook')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Buy order book gotten successfully')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Get order sell book', (done) => {
+    api
+      .get('users/exchange/sellbook')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Sell order book gotten successfully')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Get user transactions', (done) => {
+    api
+      .get('users/transactions')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User transactions gotten successfully')
+        expect(res.body.data).to.be.instanceof(Array)
         done()
       })
   }).timeout(10000)

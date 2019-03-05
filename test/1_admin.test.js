@@ -7,6 +7,7 @@ const WalletModel = require('../models/wallet');
 
 
 const api = supertest(`${config.host}`)
+console.log(`${config.host}`)
 
 describe('Admin Test', () => {
   let user_id = ''
@@ -37,7 +38,7 @@ describe('Admin Test', () => {
     const group = 'Senior Executive'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/create')
+      .post('users/')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -89,7 +90,7 @@ describe('Admin Test', () => {
     const group = 'Senior Executive'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/create')
+      .post('users/')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -141,7 +142,7 @@ describe('Admin Test', () => {
     const group = 'Executive Trainee'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/create')
+      .post('users/')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -375,4 +376,46 @@ describe('Admin Test', () => {
   it('Set fee for everyone', async () => {
     await WalletModel.updateMany({}, { balance: 100000 });
   }).timeout(20000)
+
+  it('Should initialize SIT token', (done) => {
+    api
+      .get('admin/token')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Object)
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.name).to.equal('STTP')
+        expect(res.body.data.min).to.equal(0)
+        expect(res.body.data.max).to.equal(0)
+        expect(res.body.data.high).to.equal(0)
+        expect(res.body.data.low).to.equal(0)
+        expect(res.body.data.vol).to.equal(0)
+        expect(res.body.data.price).to.equal(0)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should update a price of token', (done) => {
+    const price = 200
+    const min = 100
+    const max = 300
+    api
+      .patch('admin/token/')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        price,
+        min,
+        max
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Token price has been set successfully')
+        done()
+      })
+  }).timeout(10000)
 })
