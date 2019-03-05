@@ -137,7 +137,7 @@ const AuthController = {
 
       const link = `${config.host}/users/activate/${Buffer.from(user.email).toString('base64')}`
 
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser }), publisher.queue('SEND_USER_SIGNUP_EMAIL', { user, link })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser }), publisher.queue('SEND_USER_STTP_SIGNUP_EMAIL', { user, link })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -180,7 +180,7 @@ const AuthController = {
       user.token = jwtToken;
       const newUser = deepCopy(user)
 
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -214,7 +214,7 @@ const AuthController = {
 
       user.activated = true;
       const newUser = deepCopy(user)
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User activated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -247,7 +247,7 @@ const AuthController = {
 
       user.activated = false;
       const newUser = deepCopy(user)
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User deactivated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -285,7 +285,7 @@ const AuthController = {
       });
       user.recover_token = user.encrypt(token);
 
-      await Promise.all([user.save(), publisher.queue('SEND_USER_TOKEN_EMAIL', { user, token })])
+      await Promise.all([user.save(), publisher.queue('SEND_USER_STTP_TOKEN_EMAIL', { user, token })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
     } catch (error) {
       console.log('error >> ', error)
@@ -332,7 +332,7 @@ const AuthController = {
       user.token = jwtToken;
 
       const newUser = deepCopy(user)
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (error) {
       console.log('error >> ', error)

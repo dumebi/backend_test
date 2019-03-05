@@ -38,15 +38,15 @@ module.exports = {
     await subscriber.init(utils.config.amqp_url);
 
     // Add to redis cache
-    subscriber.consume('ADD_OR_UPDATE_USER_CACHE', (msg) => {
+    subscriber.consume('ADD_OR_UPDATE_USER_STTP_CACHE', (msg) => {
       const data = JSON.parse(msg.content.toString());
-      console.log('ADD_OR_UPDATE_USER_CACHE')
+      console.log('ADD_OR_UPDATE_USER_STTP_CACHE')
       addUserOrUpdateCache(data.newUser)
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
     // Send User Signup Mail
-    subscriber.consume('SEND_USER_SIGNUP_EMAIL', (msg) => {
+    subscriber.consume('SEND_USER_STTP_SIGNUP_EMAIL', (msg) => {
       const data = JSON.parse(msg.content.toString());
       const userTokenMailBody = sendUserSignupEmail(data.user, data.link)
       const mailparams = {
@@ -62,7 +62,7 @@ module.exports = {
     }, 3);
 
     // Send User Token Mail
-    subscriber.consume('SEND_USER_TOKEN_EMAIL', (msg) => {
+    subscriber.consume('SEND_USER_STTP_TOKEN_EMAIL', (msg) => {
       const data = JSON.parse(msg.content.toString());
       const userTokenMailBody = sendUserToken(data.user, data.token)
       const mailparams = {

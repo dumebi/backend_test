@@ -115,7 +115,7 @@ const UserController = {
       )
       if (user) {
         const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -284,7 +284,7 @@ const UserController = {
       )
       if (user) {
         const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -331,7 +331,7 @@ const UserController = {
 
       if (user) {
         const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -378,7 +378,7 @@ const UserController = {
 
       if (user) {
         const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_CACHE', { newUser })])
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
