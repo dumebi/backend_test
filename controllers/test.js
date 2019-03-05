@@ -1,8 +1,4 @@
 const { Token } = require("../libraries/tokenContract.js");
-const token = new Token(
-  "82dbdb6ab9df12473e066c124e415d1f0aadfe4f15230677be7af402849e84c0",
-  "0x56ad8d441dc225a6c2a4fdd408f8084a378a4ac6"
-);
 
 module.exports = {
   sample: async function(req, res, next) {

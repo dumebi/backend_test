@@ -6,7 +6,7 @@ COPY . .
 
 # EXPOSE 7000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
 
 ENV JWT_SECRET="mysuperjwtsecret"
 ENV MONGO_LAB_PROD_EXCHANGE="mongodb://sttp:WatmXGma0qBlH8VOsHKeKBY90SOvviMYAtqQcEpqTdHV5ZTEWSPt5U9Sp0MDIXIOIviDWH1ALbayYpWxD7zmYQ==@sttp.documents.azure.com:10255/?ssl=true"
