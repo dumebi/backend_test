@@ -1,14 +1,20 @@
 const mongoose = require('mongoose');
+const socketio = require('socket.io');
+const io = require('socket.io-client');
+
+const server = socketio.listen(3001);
 const TokenController = require('../controllers/token');
 const utils = require('../helpers/utils');
 const RabbitMQ = require('./rabbitmq')
 const subscriber = require('./rabbitmq')
+
 const { addUserOrUpdateCache } = require('../controllers/user');
 const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
-const {
-  paramsNotValid, sendMail, createToken, config, checkToken
-} = require('../helpers/utils');
+const { sendMail } = require('../helpers/utils');
 require('dotenv').config();
+
+// Socket config
+const ioClient = io.connect('http://localhost:3001');
 
 module.exports = {
   mongo() {
@@ -85,6 +91,7 @@ module.exports = {
       const data = JSON.parse(msg.content.toString());
       const result = await TokenController.limitBuy(data.token, data.price, data.user, data.amount)
       console.log(result)
+      ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
@@ -93,6 +100,7 @@ module.exports = {
       const data = JSON.parse(msg.content.toString());
       const result = await TokenController.marketBuy(data.token, data.user, data.amount)
       console.log(result)
+      ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
@@ -101,6 +109,7 @@ module.exports = {
       const data = JSON.parse(msg.content.toString());
       const result = await TokenController.limitSell(data.token, data.price, data.user, data.amount)
       console.log(result)
+      ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
@@ -109,7 +118,40 @@ module.exports = {
       const data = JSON.parse(msg.content.toString());
       const result = await TokenController.marketSell(data.token, data.user, data.amount)
       console.log(result)
+      ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
     }, 3);
-  }
+  },
+  async socket() {
+    server.on('connection', (socket) => {
+      console.info(`Client connected [id=${socket.id}]`);
+      // initialize this client's sequence number
+      // sequenceNumberByClient.set(socket, 1);
+      socket.on('broadcast', (message) => {
+        server.emit('message', message)
+      });
+      // when socket disconnects, remove it from the list:
+      socket.on('disconnect', () => {
+        // sequenceNumberByClient.delete(socket);
+        console.info(`Client gone [id=${socket.id}]`);
+      });
+    });
+  },
+  // async client() {
+  //   // console.log(`http://localhost:${process.env.PORT}`)
+  //   // const socket = io(`http://localhost:8000`);
+  //   // socket.on('connect', () => {
+  //   //   socket.send('hi');
+
+  //   //   socket.on('message', (msg) => {
+  //   //     // my msg
+  //   //     console.log(msg)
+  //   //   });
+  //   // });
+  //   // const io = require("socket.io-client")
+  //   // const ioClient = io.connect('http://localhost:3001');
+
+  //   // ioClient.on('seq-num', msg => console.info(msg));
+  //   // ioClient.on('message', msg => console.info(msg));
+  // }
 }

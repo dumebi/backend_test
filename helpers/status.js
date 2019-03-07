@@ -5,5 +5,6 @@ module.exports = {
   UNAUTHORIZED: 401,
   PRECONDITION_FAILED: 412,
   NO_AMPQ_URL_ERROR: 'Please specify an AMQP connection string.',
-  INIT_EVENTBUS_ERROR: 'Please initialize the Event Bus by calling `.init()` before attempting to use the Event Bus.'
+  INIT_EVENTBUS_ERROR: 'Please initialize the Event Bus by calling `.init()` before attempting to use the Event Bus.',
+  INIT_SOCKET_ERROR: 'Please initialize the Socket by calling `.init()` before attempting to use the socket connection.',
 }
