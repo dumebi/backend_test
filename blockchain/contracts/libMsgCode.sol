@@ -1,62 +1,84 @@
 pragma solidity >=0.4.0 <0.6.0;
 
 library MessagesAndCodes {
-    string public constant EMPTY_MESSAGE_ERROR = "Message cannot be empty string";
-    string public constant CODE_RESERVED_ERROR = "Given code is already pointing to a message";
-    string public constant CODE_UNASSIGNED_ERROR = "Given code does not point to a message";
-    
-    struct Code {
-        mapping(string => uint8) errorStringToCode;
-        uint8 currentCodeIndex;
+
+    enum Reason  {
+        SUCCESS,
+        FAILURE,
+        UNIQUENESS_ERROR,
+        INVALID_ERROR,
+        UNAUTHORIZED_ERROR,
+        NOTFOUND_ERROR,
+        NOTALLOWED_ERROR,
+        UNVERIFIED_HOLDER,
+        INVALID_PARAMS_ERROR,
+        RECEIPT_TRANSFER_BLOCKED,
+        SEND_TRANSFER_BLOCKED,
+        TOKEN_GRANULARITY_ERROR,
+        TRANSFER_VERIFIED_ERROR,
+        INSUFFICIENT_FUND_ERROR,
+        SPENDER_BALANCE_ERROR,
+        ACCOUNT_WITHHOLD_ERROR,
+        MOVE_LIEN_ERROR,
+        UNVERIFIED_HOLDER_ERROR,
+        ZERO_SCHEDULE_ERROR,
+        SCHEDULE_APPROVED_ERROR,
+        SCHEDULE_REJECTED_ERROR
     }
     
-    struct Data {
-        mapping (uint8 => string) messages;
-        Code code;
-    }
-    
-    function init(Data storage self) internal {
-        addMessage(self, "SUCCESS", "Transaction was successful!");
-    }
-    
-    function messageIsEmpty (string memory _message) internal pure returns (bool isEmpty) {
-        isEmpty = bytes(_message).length == 0;
+
+    function appCode(uint8 _code) internal pure returns (string memory code) {
+        if(_code == uint8(Reason.SUCCESS)){
+            return "SUCCESS";
+        }else if(_code == uint8(Reason.FAILURE)){
+            return "FAILURE";
+        }else if(_code == uint8(Reason.UNIQUENESS_ERROR)){
+            return "UNIQUENESS_ERROR";
+        }else if(_code == uint8(Reason.INVALID_ERROR)){
+            return "INVALID_ERROR";
+        }else if(_code == uint8(Reason.UNAUTHORIZED_ERROR)){
+            return "UNAUTHORIZED_ERROR";
+        }else if(_code == uint8(Reason.NOTFOUND_ERROR)){
+            return "NOTFOUND_ERROR";
+        }else if(_code == uint8(Reason.NOTALLOWED_ERROR)){
+            return "NOTALLOWED_ERROR";
+        }else if(_code == uint8(Reason.INVALID_PARAMS_ERROR)){
+            return "INVALID_PARAMS_ERROR";
+        }else if(_code == uint8(Reason.UNVERIFIED_HOLDER)){
+            return "UNVERIFIED_HOLDER";
+        }else if(_code == uint8(Reason.RECEIPT_TRANSFER_BLOCKED)){
+            return "RECEIPT_TRANSFER_BLOCKED";
+        }else if(_code == uint8(Reason.SEND_TRANSFER_BLOCKED)){
+            return "SEND_TRANSFER_BLOCKED";
+        }else if(_code == uint8(Reason.TOKEN_GRANULARITY_ERROR)){
+            return "TOKEN_GRANULARITY_ERROR";
+        }else if(_code == uint8(Reason.TRANSFER_VERIFIED_ERROR)){
+            return "TRANSFER_VERIFIED_ERROR";
+        }else if(_code == uint8(Reason.INSUFFICIENT_FUND_ERROR)){
+            return "INSUFFICIENT_FUND_ERROR";
+        }else if(_code == uint8(Reason.SPENDER_BALANCE_ERROR)){
+            return "SPENDER_BALANCE_ERROR";
+        }else if(_code == uint8(Reason.ACCOUNT_WITHHOLD_ERROR)){
+            return "ACCOUNT_WITHHOLD_ERROR";
+        }else if(_code == uint8(Reason.MOVE_LIEN_ERROR)){
+            return "MOVE_LIEN_ERROR";
+        }else if(_code == uint8(Reason.UNVERIFIED_HOLDER_ERROR)){
+            return "UNVERIFIED_HOLDER_ERROR";
+        }else if(_code == uint8(Reason.ZERO_SCHEDULE_ERROR)){
+            return "ZERO_SCHEDULE_ERROR";
+        }else if(_code == uint8(Reason.SCHEDULE_APPROVED_ERROR)){
+            return "SCHEDULE_APPROVED_ERROR";
+        }else if(_code == uint8(Reason.SCHEDULE_REJECTED_ERROR)){
+            return "SCHEDULE_REJECTED_ERROR";
+        }
+
     }
 
-    function messageExists (Data storage self, uint8 _code) internal view returns (bool exists){
-        exists = bytes(self.messages[_code]).length > 0;
+    function isFailure(uint8 _code) internal pure returns (bool) {
+        return _code == 1;
     }
 
-    function addMessage (Data storage self, string memory  _errorString, string memory _message) internal returns (string memory errorString) {
-        uint8 _code = self.code.currentCodeIndex;
-        require(!messageIsEmpty(_message), EMPTY_MESSAGE_ERROR);
-        require(!messageExists(self, _code), CODE_RESERVED_ERROR);
-        // enter message at code and push code onto storage
-        self.messages[_code] = _message;
-        self.code.errorStringToCode[_errorString] = _code;
-        self.code.currentCodeIndex = _code + 1;
-        string memory errorString = _errorString;
-        return errorString;
-    }
-
-    function removeMessage (Data storage self, string memory _errorString) internal returns (bool success) {
-        
-        uint8 _code = self.code.errorStringToCode[_errorString];
-        require(messageExists(self, _code), CODE_UNASSIGNED_ERROR);
-        
-        delete self.code.errorStringToCode[_errorString];
-        
-        // remove message from storage
-        delete self.messages[_code];
-        success = true;
-    }
-
-    function updateMessage (Data storage self, string memory _errorString, string memory _message) internal returns (bool success) {
-        uint8 _code = self.code.errorStringToCode[_errorString];
-        require(!messageIsEmpty(_message), EMPTY_MESSAGE_ERROR);
-        require(messageExists(self, _code), CODE_UNASSIGNED_ERROR);
-        // update message at code
-        self.messages[_code] = _message;
-        success = true;
-    }
+    function isOk(uint8 _code) internal pure returns (bool) {
+        return _code == 0;
+    } 
 }

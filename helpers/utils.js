@@ -1,25 +1,27 @@
-const nodemailer = require('nodemailer');
-const jwt = require('jsonwebtoken')
-const Constants = require('./status')
-require('dotenv').config();
+const nodemailer = require("nodemailer");
+const jwt = require("jsonwebtoken");
+const Constants = require("./status");
+require("dotenv").config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
-  blockchain: '',
-  mongo: '',
-  host: ''
-}
-
-if (process.env.NODE_ENV === 'development') {
-  this.config.blockchain = process.env.GANACHE
-  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
-  this.config.host = `http://localhost:${process.env.PORT}/v1/`
-  this.config.db = 'STTP'
+  blockchain: "",
+  mongo: "",
+  userHost: "",
+  adminHost: ""
+};
+if (process.env.NODE_ENV === "development") {
+  this.config.blockchain = process.env.GANACHE;
+  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE;
+  this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`;
+  this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`;
+  this.config.db = "exchange-test";
 } else {
-  this.config.blockchain = process.env.GETH
-  this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
-  this.config.host = `http://localhost:${process.env.PORT}/v1/`
-  this.config.db = 'STTP'
+  this.config.blockchain = process.env.GETH;
+  this.config.mongo = process.env.MONGO_DB_PROD_EXCHANGE;
+  this.config.userHost = `http://localhost:${process.env.PORT}/v1/user/`;
+  this.config.adminHost = `http://localhost:${process.env.PORT}/v1/admin/`;
+  this.config.db = "exchange";
 }
 
 exports.sendMail = (params, callback) => {
@@ -68,23 +70,24 @@ exports.generateTransactionReference = () => {
   return "".concat(text);
 };
 
-exports.paramsNotValid = (...args) => args
-  .map(param => param !== undefined && param != null && param !== '')
-  .includes(false)
+exports.paramsNotValid = (...args) =>
+  args
+    .map(param => param !== undefined && param != null && param !== "")
+    .includes(false);
 
 /**
  * Check token was sent
  */
 exports.checkToken = async (req, res, next) => {
   try {
-    let token = null
+    let token = null;
     if (req.headers.authorization) {
       token = req.headers.authorization;
-      const tokenArray = token.split(' ');
-      token = tokenArray[1]
+      const tokenArray = token.split(" ");
+      token = tokenArray[1];
     }
     if (req.query.token) {
-      token = req.query.token
+      token = req.query.token;
     }
     if (req.body.token) {
       token = req.body.token
@@ -97,29 +100,29 @@ exports.checkToken = async (req, res, next) => {
       };
     }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    // if (user_id && decryptedToken.id !== user_id) {
-    //   return {
-    //     status: 'failed',
-    //     data: Constants.UNAUTHORIZED,
-    //     message: 'Not authorized'
-    //   }
-    // }
-    // let dateNow = new Date()
-    // console.log(isExpiredToken)
+    if (user_id && decryptedToken.id !== user_id) {
+      return {
+        status: 'failed',
+        data: Constants.UNAUTHORIZED,
+        message: 'Not authorized'
+      }
+    }
+    let dateNow = new Date()
+    console.log(isExpiredToken)
     return {
       status: "success",
       data: decryptedToken
     }
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.name === "TokenExpiredError") {
       return {
-        status: 'failed',
+        status: "failed",
         data: Constants.UNAUTHORIZED,
-        message: 'Token expired'
-      }
+        message: "Token expired"
+      };
     }
     return {
-      status: 'failed',
+      status: "failed",
       data: Constants.UNAUTHORIZED,
       message: 'failed to authenticate token'
     }

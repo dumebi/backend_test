@@ -17,16 +17,16 @@ module.exports = {
   // to customize your Truffle configuration!
   networks: {
     development: {
-      host: 'localhost',
+      host: "localhost",
       port: 7545,
       network_id: "*", // Match any network id
       gas: 300000000,
       allowUnlimitedContractSize: true
     },
     geth: {
-      host: 'localhost',
+      host: "localhost",
       port: 8545,
-      network_id: '4224',
+      network_id: "4224",
       gas: 4612388
     },
     solc: {

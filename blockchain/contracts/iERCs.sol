@@ -44,7 +44,7 @@ contract IERC1404 {
     /// @param restrictionCode Identifier for looking up a message
     /// @return Text showing the restriction's reasoning
     /// @dev Overwrite with your custom message and restrictionCode handling
-    function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory);
+    // function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory);
 }
 
 
