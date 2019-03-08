@@ -7,17 +7,20 @@ const winston = require('winston');
 const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
-const redis = require('redis');
+const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
 require('./helpers/connection').start();
 
+<<<<<<< HEAD:app.js
 // const client = redis.createClient();
 // client.on('connect', () => {
 //   console.log('connected to redis server');
 // })
 
+=======
+>>>>>>> e1dc5fa5cb391525a6ae8d7cf0c838dcb2f76f44:index.js
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
 // logger settings
@@ -52,7 +55,7 @@ app.use('/v1/', require('./routes'));
 // require("./libraries/events.js");
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
+app.use((next) => {
   let error = {
     status: 404,
     success: 'failed',
@@ -62,7 +65,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // We log the error internaly
   appLogger.error(err);
 
@@ -78,5 +81,7 @@ app.use((err, req, res, next) => {
   // This responds to the request
   res.status(httpErr || 500).json(err);
 });
+
+base.getCoinbase()
 
 module.exports = app;

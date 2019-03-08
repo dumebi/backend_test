@@ -1,7 +1,15 @@
+<<<<<<< HEAD:test/user.test.js
 // /* eslint-disable no-undef */
 // const expect = require('chai').expect
 // const supertest = require('supertest')
 // const { config } = require('../helpers/utils');
+=======
+/* eslint-disable no-undef */
+const mongoose = require('mongoose');
+const expect = require('chai').expect
+const supertest = require('supertest')
+const { config } = require('../helpers/utils');
+>>>>>>> e1dc5fa5cb391525a6ae8d7cf0c838dcb2f76f44:test/2_user.test.js
 
 // const api = supertest(`${config.host}`)
 
@@ -14,6 +22,7 @@
 //   const user_email = 'johndoe@gmail.com'
 //   const user_pass = 'John'
 
+<<<<<<< HEAD:test/user.test.js
 //   it('Should signin a user', (done) => {
 //     api
 //       .post('users/login')
@@ -35,6 +44,35 @@
 //         done()
 //       })
 //   }).timeout(10000)
+=======
+  after(async () => {
+    await mongoose.connection.db.dropDatabase();
+    await mongoose.connection.close();
+    await mongoose.disconnect();
+  });
+
+  it('Should signin a user', (done) => {
+    api
+      .post('users/login')
+      .set('Accept', 'application/json')
+      .send({
+        email: user_email,
+        password: user_pass
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(user_email)
+        expect(res.body.data.password).to.not.equal(user_pass)
+        user_address = res.body.data.address;
+        user_jwt = res.body.data.token;
+        user_wallet = res.body.data.wallet;
+        user_id = res.body.data._id;
+        done()
+      })
+  }).timeout(20000)
+>>>>>>> e1dc5fa5cb391525a6ae8d7cf0c838dcb2f76f44:test/2_user.test.js
 
 //   it('Should send a forgot password token', (done) => {
 //     api

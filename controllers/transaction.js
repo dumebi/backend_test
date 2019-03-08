@@ -1,4 +1,3 @@
-const UserModel = require('../models/user.js');
 const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
 const {
@@ -58,10 +57,10 @@ const UserController = {
           message: token.message
         })
       }
-      const user = await UserModel.findById(token.data.id)
+      // const user = await UserModel.findById()
 
-      if (user) {
-        const transactions = TransactionModel.find({ user: user._id })
+      const transactions = await TransactionModel.find({ user: token.data.id })
+      if (transactions) {
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User transactions gotten successfully',
@@ -69,8 +68,9 @@ const UserController = {
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
+        status: 'success',
+        message: 'User transactions gotten successfully',
+        data: []
       })
     } catch (error) {
       console.log('error >> ', error)

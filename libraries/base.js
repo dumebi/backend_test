@@ -18,27 +18,36 @@ const web3 = new Web3(wsProvider);
 // });
 
 /**
- * Get Coinbase address and amount, store them.
+ * Get Coinbase address and amount
  */
-exports.getCoinbase = () => {
+exports.getCoinbase = async () => {
   try {
+    // console.log('coinbase')
     web3.eth.getCoinbase((err, account) => {
       if (err === null) {
-        coinbase = account;
+        // console.log(err, coinbase)
+        coinbase = account
+        // $('#account').text(account);
         web3.eth.getBalance(account, (error, balance) => {
           if (error === null) {
-            coinbase_amount = web3.utils.fromWei(balance, "ether");
+            console.log(error, balance)
+            coinbase_amount = web3.utils.fromWei(balance, 'ether')
+            console.log(coinbase, coinbase_amount)
           }
-        });
+        })
+      } else {
+        console.log(err)
       }
-    });
+    })
   } catch (err) {
-    console.log(err);
+    console.log('error')
+    console.log(err)
   }
 };
 
 exports.web3 = web3;
-exports.coinbase = coinbase;
-exports.coinbase_amount = coinbase_amount;
-exports.ethUtil = ethUtil;
-exports.EthereumTx = EthereumTx;
+// exports.UserContract = UserContract
+exports.coinbase = coinbase
+exports.coinbase_amount = coinbase_amount
+exports.ethUtil = ethUtil
+exports.EthereumTx = EthereumTx

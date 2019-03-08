@@ -46,7 +46,7 @@ exports.sendMail = (params, callback) => {
   });
 
   const mailOptions = {
-    from: "Sterling Support <support@sterlingbankng.com>",
+    from: 'Sterling Support <support@sterlingbankng.com>',
     to: email,
     subject,
     html: body
@@ -90,7 +90,7 @@ exports.checkToken = async (req, res, next) => {
       token = req.query.token;
     }
     if (req.body.token) {
-      token = req.body.token;
+      token = req.body.token
     }
     if (!token) {
       return {
@@ -112,7 +112,7 @@ exports.checkToken = async (req, res, next) => {
     return {
       status: "success",
       data: decryptedToken
-    };
+    }
   } catch (error) {
     if (error.name === "TokenExpiredError") {
       return {
@@ -124,8 +124,8 @@ exports.checkToken = async (req, res, next) => {
     return {
       status: "failed",
       data: Constants.UNAUTHORIZED,
-      message: "failed to authenticate token"
-    };
+      message: 'failed to authenticate token'
+    }
   }
 };
 
@@ -134,10 +134,8 @@ exports.checkToken = async (req, res, next) => {
  */
 exports.createToken = (email, id, type) => {
   try {
-    const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, {
-      expiresIn: 60 * 60 * 24
-    });
-    return jwtToken;
+    const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
+    return jwtToken
   } catch (error) {
     return false;
   }

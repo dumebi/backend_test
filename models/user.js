@@ -72,9 +72,9 @@ const UserSchema = new Schema(
     recover_token: { type: Schema.Types.String, select: false },
     // Blockchain details
     vesting: { type: Schema.Types.Boolean, required: true },
-    mnemonic: { type: Schema.Types.String, required: true },
-    publicKey: { type: Schema.Types.String, required: true },
-    privateKey: { type: Schema.Types.String, required: true },
+    mnemonic: { type: Schema.Types.String, required: true, select: false },
+    publicKey: { type: Schema.Types.String, required: true, select: false },
+    privateKey: { type: Schema.Types.String, required: true, select: false },
     preferences: {
       email: { type: Schema.Types.Boolean, default: false }, // Email Notifications
       push: { type: Schema.Types.Boolean, default: false }, // Push Notifications

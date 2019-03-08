@@ -15,6 +15,7 @@ const TransactionType = Object.freeze({
   SELL: 'Sell',
   FUND: 'Fund',
   WITHDRAW: 'Withdraw',
+  PRICE: 'Price',
 })
 
 const WalletType = Object.freeze({
@@ -36,7 +37,7 @@ const TransactionSchema = new Schema(
     wallet: {
       type: Schema.Types.String,
       enum: Object.values(WalletType),
-      default: TransactionType.NAIRA,
+      default: WalletType.NAIRA,
       required: true
     }, // Or token
     volume: { type: Schema.Types.Number },
