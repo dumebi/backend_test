@@ -125,8 +125,8 @@ module.exports = {
   async socket() {
     server.on('connection', (socket) => {
       console.info(`Client connected [id=${socket.id}]`);
-      // initialize this client's sequence number
-      // sequenceNumberByClient.set(socket, 1);
+
+      // Broadcast to all connected sockets
       socket.on('broadcast', (message) => {
         server.emit('message', message)
       });
@@ -136,22 +136,5 @@ module.exports = {
         console.info(`Client gone [id=${socket.id}]`);
       });
     });
-  },
-  // async client() {
-  //   // console.log(`http://localhost:${process.env.PORT}`)
-  //   // const socket = io(`http://localhost:8000`);
-  //   // socket.on('connect', () => {
-  //   //   socket.send('hi');
-
-  //   //   socket.on('message', (msg) => {
-  //   //     // my msg
-  //   //     console.log(msg)
-  //   //   });
-  //   // });
-  //   // const io = require("socket.io-client")
-  //   // const ioClient = io.connect('http://localhost:3001');
-
-  //   // ioClient.on('seq-num', msg => console.info(msg));
-  //   // ioClient.on('message', msg => console.info(msg));
-  // }
+  }
 }
