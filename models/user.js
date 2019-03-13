@@ -98,7 +98,7 @@ UserSchema.pre('save', async function pre(next) {
     const wallet = await new Wallet({
       balance: 0,
       transactions: [],
-      bank: []
+      account_number: []
     }).save()
     this.wallet = wallet._id
   }

@@ -163,7 +163,7 @@ contract Token is IERC20, IERC1404 {
         return uint8(TokenFunc.detectTransferRestriction(tokenFunc, _from, _to, _amount));
     }
     
-    function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory){
+    function messageForTransferRestriction (uint8 restrictionCode) public pure returns (string memory){
         return TokenFunc.messageForTransferRestriction(restrictionCode);
     }
     

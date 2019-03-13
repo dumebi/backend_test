@@ -1,7 +1,5 @@
-const HD = require("ethereumjs-wallet");
 const bip39 = require("bip39");
 var HDKey = require("hdkey");
-const axios = require("axios");
 const { web3, EthereumTx, ethUtil } = require("./base.js");
 
 module.exports = {

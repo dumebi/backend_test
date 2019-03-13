@@ -83,7 +83,7 @@ library TokenFunc {
     }
     
     
-    function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory){
+    function messageForTransferRestriction (uint8 restrictionCode) public pure returns (string memory){
         return MessagesAndCodes.appCode(restrictionCode);
     }
         

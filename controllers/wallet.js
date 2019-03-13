@@ -17,9 +17,9 @@ const walletController = {
   async balance(req, res, next) {
     try {
       
-      const userId = req.params.id
+      const userWallet = req.params.id
 
-      const wallet = await WalletModel.find({ user: userId })
+      const wallet = await WalletModel.findById(userWallet)
       console.log("wallet >> ", wallet)
       if (wallet) {
         return res.status(HttpStatus.OK).json({
@@ -54,9 +54,9 @@ const walletController = {
   async fund(req, res, next) {
     try {
     
-        const userId = req.params.id
+        const userWallet = req.params.id
         const transaction = await new TransactionModel()
-        const wallet = await WalletModel.find({user :userId })
+        const wallet = await WalletModel.find({user :userWallet })
 
         // Call SOAP Endpoint
         
@@ -65,7 +65,7 @@ const walletController = {
         const soapResponse = await soap(args)
         console.log("soapResponse >> ", soapResponse)
 
-    //     transaction.user: userId
+    //     transaction.user: userWallet
     //     transaction.type: transaction.TransactionType.FUND
     //     from: ""
     //     to: "" 

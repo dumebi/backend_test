@@ -101,8 +101,6 @@ var input = {
 function getImports(dependency) {
   // console.log("Searching for dependency: ", dependency);
   switch (dependency) {
-    case "libUtils.sol":
-      return { contents: solUtilsLib };
     case "libOwner.sol":
       return { contents: solOwnerLib };
     case "libMsgCode.sol":

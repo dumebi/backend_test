@@ -8,6 +8,7 @@ const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
 const base = require('./libraries/base')
+// require('./models/dbSeeder')
 
 const app = express();
 require('dotenv').config();
