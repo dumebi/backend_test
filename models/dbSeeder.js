@@ -1,7 +1,6 @@
 var User = require('../models/user');
 const EthAccount = require('../libraries/ethUser.js');
 const secure = require('../helpers/encryption.js');
-require('../helpers/connection').start();
 
 console.log('This script seeds startup data into the db.');
 
@@ -26,7 +25,7 @@ var dbSeeder =  async function() {
               employment: User.EmploymentStatus.EMPLOYED,
               group: User.UserGroup.ET,
               beneficiary: "Dara",
-              activated: false,
+              activated: true,
               enabled: true,
               password: "12345678",
               vesting: false, 

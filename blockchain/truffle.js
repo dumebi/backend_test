@@ -24,9 +24,9 @@ module.exports = {
       allowUnlimitedContractSize: true
     },
     geth: {
-      host: "localhost",
+      host: 'localhost',
       port: 8545,
-      network_id: "4224",
+      network_id: '4224',
       gas: 4612388
     },
     solc: {

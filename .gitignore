@@ -14,3 +14,6 @@ logs
 *.log
 npm-debug.log*
 yarn.lock
+
+# Externals
+external

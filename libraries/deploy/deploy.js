@@ -86,8 +86,8 @@ async function deploy() {
       .deploy({
         data: compiledTokenContract.evm.bytecode.object,
         arguments: [
-          "SIT",
-          "Sterling Investment Token",
+          'SIT',
+          'Sterling Investment Token',
           1,
           "0x0b544baabb787e3a9ccd68e6ca3e7a9a753fe50e",
           "0xbb723b459f84c24665a89159d94701321864e5d0"
@@ -105,8 +105,8 @@ async function deploy() {
       .deploy({
         data: compiledTokenContract.evm.bytecode.object,
         arguments: [
-          "SIT",
-          "Sterling Investment Token",
+          'SIT',
+          'Sterling Investment Token',
           1,
           "0x0b544baabb787e3a9ccd68e6ca3e7a9a753fe50e",
           "0xbb723b459f84c24665a89159d94701321864e5d0"
@@ -115,7 +115,7 @@ async function deploy() {
       .estimateGas({
         from: "0x87741ffaf59aa62fb42e26fba4d25daffbf2987f"
       });
-    console.log("gasUsed >> ", gasUsed);
+    console.log('gasUsed >> ', gasUsed);
     const txParams = {
       nonce: nounce,
       gasLimit: 8000000000000,
@@ -129,12 +129,12 @@ async function deploy() {
     tx.sign(privateKey); // tx.gasPrice =
     const serializedTx = tx.serialize();
     const transactionId = await web3.eth.sendSignedTransaction(
-      "0x" + serializedTx.toString("hex")
+      '0x' + serializedTx.toString('hex')
     );
 
-    console.log("transactionId >> ", transactionId);
+    console.log('transactionId >> ', transactionId);
   } catch (error) {
-    console.log("err > ", error);
+    console.log('err > ', error);
   }
 }
 

@@ -2,7 +2,7 @@ const { Token } = require("../libraries/tokenContract.js");
 const token = new Token();
 
 module.exports = {
-  sample: async function(req, res, next) {
+  async sample(req, res, next) {
     try {
       // const result1 = await token.transferOwnership(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -182,8 +182,9 @@ module.exports = {
       //   "Lien",
       //   0
       // );
+      res.send("successfull");
     } catch (error) {
-      console.log("error >> ", error);
+      console.log('error >> ', error);
     }
   }
 };

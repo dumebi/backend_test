@@ -12,11 +12,10 @@ exports.isUser = async (req, res, next) => {
   try {
     const token = await checkToken(req);
     if (token.status === 'failed') {
-        // return res.status(token.data).json({
-        //   status: 'failed',
-        //   message: token.message
-        // })
-        next()
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
       }
     if (token.data.type === Object.values(UserModel.UserType)[0]
       || token.data.type === Object.values(UserModel.UserType)[1]
@@ -28,7 +27,6 @@ exports.isUser = async (req, res, next) => {
         status: 'failed',
         data: 'Access not granted to this resource.'
       })
-      next()
     }
   } catch (err) {
     return res.status(HttpStatus.BAD_REQUEST).json({

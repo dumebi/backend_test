@@ -19,7 +19,7 @@ module.exports =  {
             if (result.response != "success") {
                 throw({message: result.message, responseCode: result.responseCode})
             }
-
+            console.log("result >> ", result)
             if(result.body.data.AccountName != name){
                 return false
             }
@@ -31,35 +31,12 @@ module.exports =  {
         }
     },
 
-    soapFactory : {
-        getRequestXML: (refId, reqType, nuban) => {
-            var payload = `
-            <?xml version="1.0" encoding="UTF-8"?> 
-            <IBSRequest>                
-                <ReferenceID>${refId}</ReferenceID>
-                <RequestType>${reqType}</RequestType>
-                <Account>${nuban}</Account> 
-            </IBSRequest>                   
-            `;
+    async checkBalance() {
 
-            return payload;
+    },
 
-            // return {
-            //     "IBSRequest": refId,
-            //     "RequestType": reqType,
-            //     "Account": nuban
-            // }
-        },
-        getSerializedXML: (jsonPayload) => {
-            try {
-                var serialized = serializer.json2xml(jsonPayload);
+    async transfer() {
 
-                console.log("serialized >> ", serialized)
-                return serialized 
-            } catch (error) {
-                console.log("error > ", error)
-                throw(error)
-            }
-        }
     }
+
 } 

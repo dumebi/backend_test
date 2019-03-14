@@ -1,5 +1,8 @@
-const { web3, EthereumTx } = require("./base.js");
-const { compiledTokenContract } = require("./deploy/compile.js");
+/* eslint-disable no-nested-ternary */
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-useless-constructor */
+const { web3, EthereumTx } = require('./base.js');
+const { compiledTokenContract } = require('./deploy/compile.js');
 
 const deployedContractAddr = "0xe074dcdb03bfd885e090e2e56c0b2feaa6aedf8d";
 const contractABI = compiledTokenContract.abi;
@@ -56,16 +59,16 @@ exports.Token = class {
     try {
       const isValidAddress = await web3.utils.isAddress(newOwner);
       if (!isValidAddress) {
-        return "Invalid New Owner Address";
+        return 'Invalid New Owner Address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .transferOwnership(newOwner)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
         .transferOwnership(newOwner)
         .estimateGas({
@@ -86,7 +89,7 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -387,18 +390,18 @@ exports.Token = class {
       
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
-        return "Invalid authorizer address";
+        return 'Invalid authorizer address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
-        .addAuthorizer(authorizer, type == "Pay Scheme" ? 0 : 1)
+        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
-        .addAuthorizer(authorizer, type == "Pay Scheme" ? 0 : 1)
+        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
         .estimateGas({
           from: fromAddress
         });
@@ -417,7 +420,7 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -441,16 +444,16 @@ exports.Token = class {
       
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
-        return "Invalid authorizer address";
+        return 'Invalid authorizer address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .removeAuthorizer(authorizer)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
         .removeAuthorizer(authorizer)
         .estimateGas({
@@ -471,7 +474,7 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -501,7 +504,7 @@ exports.Token = class {
 
       return {
         authorizer: result.authorizerAddr,
-        type: result.authorizerType == 0 ? "Pay Scheme" : "Upfront Scheme"
+        type: result.authorizerType == 0 ? 'Pay Scheme' : 'Upfront Scheme'
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -601,10 +604,10 @@ exports.Token = class {
       const isValidFrom = await web3.utils.isAddress(fromAddress);
 
       if (!isValidHolder) {
-        return "Invalid shareholder address";
+        return 'Invalid shareholder address';
       }
       if (!isValidFrom) {
-        return "Invalid initiator address";
+        return 'Invalid initiator address';
       }
 
       const gasPrice = 4;
@@ -613,9 +616,9 @@ exports.Token = class {
         .transfer(recipient, amount)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .transfer(recipient, amount)
@@ -639,7 +642,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -663,10 +666,10 @@ exports.Token = class {
       const isValidFrom = await web3.utils.isAddress(fromAddress);
 
       if (!isValidHolder) {
-        return "Invalid shareholder address";
+        return 'Invalid shareholder address';
       }
       if (!isValidFrom) {
-        return "Invalid initiator address";
+        return 'Invalid initiator address';
       }
 
       const gasPrice = 4;
@@ -675,9 +678,9 @@ exports.Token = class {
         .approve(spender, amount)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .approve(spender, amount)
@@ -701,7 +704,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -747,10 +750,10 @@ exports.Token = class {
       const isValidFrom = await web3.utils.isAddress(fromAddress);
 
       if (!isValidHolder) {
-        return "Invalid shareholder address";
+        return 'Invalid shareholder address';
       }
       if (!isValidFrom) {
-        return "Invalid initiator address";
+        return 'Invalid initiator address';
       }
 
       const gasPrice = 4;
@@ -759,9 +762,9 @@ exports.Token = class {
         .transferFrom(holder, recipient, amount)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .transferFrom(holder, recipient, amount)
@@ -785,7 +788,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -815,7 +818,7 @@ exports.Token = class {
       const isValidAddress = await web3.utils.isAddress(holder);
 
       if (!isValidAddress) {
-        return "Invalid from address";
+        return 'Invalid from address';
       }
 
       const gasPrice = 2000;
@@ -824,9 +827,9 @@ exports.Token = class {
         .addShareholder(holder, isEnabled, isWithhold)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
       const gasUsed = await contractInst.methods
         .addShareholder(holder, isEnabled, isWithhold)
@@ -850,7 +853,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -920,14 +923,14 @@ exports.Token = class {
       const isValidFrom = await web3.utils.isAddress(fromAddress);
 
       if (!isValidHolder) {
-        return "Invalid shareholder address";
+        return 'Invalid shareholder address';
       }
       if (!isValidFrom) {
-        return "Invalid initiator address";
+        return 'Invalid initiator address';
       }
 
-      if (typeof access != "boolean") {
-        return "Can only set shareholders status to true or false";
+      if (typeof access != 'boolean') {
+        return 'Can only set shareholders status to true or false';
       }
 
       const gasPrice = 2000;
@@ -936,9 +939,9 @@ exports.Token = class {
         .updateShareHolder(holder, access, withhold)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .updateShareHolder(holder, access, withhold)
@@ -962,7 +965,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1102,7 +1105,7 @@ exports.Token = class {
       } = await contractInst.methods
         .recordByCat(
           holder,
-          category == "Tradable"
+          category == 'Tradable'
             ? 0
             : category == "Lien"
             ? 1
@@ -1156,20 +1159,20 @@ exports.Token = class {
         .createSchedule(
           scheduleId,
           amount,
-          scheduleType == "Pay Scheme" ? 0 : 1,
+          scheduleType == 'Pay Scheme' ? 0 : 1,
           web3.utils.toHex(reason)
         )
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .createSchedule(
           scheduleId,
           amount,
-          scheduleType == "Pay Scheme" ? 0 : 1,
+          scheduleType == 'Pay Scheme' ? 0 : 1,
           web3.utils.toHex(reason)
         )
         .estimateGas({
@@ -1192,7 +1195,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1221,9 +1224,9 @@ exports.Token = class {
         .removeSchedule(scheduleId, web3.utils.toHex(reason))
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .removeSchedule(scheduleId, web3.utils.toHex(reason))
@@ -1247,7 +1250,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1287,7 +1290,7 @@ exports.Token = class {
         .call({ from: fromAddress });
 
       return {
-        scheduleType: scheduleType == 0 ? "Pay Scheme" : "Upfront Scheme",
+        scheduleType: scheduleType == 0 ? 'Pay Scheme' : 'Upfront Scheme',
         amount,
         activeAmount,
         isActive,
@@ -1313,13 +1316,13 @@ exports.Token = class {
 
   async approveSchedule(_privateKey, fromAddress, scheduleId, reason) {
     try {
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .approveSchedule(scheduleId, web3.utils.toHex(reason))
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
         .approveSchedule(scheduleId, web3.utils.toHex(reason))
         .estimateGas({
@@ -1340,7 +1343,7 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1363,13 +1366,13 @@ exports.Token = class {
 
   async rejectSchedule(_privateKey, fromAddress, scheduleId, reason) {
     try {
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .rejectSchedule(scheduleId, web3.utils.toHex(reason))
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
         .rejectSchedule(scheduleId, web3.utils.toHex(reason))
         .estimateGas({
@@ -1390,7 +1393,7 @@ exports.Token = class {
       tx.gasPrice = tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1433,38 +1436,38 @@ exports.Token = class {
           scheduleId,
           recipient,
           amount,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           duration,
           web3.utils.toHex(reason)
         )
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .mint(
           scheduleId,
           recipient,
           amount,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           duration,
           web3.utils.toHex(reason)
         )
@@ -1488,7 +1491,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1517,35 +1520,35 @@ exports.Token = class {
       const data = await contractInst.methods
         .moveToTradable(
           holder,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           recordId
         )
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .moveToTradable(
           holder,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           recordId
         )
         .estimateGas({
@@ -1568,7 +1571,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;
@@ -1607,37 +1610,37 @@ exports.Token = class {
         .withdraw(
           holder,
           amount,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           recordId,
           web3.utils.toHex(reason)
         )
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress);
+      const nounce = await web3.eth.getTransactionCount(fromAddress);
 
       const gasUsed = await contractInst.methods
         .withdraw(
           holder,
           amount,
-          shareCat == "Tradable"
+          shareCat == 'Tradable'
             ? 0
-            : shareCat == "Lien"
-            ? 1
-            : shareCat == "Allocated"
-            ? 2
-            : shareCat == "Vesting"
-            ? 3
-            : "00",
+            : shareCat == 'Lien'
+              ? 1
+              : shareCat == 'Allocated'
+                ? 2
+                : shareCat == 'Vesting'
+                  ? 3
+                  : '00',
           recordId,
           web3.utils.toHex(reason)
         )
@@ -1661,7 +1664,7 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return transactionId;

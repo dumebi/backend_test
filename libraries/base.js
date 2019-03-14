@@ -5,7 +5,7 @@ const ethUtil = require("ethereumjs-util");
 const EthereumTx = require("ethereumjs-tx");
 
 let coinbase_amount = 0;
-let coinbase = "";
+let coinbase = '';
 
 // Setup RPC connection
 const provider = utils.config.blockchain;
