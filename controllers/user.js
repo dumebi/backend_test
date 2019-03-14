@@ -55,7 +55,7 @@ const UserController = {
         })
       }
       const _id = req.params.id;
-      const user = await UserModel.findById(_id);
+      const user = await UserModel.findById(_id).populate('wallet');
 
       if (user) {
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
