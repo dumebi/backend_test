@@ -67,7 +67,7 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date, req.body.status)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -108,14 +108,14 @@ const ScheduleController = {
   },
 
   /**
-   * Enable Schedule
+   * Get Schedule
    * @description Enable a schedule
    * @param {string} schedule_id Schedule ID
    * @return {object} schedule
    */
-  async enable(req, res, next) {
+  async one(req, res, next) {
     try {
-      if (paramsNotValid(req.body.schedule_id)) {
+      if (paramsNotValid(req.params.schedule_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -129,15 +129,57 @@ const ScheduleController = {
         })
       }
 
-      const schedule = ScheduleModel.findById(req.body.schedule_id)
+      const schedule = await ScheduleModel.findById(req.params.schedule_id)
       if (schedule) {
-        schedule.enabled = true
-        schedule.authorizedby = token.data.id
-        await schedule.save()
-
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule enabled successfully', data: schedule });
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule gotten successfully', data: schedule });
       }
       return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not enable schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Enable Schedule
+   * @description Enable a schedule
+   * @param {string} schedule_id Schedule ID
+   * @return {object} schedule
+   */
+  async enable(req, res, next) {
+    try {
+      if (paramsNotValid(req.params.schedule_id)) {
+        return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          status: 'failed',
+          message: 'some parameters were not supplied'
+        })
+      }
+      const token = await checkToken(req);
+      if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+
+      const schedule = await ScheduleModel.findByIdAndUpdate(
+        req.params.schedule_id,
+        { enabled: true, authorizedby: token.data.id },
+        { safe: true, multi: true, new: true }
+      )
+      if (schedule) {
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule enabled successfully', data: schedule });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'Schedule not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -158,7 +200,7 @@ const ScheduleController = {
    */
   async disable(req, res, next) {
     try {
-      if (paramsNotValid(req.body.schedule_id)) {
+      if (paramsNotValid(req.params.schedule_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -172,15 +214,18 @@ const ScheduleController = {
         })
       }
 
-      const schedule = ScheduleModel.findById(req.body.schedule_id)
+      const schedule = await ScheduleModel.findByIdAndUpdate(
+        req.params.schedule_id,
+        { enabled: false, disabledby: token.data.id },
+        { safe: true, multi: true, new: true }
+      )
       if (schedule) {
-        schedule.enabled = false
-        schedule.disabledby = token.data.id
-        await schedule.save()
-
         return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule disabled successfully', data: schedule });
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });
+      return res.status(HttpStatus.NOT_FOUND).json({
+        status: 'failed',
+        message: 'Schedule not found',
+      })
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -206,7 +251,7 @@ const ScheduleController = {
      */
   async update(req, res, next) {
     try {
-      if (paramsNotValid(req.body.schedule_id)) {
+      if (paramsNotValid(req.params.schedule_id)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -225,7 +270,7 @@ const ScheduleController = {
       delete req.body.authorizedby
       delete req.body.disabledby
       const schedule = await ScheduleModel.findByIdAndUpdate(
-        req.body.schedule_id,
+        req.params.schedule_id,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )

@@ -1,48 +1,27 @@
 pragma solidity >=0.4.0 <0.6.0;
 
-import "./libUtils.sol";
 import "./libSafeMath.sol";
-import "./libMsgCode.sol";
 import "./libTokenFunc.sol";
+import "./libMsgCode.sol";
+import "./libSharing.sol";
 
 library TokenScheduler  {
-    
-    using Utils for *;
     using SafeMath for uint256;
     
-    event NewSchedule(uint256 _scheduleId, ScheduleType _scheduleType, uint256 _amount, bytes _data);
-    event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
-    event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
+    event NewSchedule(uint256 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
+    event ScheduleApproved(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for approval
+    event ScheduleRejected(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for rejection
     event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
-    event Minted(uint8 indexed _from, address indexed _holder, TokenFunc.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
+    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _reason);
     
     
-    enum ScheduleType { PayScheme, UpfrontScheme}
-    
-    struct Authorising {
-        address authorizer;
-        bytes reason;
-    }
-    struct Schedule {
-        uint amount;
-        uint activeAmount;
-        bool isApproved;
-        bool isRejected;
-        bool isActive;
-        uint8 authorizedCount;
-        TokenScheduler.ScheduleType scheduleType;
-        mapping(uint => Authorising) authorizedBy;
-    }
-    
-    struct Data {
-        uint256[] scheduleIndex;
-        mapping(uint256 => Schedule) mMintSchedules;
-        mapping (address => bool) trackApproves;
-    }
-    
-    function createSchedule (Data storage self, uint _scheduleId, uint _amount, TokenScheduler.ScheduleType _scheduleType, bytes memory _data) internal returns(uint256 ) {
+    function createSchedule (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) internal returns(string memory success ) {
+        require(self.mMintSchedules[_scheduleId].amount <= 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNIQUENESS_ERROR)));
+        if(_amount < 0) {
+            return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.ZERO_SCHEDULE_ERROR));
+        }
 
-        Schedule memory schedule;
+        Sharing.Schedule memory schedule;
         schedule.amount = _amount;
         schedule.activeAmount = _amount;
         schedule.isApproved = false;
@@ -51,40 +30,47 @@ library TokenScheduler  {
         schedule.scheduleType = _scheduleType;
         
         self.mMintSchedules[_scheduleId] = schedule;
-        self.scheduleIndex.push(_scheduleId);
         emit NewSchedule(_scheduleId, _scheduleType, _amount, _data);
         
-        return _scheduleId;
+        return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
     
-    function getSchedule (Data storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, ScheduleType scheduleType ) {
-        Schedule memory _schedule = self.mMintSchedules[_scheduleId];
+    function getSchedule (Sharing.DataSchedule storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
+        Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
         return (_schedule.amount, _schedule.activeAmount, _schedule.isApproved, _schedule.isRejected, _schedule.isActive, _schedule.scheduleType);
     }  
     
-    function getScheduleAuthorizer (Data storage self, uint _scheduleId, uint _authorizerIndex) internal view returns(address authorize, bytes memory reason) {
+    function getScheduleAuthorizer (Sharing.DataSchedule storage self, uint _scheduleId, uint _authorizerIndex) internal view returns(address authorize, bytes memory reason) {
         return (self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].authorizer, self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].reason);
     } 
     
-    function approveSchedule(Data storage self, uint256 _scheduleId, bytes memory _reason, TokenScheduler.ScheduleType _authorizerType) internal returns(uint256)  {
-        require(!self.mMintSchedules[_scheduleId].isRejected, "This schedule has already been rejected!");
-        require(!self.mMintSchedules[_scheduleId].isApproved && !self.mMintSchedules[_scheduleId].isRejected, "This schedule has already been approved!");
+    function approveSchedule(Sharing.DataSchedule storage self, uint256 _scheduleId, bytes memory _reason, Sharing.ScheduleType _authorizerType) internal returns(string memory success)  {
+        require(!self.mMintSchedules[_scheduleId].isRejected, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_REJECTED_ERROR)));
+        require(!self.mMintSchedules[_scheduleId].isApproved && !self.mMintSchedules[_scheduleId].isRejected, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_APPROVED_ERROR)));
+        if(self.mMintSchedules[_scheduleId].amount <= 0){
+            return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTFOUND_ERROR));
+        }
         
-        Schedule memory _scheduleInstance = self.mMintSchedules[_scheduleId];
-        if (_scheduleInstance.scheduleType == TokenScheduler.ScheduleType.UpfrontScheme)  {
-            require(_authorizerType == TokenScheduler.ScheduleType.UpfrontScheme, "You are not authorized to approve this schedule");
+        Sharing.Schedule memory _scheduleInstance = self.mMintSchedules[_scheduleId];
+        if (_scheduleInstance.scheduleType == Sharing.ScheduleType.UpfrontScheme)  {
+            if(_authorizerType != Sharing.ScheduleType.UpfrontScheme){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR));
+            }
+            require(_authorizerType == Sharing.ScheduleType.UpfrontScheme, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR)));
             self.mMintSchedules[_scheduleId].isApproved = true;
             self.mMintSchedules[_scheduleId].isRejected = false;
-            Authorising memory authorising;
+            Sharing.Authorising memory authorising;
             authorising.authorizer = msg.sender;
             authorising.reason = _reason;
             self.mMintSchedules[_scheduleId].authorizedBy[0] = authorising;
-        } else if (_scheduleInstance.scheduleType == ScheduleType.PayScheme)  {
-            require(_authorizerType == TokenScheduler.ScheduleType.PayScheme, "You are not authorized to reject this schedule");
-            require(!_scheduleInstance.isApproved, "This schedule has already been approved");
-            require(!self.trackApproves[msg.sender], "You have already approved this schedule!");
+        } else if (_scheduleInstance.scheduleType == Sharing.ScheduleType.PayScheme)  {
+            if(_authorizerType != Sharing.ScheduleType.PayScheme){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR));
+            }
+            require(!_scheduleInstance.isApproved, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_APPROVED_ERROR)));
+            require(!self.trackApproves[msg.sender], MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_REJECTED_ERROR)));
             
-            Authorising memory authorising;
+            Sharing.Authorising memory authorising;
             authorising.authorizer = msg.sender;
             authorising.reason = _reason;
             
@@ -101,57 +87,71 @@ library TokenScheduler  {
                 delete self.trackApproves[self.mMintSchedules[_scheduleId].authorizedBy[2].authorizer];
             }
         }
-        emit ScheduleApproved(_scheduleId, msg.sender, _reason);
-        return _scheduleId;
+        emit ScheduleApproved(_scheduleId, _reason);
+        return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
 
     } 
     
-    function rejectSchedule(Data storage self, uint256 _scheduleId, bytes memory _reason, ScheduleType _authorizerType) internal returns(uint256)  {
-        require(self.mMintSchedules[_scheduleId].amount == self.mMintSchedules[_scheduleId].activeAmount, "This schedule cannot be rejected! Tokens have already been minted on it");
+    function rejectSchedule(Sharing.DataSchedule storage self, uint256 _scheduleId, bytes memory _reason, Sharing.ScheduleType _authorizerType) internal returns(string memory success)  {
+        require(self.mMintSchedules[_scheduleId].amount == self.mMintSchedules[_scheduleId].activeAmount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
 
-        Schedule memory _scheduleInstance = self.mMintSchedules[_scheduleId];
-        if (_scheduleInstance.scheduleType == ScheduleType.PayScheme)  {
-            require(_scheduleInstance.scheduleType == _authorizerType, "You are restricted from rejecting this schedule");
+        Sharing.Schedule memory _scheduleInstance = self.mMintSchedules[_scheduleId];
+        if (_scheduleInstance.scheduleType == Sharing.ScheduleType.PayScheme)  {
+            if(_scheduleInstance.scheduleType != _authorizerType){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR));
+            }
             self.mMintSchedules[_scheduleId].isRejected = true;
             self.mMintSchedules[_scheduleId].isApproved = false;
-            self.mMintSchedules[_scheduleId].authorizedBy[0] = Authorising(msg.sender, _reason);
-        } else if (_scheduleInstance.scheduleType == ScheduleType.UpfrontScheme)  {
-            require(_scheduleInstance.scheduleType == _authorizerType, "You are restricted from rejecting this schedule");
+            self.mMintSchedules[_scheduleId].authorizedBy[0] = Sharing.Authorising(msg.sender, _reason);
+        } else if (_scheduleInstance.scheduleType == Sharing.ScheduleType.UpfrontScheme)  {
+            if(_scheduleInstance.scheduleType != _authorizerType){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR));
+            }
             self.mMintSchedules[_scheduleId].isRejected = true;
             self.mMintSchedules[_scheduleId].isApproved = false;
-            self.mMintSchedules[_scheduleId].authorizedBy[0] = Authorising(msg.sender, _reason);
+            self.mMintSchedules[_scheduleId].authorizedBy[0] = Sharing.Authorising(msg.sender, _reason);
         }
-        emit ScheduleRejected(_scheduleId, msg.sender, _reason);
-        return _scheduleId;
+        emit ScheduleRejected(_scheduleId, _reason);
+        
+        return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
     
-    function removeSchedule(Data storage self, uint256 _scheduleId, bytes memory _reason) internal returns(uint256)  {
-        require(self.mMintSchedules[_scheduleId].amount == self.mMintSchedules[_scheduleId].activeAmount, "This schedule cannot be removed! Tokens have already been minted on it");
+    function removeSchedule(Sharing.DataSchedule storage self, uint256 _scheduleId, bytes memory _reason) internal returns(uint256)  {
+        require(self.mMintSchedules[_scheduleId].amount == self.mMintSchedules[_scheduleId].activeAmount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
 
         delete self.mMintSchedules[_scheduleId];
         emit ScheduleRemoved(_scheduleId, msg.sender, _reason);
         return _scheduleId;
     } 
     
-    function mint(Data storage self, TokenFunc.Data storage tokenFunc, MessagesAndCodes.Data storage _msgCode, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, TokenFunc.TokenCat _sitCat, uint256 _duration, bytes memory _data) internal returns (bool success) {
+    function mint(Sharing.DataSchedule storage self, Sharing.DataToken storage tokenFunc, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint256 _duration, bytes memory _data) internal returns (string memory success) {
         
-        require(self.mMintSchedules[_scheduleIndex].isActive, "Inactive schedule");
-        require(self.mMintSchedules[_scheduleIndex].isApproved, "Unauthorized schedule");
-        require(self.mMintSchedules[_scheduleIndex].activeAmount >= _amount, "Minting amount is greater than available on schedule");
-        require(_amount % _granularity == 0, _msgCode.messages[_msgCode.code.errorStringToCode["TOKEN_GRANULARITY_ERROR"]]);
+        require(tokenFunc.shareHolders[_holder].isEnabled, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNVERIFIED_HOLDER_ERROR)));
+        require(self.mMintSchedules[_scheduleIndex].isActive, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INVALID_ERROR)));
+        require(self.mMintSchedules[_scheduleIndex].isApproved, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNAUTHORIZED_ERROR)));
+        require(_amount % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
+        if(self.mMintSchedules[_scheduleIndex].activeAmount < _amount){
+            MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR));
+        }
             
         uint8 _from;
 
-        if (TokenFunc.TokenCat.Lien  == _sitCat) {
+        if (Sharing.TokenCat.Lien  == _sitCat) {
+            if(_duration < now){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INVALID_PARAMS_ERROR));
+            }
             tokenFunc.shareHolders[_holder].sitBalances.lien = tokenFunc.shareHolders[_holder].sitBalances.lien.add(_amount);
             TokenFunc._addToLien(tokenFunc,_holder, _amount, now, _duration);
-        } else  if (TokenFunc.TokenCat.Vesting  == _sitCat) {
+        } else  if (Sharing.TokenCat.Vesting  == _sitCat) {
             tokenFunc.shareHolders[_holder].sitBalances.vesting = tokenFunc.shareHolders[_holder].sitBalances.vesting.add(_amount);
             TokenFunc._addToVesting (tokenFunc, _holder, _amount, now);
-        } else  if (TokenFunc.TokenCat.Allocated  == _sitCat) {
+        } else  if (Sharing.TokenCat.Allocated  == _sitCat) {
+            if(_duration < now){
+                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INVALID_PARAMS_ERROR));
+            }
             tokenFunc.shareHolders[_holder].sitBalances.allocated = tokenFunc.shareHolders[_holder].sitBalances.allocated.add(_amount);
             TokenFunc._addToAllocated (tokenFunc, _holder, _amount, now, _duration);
-        } else if (TokenFunc.TokenCat.Tradable  == _sitCat) {
+        } else if (Sharing.TokenCat.Tradable  == _sitCat) {
             tokenFunc.mBalances[_holder] = tokenFunc.mBalances[_holder].add(_amount);
         }
         
@@ -170,7 +170,7 @@ library TokenScheduler  {
         }
         
         emit Minted(_from, _holder, _sitCat, _amount,  _scheduleIndex, _data);
-        success = true;
+        success = MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
 
     

@@ -1,33 +1,18 @@
 pragma solidity ^0.5.0;
 // pragma experimental SMTChecker;
 
-
-import "./libTokenScheduler.sol";
+import "./libSharing.sol";
+import "./libMsgCode.sol";
 
 library Authorizer {
     
-    event NewAuthorizer(address indexed _authorizer, TokenScheduler.ScheduleType indexed _type);
+    event NewAuthorizer(address indexed _authorizer, Sharing.ScheduleType indexed _type);
     event AuthorizerRemoved(address indexed _authorizer);
     
-    struct Authorizer {
-        bool isUnique;
-        address authorizer;
-        TokenScheduler.ScheduleType authorizerType; // Type can be montly or custom
-    }
-    
-    struct TrackIndex {
-        bool isUnique;
-        uint index;
-    }
-    
-    struct Data {
-        mapping(address => TrackIndex) authorizerToIndex;
-        Authorizer[] mAuthorizers;
-    }
 
-    function addAuthorizer(Data storage self, address _approver, TokenScheduler.ScheduleType _type) internal returns (bool) {
-        require(!self.authorizerToIndex[_approver].isUnique, "Authorizer already added!");
-        uint index = self.mAuthorizers.push(Authorizer(true, _approver, _type));
+    function addAuthorizer(Sharing.DataAuthorizer storage self, address _approver, Sharing.ScheduleType _type) internal returns (bool) {
+        require(!self.authorizerToIndex[_approver].isUnique, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNIQUENESS_ERROR)));
+        uint index = self.mAuthorizers.push(Sharing.Authorizer(true, _approver, _type));
         self.authorizerToIndex[_approver].isUnique = true;
         self.authorizerToIndex[_approver].index = index - 1;
         emit NewAuthorizer(_approver, _type);
@@ -35,20 +20,19 @@ library Authorizer {
     }
     
 
-    function isAuthorizer(Data storage self, address _approver) internal view returns (bool) {
+    function isAuthorizer(Sharing.DataAuthorizer storage self, address _approver) internal view returns (bool) {
         return self.authorizerToIndex[_approver].isUnique;
     }
     
-    function getAuthorizer(Data storage self, address _approver, uint _index) internal view returns (address authorizer, TokenScheduler.ScheduleType authorizerType) {
-        if(_index > 0) {
-            return (self.mAuthorizers[_index].authorizer, self.mAuthorizers[_index].authorizerType);
-        }
+    function getAuthorizer(Sharing.DataAuthorizer storage self, address _approver) internal view returns (address authorizer, Sharing.ScheduleType authorizerType) {
+        require(self.authorizerToIndex[_approver].isUnique, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTFOUND_ERROR)));
         return (self.mAuthorizers[self.authorizerToIndex[_approver].index].authorizer, self.mAuthorizers[self.authorizerToIndex[_approver].index].authorizerType);
     }
     
     
-    function removeAuthorizer(Data storage self, address _approver) internal returns (bool) {
+    function removeAuthorizer(Sharing.DataAuthorizer storage self, address _approver) internal returns (bool) {
         delete self.mAuthorizers[self.authorizerToIndex[_approver].index];
+        delete self.authorizerToIndex[_approver].isUnique;
         emit AuthorizerRemoved(_approver);
         return true;
     }

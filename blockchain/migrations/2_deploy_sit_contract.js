@@ -23,7 +23,8 @@ module.exports = (deployer) => {
       'SIT',
       'Sterling Investment Token',
       1,
-      '0x028fe9acfed2df2953decb25ee2c4ff5c3da01d3'
+      '0x1AE2eC290B416FA2BFCd36aF39B818D40bA28D9B',
+      '0x95a9BF7FBA78651cb82DB0f188C24650CcdBC341'
     );
   });
 };

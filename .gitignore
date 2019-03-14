@@ -14,6 +14,12 @@ logs
 *.log
 npm-debug.log*
 yarn.lock
+<<<<<<< HEAD
 .env
 Dockerfile
 Dockerfile.dev
+=======
+
+# Externals
+external
+>>>>>>> oluchi

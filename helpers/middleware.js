@@ -12,13 +12,12 @@ exports.isUser = async (req, res, next) => {
   try {
     const token = await checkToken(req);
     if (token.status === 'failed') {
-      return res.status(token.data).json({
-        status: 'failed',
-        message: token.message
-      })
-    }
-    if (
-      token.data.type === Object.values(UserModel.UserType)[0]
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
+      }
+    if (token.data.type === Object.values(UserModel.UserType)[0]
       || token.data.type === Object.values(UserModel.UserType)[1]
       || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
@@ -43,7 +42,6 @@ exports.isUser = async (req, res, next) => {
 exports.isAdmin = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    console.log(token)
     if (token.status === 'failed') {
       return res.status(token.data).json({
         status: 'failed',
