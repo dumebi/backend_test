@@ -22,7 +22,7 @@ const walletController = {
      * @description Allow users add a new bank account to their list of accounts
      * @return {object} wallet
      */
-  async add_account(req, res, next) {
+  async addAccount(req, res, next) {
     try {
       
       const userId = req.params.id
@@ -38,7 +38,7 @@ const walletController = {
       }
 
       // Validate account
-      const isValidAccount = await verifyAccount(userWallet, user.fnames)
+      const isValidAccount = await verifyAccount(userWallet, user.fname, user.lname)
       if (!isValidAccount) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           status: 'failed',
@@ -56,16 +56,23 @@ const walletController = {
         })
       }
 
-      wallet.account_number.forEach(result => {
-        if (result.account == userWallet) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
-            status: 'failed',
-            message: 'This account has already been added',
-            data: []
-          })
-        }
-      });
-      wallet.account_number.push({account : userWallet})
+      if (wallet.account_number.length > 0) {
+        wallet.account_number.forEach(result => {
+          if (result.account == userWallet) {
+            return res.status(HttpStatus.BAD_REQUEST).json({
+              status: 'failed',
+              message: 'This account has already been added',
+              data: []
+            })
+          }
+        });
+        wallet.account_number.push({account : userWallet, isActive : false})
+      } else {
+
+        wallet.account_number.push({account : userWallet, isActive : true})
+        wallet.active_account = userWallet
+      }
+      
       await wallet.save()
 
       return res.status(HttpStatus.OK).json({
@@ -75,11 +82,11 @@ const walletController = {
       })
 
     } catch (error) {
-      console.log('error >> ', error)
+      console.log('error 1>> ', error)
       const err = {
         http: HttpStatus.SERVER_ERROR,
         status: 'failed',
-        message: 'Error getting user naira wallet',
+        message: 'Error adding user wallet account',
         devError: error
       }
       next(err)
@@ -91,7 +98,7 @@ const walletController = {
      * @description Allow users remove a bank account from their list of accounts
      * @return {object} wallet
      */
-    async remove_account(req, res, next) {
+    async removeAccount(req, res, next) {
       try {
         
         const userId = req.params.id
@@ -119,7 +126,7 @@ const walletController = {
           if (wallet.account_number[i].account == userWallet) {
             if (wallet.account_number[i].isActive) {
               wallet.account_number[0].isActive = true
-              wallet.active_account = wallet.account_number[i].account
+              wallet.active_account = wallet.account_number[0].account
             }
             delete wallet.account_number[i]
             break

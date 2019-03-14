@@ -55,7 +55,8 @@ router.get(
 /** 
  * Naira Wallet Routes
  */
-router.get('/wallet/add_account/:id', middleware.isUser, walletController.add_account);
+router.get('/wallet/add_account/:id', middleware.isUser, walletController.addAccount);
+router.get('/wallet/remove_account/:id', middleware.isUser, walletController.removeAccount);
 // router.post('/wallet/fund/:id', middleware.isUser, walletController.fund);
 // router.post('/wallet/withdraw/:id', middleware.isUser, walletController.withdraw);
 
