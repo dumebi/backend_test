@@ -15,7 +15,6 @@ require('dotenv').config();
 
 // Socket config
 const ioClient = io.connect('http://localhost:3001');
-
 module.exports = {
   mongo() {
     mongoose.promise = global.promise;
