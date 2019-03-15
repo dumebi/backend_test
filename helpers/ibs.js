@@ -18,7 +18,6 @@ module.exports =  {
                 }
             )
             if (result.data.response == "success" && result.data.data.AccountName.includes(fname.toUpperCase()) &&  result.data.data.AccountName.includes(lname.toUpperCase())) {
-
                 return true
             }
             return false
@@ -28,16 +27,11 @@ module.exports =  {
         }
     },
 
-    async transfer(fromAccount, toAccount, amount, remark) {
+    async transfer(referenceid, fromAccount, toAccount, amount, remark) {
         try {
 
-            var referenceid = await crypto.randomBytes(20)
-            referenceid = referenceid.toString('hex')
-
-            var paymentRef = await crypto.randomBytes(60)
+            var paymentRef = await crypto.randomBytes(20)
             paymentRef = paymentRef.toString('hex')
-
-            console.log(referenceid, ' . ', paymentRef)
 
             const result = await axiosInstance.post("/SBPT24txnRequest ", {
                 "Referenceid": referenceid,
@@ -48,7 +42,7 @@ module.exports =  {
                 "frmacct": fromAccount,
                 "toacct": toAccount,
                 "paymentRef": paymentRef,
-                "remarks": "STTP Direct Debit For Naira Wallet Funding : "+remark
+                "remarks": "STTP Direct Debit/Credit For Naira Wallet : "+remark
                 }
             )
             if (result.data.response == "00") {

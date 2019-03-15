@@ -59,4 +59,5 @@ TransactionSchema.statics.Status = TransactionStatus
 TransactionSchema.statics.Type = TransactionType
 TransactionSchema.statics.Wallet = WalletType
 
-module.exports = model('Transaction', TransactionSchema)
+const transaction = model('Transaction', TransactionSchema)
+module.exports = transaction

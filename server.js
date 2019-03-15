@@ -15,7 +15,7 @@ require('./helpers/connection').mongo();
 require('./helpers/connection').rabbitmq();
 require('./helpers/connection').subscribe();
 require('./helpers/connection').socket();
-require('./models/dbSeeder')
+// require('./models/dbSeeder')
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 // logger settings
 const appLogger = winston.createLogger({
@@ -59,7 +59,16 @@ app.use((req, res, next) => {
 // error handler
 app.use((err, req, res, next) => {
   // We log the error internaly
+  console.log("err > ", err)
   appLogger.error(err);
+
+  if (err.name == "ValidationError") {
+    err = {
+      status: 400,
+      success: 'failed',
+      message: err.details
+    };
+  }
 
   //  Remove Error's `stack` property. We don't want users to see this at the production env
   if (req.app.get('env') !== 'development') {
