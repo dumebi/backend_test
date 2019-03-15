@@ -16,5 +16,13 @@ module.exports = {
       sanitizeBody('workflow').toBoolean(),
       sanitizeBody('status').escape()
     ]
-  }
+  },
+
+  wallet() {
+    return [
+      sanitizeBody('account').escape(),
+      sanitizeBody('remark').escape(),
+      sanitizeBody('amount').toInt()
+    ]
+  },
 }

@@ -8,7 +8,8 @@ const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
 const testController = require("../controllers/test");
 const walletController = require("../controllers/wallet");
-// const sanitize = require("../helpers/sanitization.js");
+const sanitize = require("../helpers/sanitization.js");
+const validate = require("../helpers/validation.js");
 
 const router = express.Router();
 
@@ -55,9 +56,12 @@ router.get(
 /** 
  * Naira Wallet Routes
  */
-router.get('/wallet/add_account/:id', middleware.isUser, walletController.add_account);
-// router.post('/wallet/fund/:id', middleware.isUser, walletController.fund);
-// router.post('/wallet/withdraw/:id', middleware.isUser, walletController.withdraw);
+router.get('/wallet/get_wallet/:id', middleware.isUser, walletController.getWallet);
+router.post('/wallet/activate_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.activateAccount);
+router.post('/wallet/add_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.addAccount);
+router.post('/wallet/remove_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.removeAccount);
+router.post('/wallet/fund/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundWallet);
+router.post('/wallet/withdraw/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.withdraw);
 
 
 /**

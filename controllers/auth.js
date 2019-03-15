@@ -161,7 +161,6 @@ const AuthController = {
    */
   async login(req, res, next) {
     try {
-      console.log('1')
       if (paramsNotValid(req.body.email, req.body.password)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
@@ -169,13 +168,11 @@ const AuthController = {
         })
       }
       
-      console.log('2')
       const email = req.body.email;
       const password = req.body.password;
       const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password').populate('wallet');
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
       
-      console.log('3 >> ', user)
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }

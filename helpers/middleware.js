@@ -21,6 +21,7 @@ exports.isUser = async (req, res, next) => {
       || token.data.type === Object.values(UserModel.UserType)[1]
       || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
+      req.jwtUser = token.data.id
       next()
     } else {
       return res.status(HttpStatus.UNAUTHORIZED).json({

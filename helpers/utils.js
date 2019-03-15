@@ -10,7 +10,7 @@ exports.config = {
   host: '',
   amqp_url: '',
   port: '',
-  appNairaAccount : '0070134307'
+  appNairaAccount : process.env.APP_NAIRA_ACCOUNT
 }
 
 if (process.env.NODE_ENV === 'development') {

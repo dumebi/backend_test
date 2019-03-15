@@ -13,10 +13,10 @@ var dbSeeder =  async function() {
 
         const users = [
             {
-              fname: "Jude",
-              mname: "Ebuse",
-              lname: "Adams",
-              email: "meetenebelioluchi@gmail.com",
+              fname: "Oluwadara",
+              mname: "Ayotunde",
+              lname: "Olayebi",
+              email: "admin@gmail.com",
               phone: "09088994563",
               sex: "Female",
               type: User.UserType.ADMIN,
