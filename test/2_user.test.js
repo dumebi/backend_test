@@ -3,7 +3,7 @@ const expect = require('chai').expect
 const supertest = require('supertest')
 const { config } = require('../helpers/utils');
 
-// const api = supertest(`${config.host}`)
+const api = supertest(`${config.host}`)
 
 describe('User Test', () => {
   let user_id = ''
@@ -17,20 +17,27 @@ describe('User Test', () => {
   let user2_jwt = ''
   let user2_wallet = ''
 
-//   it('Should send a forgot password token', (done) => {
-//     api
-//       .post('users/send-token')
-//       .set('Accept', 'application/json')
-//       .send({
-//         email: user_email,
-//       })
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         user_token = res.body.data
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should signin a user', (done) => {
+    api
+      .post('users/login')
+      .set('Accept', 'application/json')
+      .send({
+        email: user_email,
+        password: user_pass
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(user_email)
+        expect(res.body.data.password).to.not.equal(user_pass)
+        user_address = res.body.data.address;
+        user_jwt = res.body.data.token;
+        user_wallet = res.body.data.wallet;
+        user_id = res.body.data._id;
+        done()
+      })
+  }).timeout(20000)
 
   it('Should signin a second user', (done) => {
     const mail = 'johndoe2@gmail.com'
@@ -89,29 +96,33 @@ describe('User Test', () => {
       })
   }).timeout(10000)
 
-//   it('Should get user balance', (done) => {
-//     api
-//       .get('users/balance')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${user_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should change a user password', (done) => {
+    const password = 'John'
+    api
+      .patch('users/change-pass')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .send({
+        password,
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should get user bank', (done) => {
-//     api
-//       .get('users/bank')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${user_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get user balance', (done) => {
+    api
+      .get('users/balance')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        done()
+      })
+  }).timeout(10000)
 
   it('Should get user bank', (done) => {
     api
