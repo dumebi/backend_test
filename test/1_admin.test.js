@@ -1,4 +1,3 @@
-
 /* eslint-disable no-undef */
 const mongoose = require('mongoose');
 const expect = require('chai').expect
@@ -252,127 +251,127 @@ describe('Admin Test', () => {
       })
   }).timeout(10000)
 
-//   it('Should get a user', (done) => {
-//     api
-//       .get(`users/${user_id}`)
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Object)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get a user', (done) => {
+    api
+      .get(`users/${user_id}`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Object)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should get all users', (done) => {
-//     api
-//       .get('users')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Array)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get all users', (done) => {
+    api
+      .get('users')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should get all user types', (done) => {
-//     api
-//       .get('users/type')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Array)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get all user types', (done) => {
+    api
+      .get('users/type')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should get all user groups', (done) => {
-//     api
-//       .get('users/group')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Array)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get all user groups', (done) => {
+    api
+      .get('users/group')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should get all user employment statuses', (done) => {
-//     api
-//       .get('users/employment-status')
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Array)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should get all user employment statuses', (done) => {
+    api
+      .get('users/employment-status')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should update a user group', (done) => {
-//     const group = 'Senior Executive'
-//     api
-//       .patch(`users/${user_id}/group`)
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .send({
-//         group
-//       })
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Object)
-//         expect(res.body.data._id).to.have.lengthOf.above(0)
-//         expect(res.body.data.group).to.equal(group)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should update a user group', (done) => {
+    const group = 'Senior Executive'
+    api
+      .patch(`users/${user_id}/group`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        group
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Object)
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.group).to.equal(group)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should update a user type', (done) => {
-//     const type = 'User'
-//     api
-//       .patch(`users/${user_id}/type`)
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .send({
-//         type
-//       })
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Object)
-//         expect(res.body.data._id).to.have.lengthOf.above(0)
-//         expect(res.body.data.type).to.equal(type)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should update a user type', (done) => {
+    const type = 'User'
+    api
+      .patch(`users/${user_id}/type`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        type
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Object)
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.type).to.equal(type)
+        done()
+      })
+  }).timeout(10000)
 
-//   it('Should update a user employment status', (done) => {
-//     const employment = 'Employed'
-//     api
-//       .patch(`users/${user_id}/employment-status`)
-//       .set('Accept', 'application/json')
-//       .set('authorization', `Bearer ${admin_jwt}`)
-//       .send({
-//         employment
-//       })
-//       .expect(200)
-//       .end((err, res) => {
-//         expect(res.body.status).to.equal('success')
-//         expect(res.body.data).to.be.instanceof(Object)
-//         expect(res.body.data._id).to.have.lengthOf.above(0)
-//         expect(res.body.data.employment).to.equal(employment)
-//         done()
-//       })
-//   }).timeout(10000)
+  it('Should update a user employment status', (done) => {
+    const employment = 'Employed'
+    api
+      .patch(`users/${user_id}/employment-status`)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        employment
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data).to.be.instanceof(Object)
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.employment).to.equal(employment)
+        done()
+      })
+  }).timeout(10000)
 
   it('Set fee for everyone', async () => {
     await WalletModel.updateMany({}, { balance: 100000 });
