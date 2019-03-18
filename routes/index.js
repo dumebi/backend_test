@@ -37,8 +37,8 @@ router.get('/users/employment-status', middleware.isAdmin, AuthController.employ
  */
 router.get('/users/balance', middleware.isUser, UserController.balance);
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
-router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
-router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
+// router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
+// router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
 router.post('/users/exchange/buy', middleware.isUser, TokenController.buy);
 router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
