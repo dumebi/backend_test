@@ -6,10 +6,8 @@ const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
 const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
-const testController = require("../controllers/test");
-const walletController = require("../controllers/wallet");
-const sanitize = require("../helpers/sanitization.js");
-const validate = require("../helpers/validation.js");
+// const testController = require("../controllers/test");
+// const sanitize = require("../helpers/sanitization.js");
 
 const router = express.Router();
 
@@ -30,61 +28,39 @@ router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactiv
 /**
  * User Model routes
  */
-router.get("/users/type", middleware.isAdmin, AuthController.types);
-router.get("/users/group", middleware.isAdmin, AuthController.groups);
-router.get(
-  "/users/employment-status",
-  middleware.isAdmin,
-  AuthController.employment
-);
+router.get('/users/type', middleware.isAdmin, AuthController.types);
+router.get('/users/group', middleware.isAdmin, AuthController.groups);
+router.get('/users/employment-status', middleware.isAdmin, AuthController.employment);
 
 /**
  * User Exchange Routes
  */
-router.get("/users/balance", middleware.isUser, UserController.balance);
-router.get(
-  "/users/transactions",
-  middleware.isUser,
-  TransactionController.user
-);
-router.post("/users/buy", middleware.isUser, UserController.buy);
-router.post("/users/sell", middleware.isUser, UserController.sell);
-router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
-
-/** 
- * Naira Wallet Routes
- */
-router.get('/wallet/get_wallet/:id', middleware.isUser, walletController.getWallet);
-router.post('/wallet/activate_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.activateAccount);
-router.post('/wallet/add_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.addAccount);
-router.post('/wallet/remove_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.removeAccount);
-router.post('/wallet/fund/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundWallet);
-router.post('/wallet/withdraw/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.withdraw);
-
+router.get('/users/balance', middleware.isUser, UserController.balance);
+router.get('/users/transactions', middleware.isUser, TransactionController.user);
+// router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
+// router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
+router.post('/users/exchange/buy', middleware.isUser, TokenController.buy);
+router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
+router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
+router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
+router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
+// router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /**
  * User Profile Routes
  */
-router.get("/users/bank", middleware.isUser, UserController.bank);
+router.get('/users/bank', middleware.isUser, UserController.bank);
 // router.patch('/users/bank', middleware.isUser, UserController.changeBank);
-router.patch("/users/", middleware.isUser, UserController.update);
-router.get("/users/:id", middleware.isUser, UserController.one);
-router.get("/users/", middleware.isAdmin, UserController.all);
+router.patch('/users/', middleware.isUser, UserController.update);
+router.get('/users/:id', middleware.isUser, UserController.one);
+router.get('/users/', UserController.all);
 
 /**
  * Admin Routes
  */
-router.patch("/users/:id/type", middleware.isAdmin, UserController.changeType);
-router.patch(
-  "/users/:id/group",
-  middleware.isAdmin,
-  UserController.changeGroup
-);
-router.patch(
-  "/users/:id/employment-status",
-  middleware.isAdmin,
-  UserController.changeEmployment
-);
+router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
+router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup);
+router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
 router.get('/admin/schedule/', middleware.isAdmin, ScheduleController.all);
 router.post('/admin/schedule/', middleware.isAdmin, ScheduleController.create);
