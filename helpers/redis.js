@@ -1,4 +1,4 @@
-// const redis = require('redis');
+const redis = require('redis');
 
 const client = redis.createClient(process.env.REDIS_URL);
 client.on('connect', () => {
@@ -6,7 +6,7 @@ client.on('connect', () => {
 })
 const { promisify } = require('util');
 
-// const getAsync = promisify(client.get).bind(client);
+const getAsync = promisify(client.get).bind(client);
 
 exports.getAsync = getAsync;
 exports.client = client;

@@ -13,14 +13,6 @@ const app = express();
 require('dotenv').config();
 require('./helpers/connection').start();
 
-<<<<<<< HEAD:app.js
-// const client = redis.createClient();
-// client.on('connect', () => {
-//   console.log('connected to redis server');
-// })
-
-=======
->>>>>>> e1dc5fa5cb391525a6ae8d7cf0c838dcb2f76f44:index.js
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 
 // logger settings
