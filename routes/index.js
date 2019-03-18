@@ -47,11 +47,9 @@ router.get(
   middleware.isUser,
   TransactionController.user
 );
-// router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
-// router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
-// router.post("/users/buy", middleware.isUser, UserController.buy);
-// router.post("/users/sell", middleware.isUser, UserController.sell);
-// router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
+router.post("/users/buy", middleware.isUser, UserController.buy);
+router.post("/users/sell", middleware.isUser, UserController.sell);
+router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /** 
  * Naira Wallet Routes

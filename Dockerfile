@@ -23,3 +23,5 @@ ENV AMQP_URL=amqp://rabbitMQ
 #REDIS_URL_PROD=redis://redis                                                                                                      
 RUN touch /env.txt                                                                                                     
 RUN printenv > /env.txt 
+
+
