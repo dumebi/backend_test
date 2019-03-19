@@ -2,6 +2,7 @@ const Joi = require('joi');
 
   
   exports.wallet = async (req, res, next) => {
+    console.log("req > ", req, "res > ", res, "next > ", next)
     try {
       const schema = Joi.object().keys({
         account: Joi.string().required().label("Account is required!")
