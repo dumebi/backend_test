@@ -170,7 +170,7 @@ const AuthController = {
 
       const email = req.body.email;
       const password = req.body.password;
-      const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password').populate('wallet');
+      const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password');
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
 
       if (!user.validatePassword(password)) {

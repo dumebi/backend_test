@@ -69,7 +69,6 @@ app.use((err, req, res, next) => {
   }
 
   const httpErr = err.http;
-  console.log("httpErr >> ", httpErr)
   delete err.http;
 
   // This responds to the request
