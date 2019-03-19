@@ -6,7 +6,7 @@ const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
 const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
-// const testController = require("../controllers/test");
+const testController = require("../controllers/test");
 // const sanitize = require("../helpers/sanitization.js");
 
 const router = express.Router();
@@ -22,7 +22,7 @@ router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
 router.patch('/users/activate/:id', AuthController.activate);
 router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
-// router.get("/test", testController.sample);
+router.get("/test", testController.sample);
 
 
 /**

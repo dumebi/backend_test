@@ -11,9 +11,9 @@ module.exports = {
       // );
 
       // const result1 = await token.addAdmin(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "0xfe52ba0ae495784058d9b5d21743c24eab9bffc1"
+      //   "fbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e",
+      //   "0x368eb314285235b7f692fbf14d075760e957848e",
+      //   "0x8c96f26c8a98ee00a372e0b8c8853096447714c4"
       // );
       // const result1 = await token.removeAdmin(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -24,12 +24,8 @@ module.exports = {
       // const result2 = await token.getOwner(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0"
       // );
-      // const result3 = await token.getTokenInfo(
-      //   "0x1f08822bb986329241ba2cfe4209167506483c4f"
-      // );
-      // const result4 = await token.getTokenbase(
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0"
-      // );
+      // const result1 = await token.getTokenInfo("0x368eb314285235b7f692fbf14d075760e957848e");
+      const result1 = await token.getTokenbase();
       // const result5 = await token.getTotalSupply();
       // const result6 = await token.getTokenbaseBal(result4);
       // const result7 = await token.getBalance(
@@ -37,12 +33,12 @@ module.exports = {
       //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba"
       // );
       // ========================== Authorizer Activity ========================
-      const result1 = await token.addAuthorizer(
-        "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-        "0xbb723b459f84c24665a89159d94701321864e5d0",
-        "0x45d2387c6c99c49b859feffbc029d7e605106298",
-        "Upfront Scheme"
-      );
+      // const result1 = await token.addAuthorizer(
+      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
+      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
+      //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
+      //   "Upfront Scheme"
+      // );
       // const result2 = await token.removeAuthorizer(
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298"
       // );
@@ -182,7 +178,6 @@ module.exports = {
       //   "Lien",
       //   0
       // );
-      res.send("successfull");
     } catch (error) {
       console.log('error >> ', error);
     }

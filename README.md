@@ -101,9 +101,7 @@ What is left :
 Test with Remix
 Write Solidity test
 Write Javascript Test
-Write Oraclize for detectrestriction
 Write Upgradability Functions, function to disable(If this function is called, no interaction can occur to the contract unless it is enabled ahain, ) an to selfDestroy
-Oraclize.
 
 Optimization Check
 Ensure all delecate functionality is ascertained with assert()

@@ -66,6 +66,7 @@ library Sharing {
         mapping(address => Allocated[]) mAllocations;
         mapping(address => Vesting[]) mVestings;
         mapping(address => SitHolder) shareHolders; 
+        mapping(address => uint) exchangeEscrow; 
     }
     
     struct Lien {
