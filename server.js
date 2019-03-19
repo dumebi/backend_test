@@ -80,7 +80,7 @@ app.use((err, req, res, next) => {
   delete err.http;
 
   // This responds to the request
-  res.status(httpErr || 500).json(err);
+  res.status(httpErr).json(err);
 });
 
 base.getCoinbase()
