@@ -59,14 +59,15 @@ app.use((req, res, next) => {
 // error handler
 app.use((err, req, res, next) => {
   // We log the error internaly
-  console.log("err > ", err)
+  console.log("err > ", err.name)
   appLogger.error(err);
 
   if (err.name == "ValidationError") {
     err = {
-      status: 400,
-      success: 'failed',
-      message: err.details
+      http: 400,
+      status: 'failed',
+      message: err.details,
+      devError: err
     };
   }
 
