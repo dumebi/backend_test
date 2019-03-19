@@ -58,9 +58,6 @@ const walletController = {
   async addAccount(req, res, next) {
     try {
 
-      // Validate Request
-      // await  validate.wallet(req.body)
-
       // Request Params
       const userId = req.jwtUser
       const walletId = req.params.id

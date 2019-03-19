@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const HttpStatus = require('./status')
 
   
   exports.wallet = async (req, res, next) => {
@@ -11,7 +12,7 @@ const Joi = require('joi');
       next()
 
     } catch (error) {
-        return res.status(400).json({
+        return res.status(HttpStatus.BAD_REQUEST).json({
           status: 'failed',
           message: error.details,
         })
@@ -29,7 +30,7 @@ const Joi = require('joi');
       next()
       
     } catch (error) {
-      return res.status(400).json({
+      return res.status(HttpStatus.BAD_REQUEST).json({
         status: 'failed',
         message: error.details,
       })
