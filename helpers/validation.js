@@ -12,7 +12,10 @@ module.exports = {
       next()
 
     } catch (error) {
-      next(error)
+        return res.status(400).json({
+          status: 'failed',
+          message: error.details,
+        })
     }
   },
 
@@ -27,7 +30,10 @@ module.exports = {
       next()
       
     } catch (error) {
-      next(error)
+      return res.status(400).json({
+        status: 'failed',
+        message: error.details,
+      })
     }
   }
 }
