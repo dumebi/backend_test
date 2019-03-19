@@ -69,10 +69,11 @@ app.use((err, req, res, next) => {
   }
 
   const httpErr = err.http;
+  console.log("httpErr >> ", httpErr)
   delete err.http;
 
   // This responds to the request
-  res.status(httpErr).json(err);
+  res.status(httpErr || 500).json(err);
 });
 
 base.getCoinbase()
