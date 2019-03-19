@@ -103,7 +103,6 @@ exports.Token = class {
       
     }
     if (!error.reason){
-      console.log("Error >> ", error)
       return {
         ok : false,
         reason : error.Error
