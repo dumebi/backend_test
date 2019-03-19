@@ -4,7 +4,7 @@
 const { web3, EthereumTx } = require('./base.js');
 const { compiledTokenContract } = require('./deploy/compile.js');
 
-const deployedContractAddr = "0x57ee7351a7f21de40e7072e648665dfa431bbfce";
+const deployedContractAddr = "0xc9cdd5ddea427852c518f81f703028013f18fa1f";
 const contractABI = compiledTokenContract.abi;
 const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
