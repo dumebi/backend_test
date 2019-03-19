@@ -1,8 +1,9 @@
 FROM node:10
 WORKDIR '/app'
-COPY ./package.json ./
-RUN npm install
+# COPY ./package.json ./
+# RUN npm install
 COPY . .
+RUN npm install
 VOLUME ["/app", "/app/node_modules"]
 
 # EXPOSE 7000

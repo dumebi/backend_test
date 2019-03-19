@@ -12,11 +12,11 @@ const MessagesLibrary = path.join(
   '../../blockchain/contracts',
   'libMsgCode.sol'
 );
-const AuthorizerLib = path.join(
-  __dirname,
-  '../../blockchain/contracts',
-  'libAuthorizer.sol'
-);
+// const AuthorizerLib = path.join(
+//   __dirname,
+//   '../../blockchain/contracts',
+//   'libAuthorizer.sol'
+// );
 const OwnerLib = path.join(
   __dirname,
   '../../blockchain/contracts',
@@ -27,16 +27,11 @@ const TokenFuncLib = path.join(
   '../../blockchain/contracts',
   'libTokenFunc.sol'
 );
-const TokenScheduleLib = path.join(
-  __dirname,
-  '../../blockchain/contracts',
-  'libTokenScheduler.sol'
-);
-const TokenUtilsLib = path.join(
-  __dirname,
-  '../../blockchain/contracts',
-  'libUtils.sol'
-);
+// const TokenScheduleLib = path.join(
+//   __dirname,
+//   '../../blockchain/contracts',
+//   'libTokenScheduler.sol'
+// );
 const TokenSafeMathLib = path.join(
   __dirname,
   '../../blockchain/contracts',
@@ -55,10 +50,10 @@ const InterfaceSharing = path.join(
 
 const solTokenContract = fs.readFileSync(TokenContract, "utf8");
 const solMessagesLibrary = fs.readFileSync(MessagesLibrary, "utf8");
-const solAuthorizerLib = fs.readFileSync(AuthorizerLib, "utf8");
+// const solAuthorizerLib = fs.readFileSync(AuthorizerLib, "utf8");
 const solOwnerLib = fs.readFileSync(OwnerLib, "utf8");
 const solTokenFuncLib = fs.readFileSync(TokenFuncLib, "utf8");
-const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
+// const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
 const solSafeMathLib = fs.readFileSync(TokenSafeMathLib, "utf8");
 const solIERCsLib = fs.readFileSync(InterfaceIERCs, "utf8");
 const solSharingLib = fs.readFileSync(InterfaceSharing, "utf8");
@@ -72,12 +67,12 @@ var input = {
     MsgCode: {
       content: solMessagesLibrary
     },
-    Authorizer: {
-      content: solAuthorizerLib
-    },
-    TokenScheduler: {
-      content: solTokenScheduleLib
-    },
+    // Authorizer: {
+    //   content: solAuthorizerLib
+    // },
+    // TokenScheduler: {
+    //   content: solTokenScheduleLib
+    // },
     TokenFunc: {
       content: solTokenFuncLib
     },
@@ -105,10 +100,10 @@ function getImports(dependency) {
       return { contents: solOwnerLib };
     case 'libMsgCode.sol':
       return { contents: solMessagesLibrary };
-    case 'libAuthorizer.sol':
-      return { contents: solAuthorizerLib };
-    case 'libTokenScheduler.sol':
-      return { contents: solTokenScheduleLib };
+    // case 'libAuthorizer.sol':
+    //   return { contents: solAuthorizerLib };
+    // case 'libTokenScheduler.sol':
+    //   return { contents: solTokenScheduleLib };
     case 'libTokenFunc.sol':
       return { contents: solTokenFuncLib };
     case 'libSafeMath.sol':
@@ -127,8 +122,8 @@ var output = JSON.parse(solc.compile(JSON.stringify(input), getImports));
 module.exports = {
   compiledTokenContract: output.contracts['Token']['Token'],
   compiledMessagesLibrary: output.contracts['MsgCode']['MessagesAndCodes'],
-  compiledAuthorizerLib: output.contracts['Authorizer']['Authorizer'],
+  // compiledAuthorizerLib: output.contracts['Authorizer']['Authorizer'],
   compiledOwnerLib: output.contracts['Ownable']['Ownable'],
   compiledTokenFuncLib: output.contracts['TokenFunc']['TokenFunc'],
-  compiledTokenScheduleLib: output.contracts['TokenScheduler']['TokenScheduler']
+  // compiledTokenScheduleLib: output.contracts['TokenScheduler']['TokenScheduler']
 };
