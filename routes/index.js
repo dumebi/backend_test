@@ -8,7 +8,8 @@ const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
 const testController = require("../controllers/test");
 const walletController = require("../controllers/wallet");
-// const sanitize = require("../helpers/sanitization.js");
+const sanitize = require("../helpers/sanitization.js");
+const validate = require("../helpers/validation.js");
 
 const router = express.Router();
 
