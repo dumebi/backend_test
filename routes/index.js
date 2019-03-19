@@ -52,11 +52,11 @@ router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.canc
  * Naira Wallet Routes
  */
 router.get('/wallet/get_wallet/:id', middleware.isUser, walletController.getWallet);
-router.post('/wallet/activate_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.activateAccount);
-router.post('/wallet/add_account/:id', validate.wallet, middleware.isUser, sanitize.wallet(), walletController.addAccount);
-router.post('/wallet/remove_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.removeAccount);
-router.post('/wallet/fund/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundWallet);
-router.post('/wallet/withdraw/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.withdraw);
+router.post('/wallet/activate_account/:id', middleware.isUser, middleware.validateWallet, sanitize.wallet(), walletController.activateAccount);
+router.post('/wallet/add_account/:id', middleware.validateWallet, middleware.isUser, sanitize.wallet(), walletController.addAccount);
+router.post('/wallet/remove_account/:id', middleware.isUser, middleware.validateWallet, sanitize.wallet(), walletController.removeAccount);
+router.post('/wallet/fund/:id', middleware.isUser, middleware.validateWalletAction, sanitize.wallet(), walletController.fundWallet);
+router.post('/wallet/withdraw/:id', middleware.isUser, middleware.validateWalletAction, sanitize.wallet(), walletController.withdraw);
 
 /**
  * User Profile Routes
