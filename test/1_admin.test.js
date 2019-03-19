@@ -24,6 +24,10 @@ describe('Admin Test', () => {
     await mongoose.connection.db.dropDatabase();
   })
 
+  // req.body.fname, req.body.lname, req.body.email, req.body.phone,
+  //       req.body.sex, req.body.dob, req.body.password, req.body.vesting,
+  //       req.body.type, req.body.employment, req.body.group, req.body.account, req.body.staffId
+
   it('Should create a user', (done) => {
     const fname = 'John'
     const lname = 'Doe'
@@ -38,7 +42,7 @@ describe('Admin Test', () => {
     const group = 'Senior Executive'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/')
+      .post('users/create')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -90,7 +94,7 @@ describe('Admin Test', () => {
     const group = 'Senior Executive'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/')
+      .post('users/create')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -142,7 +146,7 @@ describe('Admin Test', () => {
     const group = 'Executive Trainee'
     const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/')
+      .post('users/create')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${token}`)
       .send({
@@ -190,6 +194,7 @@ describe('Admin Test', () => {
       .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
+        console.log(res.body)
         expect(res.body.status).to.equal('success')
         expect(res.body.message).to.equal('User deactivated')
         done()

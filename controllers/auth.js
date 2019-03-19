@@ -86,7 +86,6 @@ const AuthController = {
    * @param {string} type         User type
    * @param {string} employment   User employment
    * @param {string} group        User group
-   * @param {string} account        User group
    * @param {string} staffId      User staff ID
    * @return {object} user
    */
@@ -94,7 +93,7 @@ const AuthController = {
     try {
       if (paramsNotValid(req.body.fname, req.body.lname, req.body.email, req.body.phone,
         req.body.sex, req.body.dob, req.body.password, req.body.vesting,
-        req.body.type, req.body.employment, req.body.group, req.body.account, req.body.staffId)) {
+        req.body.type, req.body.employment, req.body.group, req.body.staffId)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
