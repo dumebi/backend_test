@@ -933,6 +933,7 @@ exports.Token = class {
     isWithhold
   ) {
     try {
+      console.log('here')
       const isValidAddress = await web3.utils.isAddress(holder);
 
       if (!isValidAddress) {
@@ -944,6 +945,7 @@ exports.Token = class {
       const data = await contractInst.methods
         .addShareholder(holder, isEnabled, isWithhold)
         .encodeABI();
+        console.log('here 2')
 
       const privateKey = Buffer.from(_privateKey, 'hex');
 
@@ -954,6 +956,7 @@ exports.Token = class {
         .estimateGas({
           from: fromAddress
         });
+        console.log('here 3')
 
       const txParams = {
         nonce: nounce,
@@ -968,11 +971,14 @@ exports.Token = class {
       const tx = await new EthereumTx(txParams);
 
       tx.gasPrice = tx.sign(privateKey);
+      console.log('here 4', tx)
 
       const serializedTx = tx.serialize();
+      console.log('here 5 ?> ', serializedTx)
       const transactionId = await web3.eth.sendSignedTransaction(
         `0x${serializedTx.toString('hex')}`
       );
+      console.log('here 6 ?> ', transactionId)
 
       return {
         transactionDetails : transactionId

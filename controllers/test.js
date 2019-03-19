@@ -25,7 +25,7 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0"
       // );
       // const result1 = await token.getTokenInfo("0x368eb314285235b7f692fbf14d075760e957848e");
-      const result1 = await token.getTokenbase();
+      // const result1 = await token.getTokenbase();
       // const result5 = await token.getTotalSupply();
       // const result6 = await token.getTokenbaseBal(result4);
       // const result7 = await token.getBalance(
@@ -47,13 +47,13 @@ module.exports = {
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
       //   0
       // );
-      // const result2 = await token.addShareholder(
-      //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
-      //   "0xbb723b459f84c24665a89159d94701321864e5d0",
-      //   "0x2f25bbd78503765ba61d83f657e5c3c1f54456ba",
-      //   true,
-      //   false
-      // );
+      const result1 = await token.addShareholder(
+        "fbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e",
+        "0x368eb314285235b7f692fbf14d075760e957848e",
+        "0x2f70c1993862d1d3c8ffa8edfa30ef0ffff3e0ee",
+        true,
+        false
+      );
       // const result2 = await token.getShareholder(
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f"
@@ -164,7 +164,7 @@ module.exports = {
       //   "Lien"
       // );
 
-      return res.send({ result1});
+      return res.send({result1});
       // const result1 = await token.getRecordByCat(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
