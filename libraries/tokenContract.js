@@ -4,16 +4,83 @@
 const { web3, EthereumTx } = require('./base.js');
 const { compiledTokenContract } = require('./deploy/compile.js');
 
-const deployedContractAddr = "0xe074dcdb03bfd885e090e2e56c0b2feaa6aedf8d";
+const deployedContractAddr = "0xc9cdd5ddea427852c518f81f703028013f18fa1f";
 const contractABI = compiledTokenContract.abi;
 const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
-exports.Token = class {
+// Steps to Replicate
+// => Copy contract folder from the Blockcjhain directory into remix
+// => Compile and deploy the token, this will as part of it's dependencies deploy the associated libraries
+// => Copy the deployed contract address from remix and replace the "deployedContractAddr" variable with it
+// => Call libraryu functions to talk with the blockchain
 
-  // constructor (key, owner) {
-  //   this.key = key
-  //   this.owner = owner
-  // }
+
+
+// Contract Deployment Params
+
+// _symbol {string}  The Token Symbol
+// _name:  {string}  The Token Name
+// _granular: {uint8} The Token Granularity
+// _tokenbase: {address} The Tokenbase address, where withdrawed tokens will sit
+// owner: {address}    The Token Contract owner Address
+
+
+
+// Error Meaning
+
+// errorCode: "UNVERIFIED_HOLDER",
+// Meaning: "Only verified SIT holders can perform this transaction"
+// errorCode: "RECEIPT_TRANSFER_BLOCKED",
+// Meaning: "Recipient not authorized"
+// errorCode: "SEND_TRANSFER_BLOCKED", 
+// Meaning: "Sender not authorized"
+// errorCode: "TOKEN_GRANULARITY_ERROR",
+// Meaning: "Token cannot be granular below the specified granularity"
+// errorCode: "TRANSFER_VERIFIED_ERROR",
+// Meaning: "Off-Chain approval for restricted token"
+// errorCode: "INSUFFICIENT_BALANCE_ERROR",
+// Meaning: "You do not have sufficient balance for this transaction"
+// errorCode: "INVALID_AMOUNT_ERROR",
+// Meaning: "Token amount specified is invalid"
+// errorCode: "SPENDER_BALANCE_ERROR",
+// Meaning: "Amount specified is morethan spendable amount"
+// errorCode: "ACCOUNT_WITHHOLD_ERROR", 
+// Meaning: "Account on hold"
+// errorCode: "MOVE_LIEN_ERROR",
+// Meaning: "Lien cannot be moved to tradable balance, lien period not over yet"
+// errorCode: "UNIQUE_SHAREHOLDER_ERROR",
+// Meaning: "Shareholder already added before!"
+
+
+// Available Functionality
+// [
+// 		"Function": "approve",
+// 		"Function": "removeAdmin",
+// 		"Function": "totalSupply"
+// 		"Function": "totalInEscrow",
+// 		"Function": "sSymbol",
+// 		"Function": "transferFrom",
+// 		"Function": "isAdmin",
+// 		"Function": "isWithhold",
+// 		"Function": "uGranularity",
+// 		"Function": "addAdmin",
+// 		"Function": "balanceOf"
+// 		"Function": "messageForTransferRestriction",
+// 		"Function": "isValid",
+// 		"Function": "transfer",
+// 		"Function": "aTokenbase",
+// 		"Function": "addToEscrow",
+// 		"Function": "removeFromEscrow",
+// 		"Function": "addShareholder",
+// 		"Function": "detectTransferRestriction",
+// 		"Function": "getShareHolder",
+// 		"Function": "sName",
+// 		"Function": "allowance"
+// 		"Function": "aManager"
+// ]
+
+
+exports.Token = class {
 
   errorHandler(error){
     console.log("er > ", error)
@@ -36,7 +103,6 @@ exports.Token = class {
       
     }
     if (!error.reason){
-      console.log("Error >> ", error)
       return {
         ok : false,
         reason : error.Error
@@ -46,14 +112,15 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows the owner transfer ownership to another account
+   * @description : This function allows the owner transfer ownership to another account
    * @dev : This function should be called by the contract owner
    * @params : {
-   *  newOwner : "Address of new owner"
+   *  fromAddress{address} : "Address of the function caller",
+   *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  newOwner{string} : "Address of new owner"
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
   async transferOwnership(fromAddress, _privateKey, newOwner) {
     try {
@@ -92,7 +159,9 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -101,11 +170,12 @@ exports.Token = class {
 
   
   /**
-   * @def : This function returns the owner address (Super Admin)
+   * @description : This function returns the owner address (Super Admin)
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
-   * @returns : {
-   *  address
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller"
    * }
+   * @returns {address} Address of the contract owner, super admin
    */
   async getOwner(fromAddress) {
     try {
@@ -118,11 +188,12 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function returns the manager / developer address
+   * @description : This function returns the manager / developer address
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
-   * @returns : {
-   *  address
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller"
    * }
+   * @returns {address} Address of the contract owner, super admin
    */
   async getManager(fromAddress) {
     try {
@@ -135,13 +206,16 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function returns details of the contract
+   * @description : This function returns details of the contract
    * @dev : Can be called by any account
-   * @returns : {
-        name(string),
-        symbol(string),
-        granularity(number)
+   * @params : {
+   *    fromAddress{address} : "Address of the function caller"
    * }
+   * @returns 
+        name{string}          Token Name
+        symbol{string}        Token Symbol
+        granularity{number}   Token Granularity
+   * 
    */
   async getTokenInfo(fromAddress) {
     try {
@@ -157,22 +231,24 @@ exports.Token = class {
         symbol,
         granularity
       };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function returns the token base account of the contract, where withdrawers are kept
+   * @description : This function returns the token base account of the contract, where withdrawers are kept
    * @dev : Can be called by either the Owner | Manage/developer | Admins
-   * @returns : {
-        address
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller"
    * }
+   * @returns {address} : "Address of the token base"
    */
-  async getTokenbase(fromAddress) {
+  async getTokenbase() {
     try {
       const token = await contractInst.methods;
-      const result = await token.aTokenbase().call({ from: fromAddress });
+      const result = await token.aTokenbase().call();
       return result;
     } catch (error) {
       return this.errorHandler(error);
@@ -180,11 +256,13 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function returns the token base account balance of the contract, where withdrawers are kept
+   * @description : This function returns the token base balance of the contract, where withdrawers are kept
    * @dev : Can be called by either the Owner | Manage/developer | Admins
-   * @returns : {
-        number
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller",
+   *  tokenbase {address} : "Address of token base"
    * }
+   * @returns {Number}  Token base balance
    */
   async getTokenbaseBal(fromAddress, tokenbase) {
     try {
@@ -192,37 +270,39 @@ exports.Token = class {
       const result = await token
         .balanceOf(tokenbase)
         .call({ from: fromAddress });
-      return result;
+      return result
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function returns the total supplies of token in the contract
+   * @description : This function returns the total supplies of token in the contract
    * @dev : Can be called by either the Owner | Manage/developer | Admins
-   * @returns : {
-        number
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller"
    * }
+   * @returns {Number}    Total supply of tokens at any given time
    */
-  async getTotalSupply() {
+  async getTotalSupply(fromAddress) {
     try {
       const token = await contractInst.methods;
-      const result = await token.totalSupply().call();
-      return result;
+      const result = await token.totalSupply().call({from: fromAddress});
+      return result
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner change contract manager
+   * @description : This function allows the contract owner change contract manager
    * @dev : Can be called by only the owner
    * @params : {
-   *  admin : "address of the new account to be made manager",}
-   * @returns : {
-        transactionId: {}
-   * }
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+    *  manager{string} : "address of the new account to be made manager",}
+   * @returns 
+        transactionDetails: {}
    */
   async changeManager(_privateKey, fromAddress, manager) {
     try {
@@ -262,20 +342,23 @@ exports.Token = class {
         "0x" + serializedTx.toString("hex")
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner add an admin to the contract
+   * @description : This function allows the contract owner add an admin to the contract
    * @dev : Can be called by only the owner
    * @params : {
-   *  admin : "address of the account to be made an admin",}
-   * @returns : {
-        transactionId: {}
-   * }
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+    *  admin{string} : "address of the account to be made an admin",}
+   * @returns 
+        transactionDetails: {}
    */
   async addAdmin(_privateKey, fromAddress, admin) {
     try {
@@ -315,20 +398,23 @@ exports.Token = class {
         "0x" + serializedTx.toString("hex")
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 /**
-   * @def : This function allows the contract owner remove an admin from the contract
-   * @dev : Can be called by either the Owner | Admins
+   * @description : This function allows the contract owner remove an admin from the contract
+   * @dev : Should be called by the contract Owner
    * @params : {
-   *  admin : "address of the account to be removed as an admin"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+    *  admin : "address of the account to be removed as an admin"
    * }
-   * @returns : {
-   *  transactionId: {}
-   * }
+   * @returns 
+   *  transactionDetails: {}
    */
   async removeAdmin(_privateKey, fromAddress , admin) {
     try {
@@ -368,22 +454,25 @@ exports.Token = class {
         "0x" + serializedTx.toString("hex")
       );
 
-      return transactionId;
+      return {
+        transactionDetails :transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner / admin add an authorizer to the contract
+   * @description : This function allows the contract owner / admin add an authorizer to the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  authorizer : "address of the account to be made an authhorizer",
-   *  type : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+    *  authorizer{address} : "address of the account to be made an authhorizer",
+    *  type{string} : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
    * }
-   * @returns : {
-        transactionId: {}
-   * }
+   * @returns 
+        transactionDetails: {}
    */
   async addAuthorizer(_privateKey, fromAddress, authorizer, type) {
     try {
@@ -423,21 +512,24 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails :transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner / admin remove an authorizer from the contract
+   * @description : This function allows the contract owner / admin remove an authorizer from the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  authorizer : "address of the account to be removed as an authhorizer"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  authorizer{address} : "address of the account to be removed as an authhorizer"
    * }
-   * @returns : {
-   *  transactionId: {}
-   * }
+   * @returns 
+   *  transactionDetails: {}
    */
   async removeAuthorizer(_privateKey, fromAddress , authorizer) {
     try {
@@ -477,23 +569,25 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails :transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner / admin get details of an authorizer in the contract
+   * @description : This function allows the contract owner / admin get details of an authorizer in the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  authorizer : "address of the account to be removed as an authhorizer",
-   * authorizerId(optional)(number) : "Used if the index possition of the authorizer is known"
+    *  fromAddress{address} : "Address of the function caller",
+   *  authorizer{address} : "address of the account to be removed as an authhorizer",
    * }
-   * @returns : {
-   *  authorizer(address),
-   *  type(string)
-   * }
+   * @returns 
+   *  authorizer{address}   Authorizer address
+   *  type{string}          Authorization type
    */
   async getAuthorizer(fromAddress, authorizer) {
     try {
@@ -512,16 +606,16 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows the contract owner / admin get authorizers of a schedule, approved or not
+   * @description : This function allows the contract owner / admin get authorizers of a schedule, approved or not
    * @dev : Can be called by either the Owner | Admins
    * @params : {
+   *  fromAddress{address} : "Address of the function caller",
    *  scheduleId : "Unique schedule id",
    *  authorizerId : "Unique position of authorizer in the schedule, always within [0,1,2]"
    * }
-   * @returns : {
-   *  authorizer : "address of the authorizer",
-   *  reasone : "Reason for approval or rejection"
-   * }
+   * @returns 
+   *  authorizer{address}             address of the authorizer
+   *  reason{string}            Reason for approval or rejection
    */
   async getScheduleAuthorizer(fromAddress, scheduleId, authorizerIndex) {
     try {
@@ -540,11 +634,13 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows the contract owner / admin check if a shareholder is valid or not
+   * @description : This function allows the contract owner / admin check if a shareholder is valid or not
    * @dev : Can be called by either the Owner | Admins
    * @params : {
+   *  fromAddress{address} : "Address of the function caller",
    *  holder : "address of the shareholder"
    * }
+   * @returns {boolean}
    */
   async isValidShareholder(fromAddress, holder) {
     try {
@@ -558,11 +654,13 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows the contract owner / admin check if a shareholder is withheld from operations
+   * @description : This function allows the contract owner / admin check if a shareholder is withheld from operations
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  holder : "address of the shareholder"
+   *  fromAddress{address} : "Address of the function caller",
+   *  holder{address} : "address of the shareholder"
    * }
+   * @returns {boolean}
    */
   async isWithhold(fromAddress, holder) {
     try {
@@ -576,8 +674,13 @@ exports.Token = class {
   }
 
   /**
-   * @def : This returns the tradable balance of a shareholder
+   * @description : This returns the tradable balance of a shareholder
    * @dev : Can be called by anyone
+   * @params : {
+   *  fromAddress{address} : "Address of the function caller",
+   *  holder{address} : "address of the shareholder"
+   * }
+   * @returns {Number}  Share holder balance
    */
   async getBalance(fromAddress, holder) {
     try {
@@ -591,12 +694,11 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows a shareholder make a transfer of token
+   * @description : This function allows a shareholder make a transfer of token
    * @dev : Called by only shareholders
    * @params : {
-   *  holder : "address of the recipient",
-   * amount : "Amount to transfer"
-   * }
+   *  holder{address} : "address of the recipient",
+   *  amount{Number} : "Amount to transfer"
    */
   async transfer(_privateKey, fromAddress, recipient, amount) {
     try {
@@ -652,12 +754,15 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows a shareholder approve an account to transfer a certain amount from his/her account
+   * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
    * @dev : Called by only shareholders
-   * @params : {
-   *  spender : "address of the spender",
-   *  amount : "Amount to allow for the spender"
-   * }
+   * @params : 
+    *  fromAddress{address}           Address of the function caller
+    *  _privateKey{string}          Private key of the function caller, used to sign the message
+   *  spender           address of the spender
+   *  amount          Amount to allow for the spender 
+   * @returns :
+   *  transactionDetails : {}
    */
 
   async approveSender(_privateKey, fromAddress, spender, amount) {
@@ -707,19 +812,23 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function returns how much a spender has on a holders account
+   * @description : This function returns how much a spender has on a holders account
    * @dev : Called by anyone
    * @params : {
+    *  fromAddress{address} : "Address of the function caller",
    *  holder : "address of the account owner",
    *  spender : "Address of spender"
-   * }
+   * @returns {Number}    Spender allowance
    */
 
   async getAllowance(fromAddress, holder, spender) {
@@ -735,13 +844,16 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows a spender, transfer from a holder's account
+   * @description : This function allows a spender, transfer from a holder's account
    * @dev : Called by the spender account
    * @params : {
-   *  holder : "address of the account owner",
-   *  recipient : "Address of recipient",
-   *  amount : " Amount to transfer"
-   * }
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  holder{address} : "address of the account owner",
+   *  recipient{address} : "Address of recipient",
+   *  amount{Number} : " Amount to transfer"
+   * @returns :
+   * transactionDetails {object}
    */
 
   async transferFrom(_privateKey, fromAddress, holder, recipient, amount) {
@@ -791,20 +903,26 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner | admins add a shareholder
+   * @description : This function allows the contract owner | admins add a shareholder
    * @dev : Called by Owner | Admins
    * @params : {
-   *  holder : "address of the shareholder",
-   *  isEnabled : "accepts a boolean field, sets the shareholder to valid or not",
-   *  isWithhold : "accepts a boolean field, sets the shareholder to withhold or not"
-   * }
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  holder{address} : "address of the shareholder",
+   *  isEnabled{boolean} : "accepts a boolean field, sets the shareholder to valid or not",
+   *  isWithhold{boolean} : "accepts a boolean field, sets the shareholder to withhold or not"
+   * @returns
+   * transactionDetails {object}
    */
 
   async addShareholder(
@@ -856,26 +974,29 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
   
   /**
-   * @def : This function returns a shareholder details
+   * @description : This function returns a shareholder details
    * @dev : Called anyone
    * @params : {
-   *  holder : "address of the shareholder"
+    *  fromAddress{address} : "Address of the function caller",
+   *  holder{address} : "address of the shareholder"
    * }
-   * @returns : {
-        isEnabled : bool,
-        isWithhold : bool,
-        tradable : number,
-        allocated : number,
-        vesting : number,
-        lien : number
-   * }
+   * @returns 
+        isEnabled {bool}
+        isWithhold {bool}
+        tradable {number}
+        allocated {number}
+        vesting {number}
+        lien {number}
    */
 
   async getShareholder(fromAddress, holder) {
@@ -905,16 +1026,17 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function updates a shareholder details
+   * @description : This function updates a shareholder details
    * @dev : Called Owner | Admin
    * @params : {
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder : "address of the shareholder",
    *  access : "Accepts bool, if holder is valid or not"
    *  withhold : "Accepts bool, if holder is withhold or not"
    * }
-   * @returns : {
-        transactionObject : {}
-   * }
+   * @returns 
+        transactionDetails {object}
    */
 
   async updateShareholder(_privateKey, fromAddress, holder, access, withhold) {
@@ -968,20 +1090,24 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails :transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the contract owner | admins add a shareholder
+   * @description : This function allows the contract owner | admins add a shareholder
    * @dev : Called by Owner | Admins
    * @params : {
-   *  holder : "address of the shareholder",
-   *  isEnabled : "accepts a boolean field, sets the shareholder to valid or not",
-   *  isWithhold : "accepts a boolean field, sets the shareholder to withhold or not"
-   * }
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  holder{address} : "address of the shareholder",
+   * @returns 
+        transactionDetails {object}
    */
 
   async removeShareholder(
@@ -1031,7 +1157,10 @@ exports.Token = class {
         "0x" + serializedTx.toString("hex")
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1039,19 +1168,14 @@ exports.Token = class {
 
 
   /**
-   * @def : This function returns count of shareholder total records in any category
+   * @description : This function returns count of shareholder total records in any category
    * @dev : Called anyone
    * @params : {
-   *  holder : "address of the shareholder",
-   *  category : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
+    *  fromAddress{address} : "Address of the function caller",
+   *  holder{address} : "address of the shareholder",
+   *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
    * }
-   * @returns : {
-        amount : |Amount,
-        dateAdded : "Date added",
-        duration 
-        isWithdrawn,: "This can mean lien period for Liens or dueDate for Allocated",
-        isMovedToTradable : "Weather or not the record has been moved to tradable"
-   * }
+   * @returns {Number}    Total records in a share category for a particular shareholder
    */
 
   async totalRecordsPerCat(fromAddress, holder, category) {
@@ -1078,20 +1202,19 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function returns a shareholder details
-   * @dev : Called anyone
+   * @description : This function returns a shareholder details
+   * @dev : Called by anyone
    * @params : {
-   *  holder : "address of the shareholder",
-   *  category : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
-   *  recordId : "Index of the specific record to pull in this category, accepts a number"
+   *  holder{address} : "address of the shareholder",
+   *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
+   *  recordId{Number} : "Index of the specific record to pull in this category, accepts a number"
    * }
-   * @returns : {
-        amount : |Amount,
-        dateAdded : "Date added",
-        duration 
-        isWithdrawn,: "This can mean lien period for Liens or dueDate for Allocated",
-        isMovedToTradable : "Weather or not the record has been moved to tradable"
-   * }
+   * @returns 
+        amount{Number}                Amount,
+        dateAdded{Date}               Date added,
+        duration {String}
+        isWithdrawn{Boolean}          This can mean lien period for Liens or dueDate for Allocated,
+        isMovedToTradable{Boolean}    Weather or not the record has been moved to tradable
    */
 
   async getRecordByCat(fromAddress, holder, category, recordId) {
@@ -1131,17 +1254,18 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows Owner or admins create a new schedule
+   * @description : This function allows Owner or admins create a new schedule
    * @dev : Called by only Owner | Admins
    * @params : {
-   *  scheduleId : "Unique id for the schedule, used to update or pull schedule details later on",
-   *  amount : "Amount specified for the schedule",
-   *  scheduleType : "Either 'Pay Scheme' or 'Upfront Scheme' ",
-   *  reason : "Accepts a string, reason for creating the schedule"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
+   *  amount{Number} : "Amount specified for the schedule",
+   *  scheduleType{String} : "Either 'Pay Scheme' or 'Upfront Scheme' ",
+   *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
-   * @returns : {
-        transactionObject : {}
-   * }
+   * @returns 
+        transactionDetails : {}
    */
 
   async createSchedule(
@@ -1198,22 +1322,26 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows Owner or admins remove a schedule
+   * @description : This function allows Owner or admins remove a schedule
    * @dev : Called by only Owner | Admins
    * @params : {
-   *  scheduleId : "Unique id for the schedule, used to update or pull schedule details later on",
-   *  reason : "Accepts a string, reason for removing the schedule"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
+   *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
-   * @returns : {
-        transactionObject : {}
-   * }
+   * @returns 
+        transactionDetails : {}
    */
 
   async removeSchedule(_privateKey, fromAddress, scheduleId, reason) {
@@ -1253,27 +1381,29 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This returns a schedule details
+   * @description : This returns a schedule details
    * @dev : Called by only Owner | Admins | manager
    * @params : {
-   *  scheduleId : "Unique id for the schedule, used to identify the schedule",
-   *  reason : "Accepts a string, reason for removing the schedule"
+    *  fromAddress{address} : "Address of the function caller",
+   *  scheduleId{Number} : "Unique id for the schedule, used to identify the schedule"
    * }
-   * @returns : {
-        scheduleType(string),
-        amount : "Amount schedule was created with",
-        activeAmount : "What is left to be minted",
-        isActive(bool) : "Specifiez if the schedule is still minting or not",
-        isApproved(bool),
-        isRejected(bool)
-   * }
+   * @returns 
+        scheduleType{string},
+        amount{Number}                Amount schedule was created with
+        activeAmount{Number}          What is left to be minted
+        isActive{Boolean}             Specifiez if the schedule is still minting or not
+        isApproved{Boolean},          Returns true if the schedule has been approved and false if not
+        isRejected{Boolean}           Returns true if the schedule has been rejected and false if not
    */
 
   async getSchedule(fromAddress, scheduleId) {
@@ -1303,15 +1433,16 @@ exports.Token = class {
   }
 
   /**
-   * @def : This function allows the authorizer approve a schedule
+   * @description : This function allows the authorizer approve a schedule
    * @dev : Called by only authorizers
    * @params : {
-   *  scheduleId : "Unique schedule id",
-   *  reason : "Reasone for approval"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  scheduleId{Number} : "Unique schedule id",
+   *  reason{string} : "Reasone for approval"
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
 
   async approveSchedule(_privateKey, fromAddress, scheduleId, reason) {
@@ -1346,22 +1477,26 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the authorizer reject a schedule
+   * @description : This function allows the authorizer reject a schedule
    * @dev : Called by only authorizers
    * @params : {
-   *  scheduleId : "Unique schedule id",
-   *  reason : "Reasone for approval"
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  scheduleId{Number} : "Unique schedule id",
+   *  reason{String} : "Reasone for approval"
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
 
   async rejectSchedule(_privateKey, fromAddress, scheduleId, reason) {
@@ -1396,16 +1531,21 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the Owner | Admins mint tokens to an account
+   * @description : This function allows the Owner | Admins mint tokens to an account
    * @dev : Called by only Owner | Admins
    * @params : {
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId : "Unique schedule id",
    *  recipient : "recipient account",
    *  amount : "How much to mint to recipient",
@@ -1413,9 +1553,8 @@ exports.Token = class {
    *  duration(number) : "For Lien, this means the duration and for Allocated this is dueDate"
    *  reason : "Reasone for minting to recipient account"
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
 
   async mint(
@@ -1493,24 +1632,26 @@ exports.Token = class {
       const transactionId = await web3.eth.sendSignedTransaction(
         `0x${serializedTx.toString('hex')}`
       );
-
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the Owner | Admins move holder's tokens from any of the categories to tradable
+   * @description : This function allows the Owner | Admins move holder's tokens from any of the categories to tradable
    * @dev : Called by only Owner | Admins
    * @params : {
-   *  holder : "holder account",
-   *  shareCat : "Token category to move to tradable",
-   *  recordId : "Index of record to move in the specified category",
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
+   *  holder{address} : "holder account",
+   *  shareCat{string} : "Token category to move to tradable",
+   *  recordId{Number} : "Index of record to move in the specified category",
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
 
   async makeTradable(_privateKey, fromAddress, holder, shareCat, recordId) {
@@ -1574,24 +1715,28 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
   }
 
   /**
-   * @def : This function allows the Owner | Admins withdraw from a  holder's tokens from any of the categories to tradable
+   * @description : This function allows the Owner | Admins withdraw from a  holder's tokens from any of the categories to tradable
    * @dev : Called by only Owner | Admins
    * @params : {
+    *  fromAddress{address} : "Address of the function caller",
+    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder : "holder account",
    *  amount : "Amount to withdraw, optional for other category except tradable"
    *  shareCat : "Token category to withdraw from",
    *  recordId : "Index of record to withdraw in the specified category",
    * }
-   * @returns : {
-   *  transactionId : {}
-   * }
+   * @returns 
+   *  transactionDetails : {}
    */
 
   async withdraw(
@@ -1667,7 +1812,9 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
 
-      return transactionId;
+      return {
+        transactionDetails : transactionId
+      };
     } catch (error) {
       return this.errorHandler(error);
     }

@@ -1,8 +1,8 @@
 const Joi = require('joi');
+const HttpStatus = require('./status')
 
-module.exports = {
   
-  async wallet(req,res,next) {
+  exports.wallet = async (req, res, next) => {
     try {
       const schema = Joi.object().keys({
         account: Joi.string().required().label("Account is required!")
@@ -12,11 +12,14 @@ module.exports = {
       next()
 
     } catch (error) {
-      next(error)
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          status: 'failed',
+          message: error.details,
+        })
     }
   },
 
-  async walletAction(req,res,next) {
+  exports.walletAction =  async (req, res, next) => {
     try {
       const schema = Joi.object().keys({
         amount: Joi.number().required().label("Amount is required!"),
@@ -27,7 +30,9 @@ module.exports = {
       next()
       
     } catch (error) {
-      next(error)
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: error.details,
+      })
     }
   }
-}

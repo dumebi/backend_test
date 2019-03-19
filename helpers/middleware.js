@@ -9,6 +9,7 @@ const {
  * Check Query originates from resource with at user rights
  */
 exports.isUser = async (req, res, next) => {
+  console.log("req > ", req, "res > ", res, "next > ", next)
   try {
     const token = await checkToken(req);
     if (token.status === 'failed') {

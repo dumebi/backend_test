@@ -3,7 +3,7 @@ const HttpStatus = require('../helpers/status');
 const WalletModel = require('../models/wallet');
 const User = require('../models/user');
 const {verifyAccount, checkBalance, transfer} = require('../helpers/ibs');
-const validate = require("../helpers/validation.js");
+// const validate = require("../helpers/validation.js");
 const crypto = require('crypto');
 const {
   config
@@ -57,9 +57,6 @@ const walletController = {
      */
   async addAccount(req, res, next) {
     try {
-
-      // Validate Request
-      await  validate.wallet(req.body)
 
       // Request Params
       const userId = req.jwtUser

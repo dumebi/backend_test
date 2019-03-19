@@ -6,8 +6,10 @@ const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
 const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
-// const testController = require("../controllers/test");
-// const sanitize = require("../helpers/sanitization.js");
+const testController = require("../controllers/test");
+const walletController = require("../controllers/wallet");
+const sanitize = require("../helpers/sanitization.js");
+const validate = require("../helpers/validation.js");
 
 const router = express.Router();
 
@@ -15,14 +17,14 @@ const router = express.Router();
  * Auth Routes
  */
 // router.get('/users/token', AuthController.token);
-router.post('/users/', AuthController.addUsers);
+router.post('/users/create', AuthController.addUsers);
 router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
 router.patch('/users/activate/:id', AuthController.activate);
 router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
-// router.get("/test", testController.sample);
+router.get("/test", testController.sample);
 
 
 /**
@@ -45,6 +47,16 @@ router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrde
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
 router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
+
+/** 
+ * Naira Wallet Routes
+ */
+router.get('/wallet/get_wallet/:id', middleware.isUser, walletController.getWallet);
+router.post('/wallet/activate_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.activateAccount);
+router.post('/wallet/add_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.addAccount);
+router.post('/wallet/remove_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.removeAccount);
+router.post('/wallet/fund/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundWallet);
+router.post('/wallet/withdraw/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.withdraw);
 
 /**
  * User Profile Routes

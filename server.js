@@ -49,8 +49,8 @@ app.use('/v1/', require('./routes'));
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
   const error = {
-    status: 404,
-    success: 'failed',
+    http: 404,
+    status: 'failed',
     message: 'Page Not Found'
   };
   next(error);
@@ -61,14 +61,6 @@ app.use((err, req, res, next) => {
   // We log the error internaly
   console.log("err > ", err)
   appLogger.error(err);
-
-  if (err.name == "ValidationError") {
-    err = {
-      status: 400,
-      success: 'failed',
-      message: err.details
-    };
-  }
 
   //  Remove Error's `stack` property. We don't want users to see this at the production env
   if (req.app.get('env') !== 'development') {
