@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
   
-  exports.wallet = async function(req,res,next) {
+  exports.wallet = async (req, res, next) => {
     try {
       const schema = Joi.object().keys({
         account: Joi.string().required().label("Account is required!")
@@ -18,7 +18,7 @@ const Joi = require('joi');
     }
   },
 
-  exports.walletAction =  async function(req,res,next) {
+  exports.walletAction =  async (req, res, next) => {
     try {
       const schema = Joi.object().keys({
         amount: Joi.number().required().label("Amount is required!"),
