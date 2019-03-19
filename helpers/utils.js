@@ -10,7 +10,7 @@ exports.config = {
   host: '',
   amqp_url: '',
   port: '',
-  appNairaAccount : process.env.APP_NAIRA_ACCOUNT
+  appNairaAccount: process.env.APP_NAIRA_ACCOUNT
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -84,6 +84,8 @@ exports.checkToken = async (req) => {
     let token = null;
     if (req.headers.authorization) {
       token = req.headers.authorization;
+      const tokenArray = token.split(' ');
+      token = tokenArray[1];
     }
     if (req.query.token) {
       token = req.query.token;
@@ -99,13 +101,15 @@ exports.checkToken = async (req) => {
       };
     }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    if (!decryptedToken.id) {
-      return {
-        status: 'failed',
-        data: Constants.UNAUTHORIZED,
-        message: 'Not authorized'
-      }
-    }
+    // if (user_id && decryptedToken.id !== user_id) {
+    //   return {
+    //     status: 'failed',
+    //     data: Constants.UNAUTHORIZED,
+    //     message: 'Not authorized'
+    //   }
+    // }
+    // let dateNow = new Date()
+    // console.log(isExpiredToken)
     return {
       status: 'success',
       data: decryptedToken
