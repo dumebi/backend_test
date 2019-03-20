@@ -4,7 +4,7 @@
 const { web3, EthereumTx } = require('./base.js');
 const { compiledTokenContract } = require('./deploy/compile.js');
 
-const deployedContractAddr = "0xc9cdd5ddea427852c518f81f703028013f18fa1f";
+const deployedContractAddr = '0xc9cdd5ddea427852c518f81f703028013f18fa1f';
 const contractABI = compiledTokenContract.abi;
 const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
@@ -13,7 +13,6 @@ const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 // => Compile and deploy the token, this will as part of it's dependencies deploy the associated libraries
 // => Copy the deployed contract address from remix and replace the "deployedContractAddr" variable with it
 // => Call libraryu functions to talk with the blockchain
-
 
 
 // Contract Deployment Params
@@ -25,14 +24,13 @@ const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 // owner: {address}    The Token Contract owner Address
 
 
-
 // Error Meaning
 
 // errorCode: "UNVERIFIED_HOLDER",
 // Meaning: "Only verified SIT holders can perform this transaction"
 // errorCode: "RECEIPT_TRANSFER_BLOCKED",
 // Meaning: "Recipient not authorized"
-// errorCode: "SEND_TRANSFER_BLOCKED", 
+// errorCode: "SEND_TRANSFER_BLOCKED",
 // Meaning: "Sender not authorized"
 // errorCode: "TOKEN_GRANULARITY_ERROR",
 // Meaning: "Token cannot be granular below the specified granularity"
@@ -44,7 +42,7 @@ const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 // Meaning: "Token amount specified is invalid"
 // errorCode: "SPENDER_BALANCE_ERROR",
 // Meaning: "Amount specified is morethan spendable amount"
-// errorCode: "ACCOUNT_WITHHOLD_ERROR", 
+// errorCode: "ACCOUNT_WITHHOLD_ERROR",
 // Meaning: "Account on hold"
 // errorCode: "MOVE_LIEN_ERROR",
 // Meaning: "Lien cannot be moved to tradable balance, lien period not over yet"
@@ -54,60 +52,57 @@ const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
 // Available Functionality
 // [
-// 		"Function": "approve",
-// 		"Function": "removeAdmin",
-// 		"Function": "totalSupply"
-// 		"Function": "totalInEscrow",
-// 		"Function": "sSymbol",
-// 		"Function": "transferFrom",
-// 		"Function": "isAdmin",
-// 		"Function": "isWithhold",
-// 		"Function": "uGranularity",
-// 		"Function": "addAdmin",
-// 		"Function": "balanceOf"
-// 		"Function": "messageForTransferRestriction",
-// 		"Function": "isValid",
-// 		"Function": "transfer",
-// 		"Function": "aTokenbase",
-// 		"Function": "addToEscrow",
-// 		"Function": "removeFromEscrow",
-// 		"Function": "addShareholder",
-// 		"Function": "detectTransferRestriction",
-// 		"Function": "getShareHolder",
-// 		"Function": "sName",
-// 		"Function": "allowance"
-// 		"Function": "aManager"
+//   "Function": "approve",
+//   "Function": "removeAdmin",
+//   "Function": "totalSupply"
+//   "Function": "totalInEscrow",
+//   "Function": "sSymbol",
+//   "Function": "transferFrom",
+//   "Function": "isAdmin",
+//   "Function": "isWithhold",
+//   "Function": "uGranularity",
+//   "Function": "addAdmin",
+//   "Function": "balanceOf"
+//   "Function": "messageForTransferRestriction",
+//   "Function": "isValid",
+//   "Function": "transfer",
+//   "Function": "aTokenbase",
+//   "Function": "addToEscrow",
+//   "Function": "removeFromEscrow",
+//   "Function": "addShareholder",
+//   "Function": "detectTransferRestriction",
+//   "Function": "getShareHolder",
+//   "Function": "sName",
+//   "Function": "allowance"
+//   "Function": "aManager"
 // ]
 
 
 exports.Token = class {
-
-  errorHandler(error){
-    console.log("er > ", error)
+  errorHandler(error) {
+    console.log('er > ', error)
     // solidity error
-    if (error.name == "RuntimeError"){
-      console.log("RuntimeError")
+    if (error.name ==== 'RuntimeError') {
+      console.log('RuntimeError')
       return {
-        ok : false,
-        reason : error.reason,
-        field : error.arg
+        ok: false,
+        reason: error.reason,
+        field: error.arg
       }
     }
-    if (error.code == "-32000"){
-      console.log("32000")
+    if (error.code ==== '-32000') {
+      console.log('32000')
       return {
-        ok : false,
-        reason : error.reason,
-        field : error.arg
+        ok: false,
+        reason: error.reason,
+        field: error.arg
       }
-      
     }
-    if (!error.reason){
+    if (!error.reason) {
       return {
-        ok : false,
-        reason : error.Error
+        ok: false,
+        reason: error.Error
       }
-      
     }
   }
 
@@ -119,7 +114,7 @@ exports.Token = class {
    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  newOwner{string} : "Address of new owner"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
   async transferOwnership(fromAddress, _privateKey, newOwner) {
@@ -160,7 +155,7 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -168,7 +163,6 @@ exports.Token = class {
   }
 
 
-  
   /**
    * @description : This function returns the owner address (Super Admin)
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
@@ -211,11 +205,11 @@ exports.Token = class {
    * @params : {
    *    fromAddress{address} : "Address of the function caller"
    * }
-   * @returns 
+   * @returns
         name{string}          Token Name
         symbol{string}        Token Symbol
         granularity{number}   Token Granularity
-   * 
+   *
    */
   async getTokenInfo(fromAddress) {
     try {
@@ -231,7 +225,6 @@ exports.Token = class {
         symbol,
         granularity
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -287,7 +280,7 @@ exports.Token = class {
   async getTotalSupply(fromAddress) {
     try {
       const token = await contractInst.methods;
-      const result = await token.totalSupply().call({from: fromAddress});
+      const result = await token.totalSupply().call({ from: fromAddress });
       return result
     } catch (error) {
       return this.errorHandler(error);
@@ -301,26 +294,25 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
     *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  manager{string} : "address of the new account to be made manager",}
-   * @returns 
+   * @returns
         transactionDetails: {}
    */
   async changeManager(_privateKey, fromAddress, manager) {
     try {
-      
       const isValidAddress = await web3.utils.isAddress(manager);
       if (!isValidAddress) {
-        return "Invalid manager address";
+        return 'Invalid manager address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .changeManager(manager)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
-      .changeManager(manager)
+        .changeManager(manager)
         .estimateGas({
           from: fromAddress
         });
@@ -339,11 +331,11 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -357,26 +349,25 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
     *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  admin{string} : "address of the account to be made an admin",}
-   * @returns 
+   * @returns
         transactionDetails: {}
    */
   async addAdmin(_privateKey, fromAddress, admin) {
     try {
-      
       const isValidAddress = await web3.utils.isAddress(admin);
       if (!isValidAddress) {
-        return "Invalid admin address";
+        return 'Invalid admin address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .addAdmin(admin)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
-      .addAdmin(admin)
+        .addAdmin(admin)
         .estimateGas({
           from: fromAddress
         });
@@ -395,17 +386,18 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
     }
   }
-/**
+
+  /**
    * @description : This function allows the contract owner remove an admin from the contract
    * @dev : Should be called by the contract Owner
    * @params : {
@@ -413,24 +405,23 @@ exports.Token = class {
     *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  admin : "address of the account to be removed as an admin"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails: {}
    */
-  async removeAdmin(_privateKey, fromAddress , admin) {
+  async removeAdmin(_privateKey, fromAddress, admin) {
     try {
-      
       const isValidAddress = await web3.utils.isAddress(admin);
       if (!isValidAddress) {
-        return "Invalid admin address";
+        return 'Invalid admin address';
       }
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
         .removeAdmin(admin)
         .encodeABI();
 
       const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
         .removeAdmin(admin)
         .estimateGas({
@@ -451,11 +442,11 @@ exports.Token = class {
       tx.sign(privateKey);
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return {
-        transactionDetails :transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -471,12 +462,11 @@ exports.Token = class {
     *  authorizer{address} : "address of the account to be made an authhorizer",
     *  type{string} : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails: {}
    */
   async addAuthorizer(_privateKey, fromAddress, authorizer, type) {
     try {
-      
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
         return 'Invalid authorizer address';
@@ -484,13 +474,13 @@ exports.Token = class {
 
       const privateKey = Buffer.from(_privateKey, 'hex');
       const data = await contractInst.methods
-        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
+        .addAuthorizer(authorizer, type === 'Pay Scheme' ? 0 : 1)
         .encodeABI();
 
       const gasPrice = 2000;
       const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
       const gasUsed = await contractInst.methods
-        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
+        .addAuthorizer(authorizer, type === 'Pay Scheme' ? 0 : 1)
         .estimateGas({
           from: fromAddress
         });
@@ -513,7 +503,7 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails :transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -528,12 +518,11 @@ exports.Token = class {
     *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  authorizer{address} : "address of the account to be removed as an authhorizer"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails: {}
    */
-  async removeAuthorizer(_privateKey, fromAddress , authorizer) {
+  async removeAuthorizer(_privateKey, fromAddress, authorizer) {
     try {
-      
       const isValidAddress = await web3.utils.isAddress(authorizer);
       if (!isValidAddress) {
         return 'Invalid authorizer address';
@@ -570,9 +559,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails :transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -585,7 +573,7 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
    *  authorizer{address} : "address of the account to be removed as an authhorizer",
    * }
-   * @returns 
+   * @returns
    *  authorizer{address}   Authorizer address
    *  type{string}          Authorization type
    */
@@ -598,7 +586,7 @@ exports.Token = class {
 
       return {
         authorizer: result.authorizerAddr,
-        type: result.authorizerType == 0 ? 'Pay Scheme' : 'Upfront Scheme'
+        type: result.authorizerType === 0 ? 'Pay Scheme' : 'Upfront Scheme'
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -613,7 +601,7 @@ exports.Token = class {
    *  scheduleId : "Unique schedule id",
    *  authorizerId : "Unique position of authorizer in the schedule, always within [0,1,2]"
    * }
-   * @returns 
+   * @returns
    *  authorizer{address}             address of the authorizer
    *  reason{string}            Reason for approval or rejection
    */
@@ -756,11 +744,11 @@ exports.Token = class {
   /**
    * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
    * @dev : Called by only shareholders
-   * @params : 
+   * @params :
     *  fromAddress{address}           Address of the function caller
     *  _privateKey{string}          Private key of the function caller, used to sign the message
    *  spender           address of the spender
-   *  amount          Amount to allow for the spender 
+   *  amount          Amount to allow for the spender
    * @returns :
    *  transactionDetails : {}
    */
@@ -813,9 +801,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -904,9 +891,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -975,14 +961,13 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
   }
-  
+
   /**
    * @description : This function returns a shareholder details
    * @dev : Called anyone
@@ -990,7 +975,7 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
    *  holder{address} : "address of the shareholder"
    * }
-   * @returns 
+   * @returns
         isEnabled {bool}
         isWithhold {bool}
         tradable {number}
@@ -1035,7 +1020,7 @@ exports.Token = class {
    *  access : "Accepts bool, if holder is valid or not"
    *  withhold : "Accepts bool, if holder is withhold or not"
    * }
-   * @returns 
+   * @returns
         transactionDetails {object}
    */
 
@@ -1051,7 +1036,7 @@ exports.Token = class {
         return 'Invalid initiator address';
       }
 
-      if (typeof access != 'boolean') {
+      if (typeof access !== 'boolean') {
         return 'Can only set shareholders status to true or false';
       }
 
@@ -1091,9 +1076,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails :transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1106,7 +1090,7 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
     *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder{address} : "address of the shareholder",
-   * @returns 
+   * @returns
         transactionDetails {object}
    */
 
@@ -1119,7 +1103,7 @@ exports.Token = class {
       const isValidAddress = await web3.utils.isAddress(holder);
 
       if (!isValidAddress) {
-        return "Invalid from address";
+        return 'Invalid from address';
       }
 
       const gasPrice = 2000;
@@ -1128,9 +1112,9 @@ exports.Token = class {
         .removeShareholder(holder)
         .encodeABI();
 
-      const privateKey = Buffer.from(_privateKey, "hex");
+      const privateKey = Buffer.from(_privateKey, 'hex');
 
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
+      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
 
       const gasUsed = await contractInst.methods
         .removeShareholder(holder)
@@ -1154,13 +1138,12 @@ exports.Token = class {
 
       const serializedTx = tx.serialize();
       const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
+        `0x${serializedTx.toString('hex')}`
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1183,15 +1166,15 @@ exports.Token = class {
       const result = await contractInst.methods
         .totalRecordsByCat(
           holder,
-          category == "Tradable"
+          category === 'Tradable'
             ? 0
-            : category == "Lien"
-            ? 1
-            : category == "Allocated"
-            ? 2
-            : category == "Vesting"
-            ? 3
-            : "00"
+            : category === 'Lien'
+              ? 1
+              : category === 'Allocated'
+                ? 2
+                : category === 'Vesting'
+                  ? 3
+                  : '00'
         )
         .call({ from: fromAddress });
 
@@ -1209,7 +1192,7 @@ exports.Token = class {
    *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
    *  recordId{Number} : "Index of the specific record to pull in this category, accepts a number"
    * }
-   * @returns 
+   * @returns
         amount{Number}                Amount,
         dateAdded{Date}               Date added,
         duration {String}
@@ -1228,15 +1211,15 @@ exports.Token = class {
       } = await contractInst.methods
         .recordByCat(
           holder,
-          category == 'Tradable'
+          category === 'Tradable'
             ? 0
-            : category == "Lien"
-            ? 1
-            : category == "Allocated"
-            ? 2
-            : category == "Vesting"
-            ? 3
-            : "00",
+            : category === 'Lien'
+              ? 1
+              : category === 'Allocated'
+                ? 2
+                : category === 'Vesting'
+                  ? 3
+                  : '00',
           recordId
         )
         .call({ from: fromAddress });
@@ -1264,7 +1247,7 @@ exports.Token = class {
    *  scheduleType{String} : "Either 'Pay Scheme' or 'Upfront Scheme' ",
    *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails : {}
    */
 
@@ -1283,7 +1266,7 @@ exports.Token = class {
         .createSchedule(
           scheduleId,
           amount,
-          scheduleType == 'Pay Scheme' ? 0 : 1,
+          scheduleType === 'Pay Scheme' ? 0 : 1,
           web3.utils.toHex(reason)
         )
         .encodeABI();
@@ -1296,7 +1279,7 @@ exports.Token = class {
         .createSchedule(
           scheduleId,
           amount,
-          scheduleType == 'Pay Scheme' ? 0 : 1,
+          scheduleType === 'Pay Scheme' ? 0 : 1,
           web3.utils.toHex(reason)
         )
         .estimateGas({
@@ -1323,9 +1306,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1340,7 +1322,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails : {}
    */
 
@@ -1382,9 +1364,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1397,7 +1378,7 @@ exports.Token = class {
     *  fromAddress{address} : "Address of the function caller",
    *  scheduleId{Number} : "Unique id for the schedule, used to identify the schedule"
    * }
-   * @returns 
+   * @returns
         scheduleType{string},
         amount{Number}                Amount schedule was created with
         activeAmount{Number}          What is left to be minted
@@ -1420,7 +1401,7 @@ exports.Token = class {
         .call({ from: fromAddress });
 
       return {
-        scheduleType: scheduleType == 0 ? 'Pay Scheme' : 'Upfront Scheme',
+        scheduleType: scheduleType === 0 ? 'Pay Scheme' : 'Upfront Scheme',
         amount,
         activeAmount,
         isActive,
@@ -1441,7 +1422,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{string} : "Reasone for approval"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1478,9 +1459,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1495,7 +1475,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{String} : "Reasone for approval"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1532,9 +1512,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1553,7 +1532,7 @@ exports.Token = class {
    *  duration(number) : "For Lien, this means the duration and for Allocated this is dueDate"
    *  reason : "Reasone for minting to recipient account"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1575,13 +1554,13 @@ exports.Token = class {
           scheduleId,
           recipient,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           duration,
@@ -1598,13 +1577,13 @@ exports.Token = class {
           scheduleId,
           recipient,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           duration,
@@ -1633,7 +1612,7 @@ exports.Token = class {
         `0x${serializedTx.toString('hex')}`
       );
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -1650,7 +1629,7 @@ exports.Token = class {
    *  shareCat{string} : "Token category to move to tradable",
    *  recordId{Number} : "Index of record to move in the specified category",
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1661,13 +1640,13 @@ exports.Token = class {
       const data = await contractInst.methods
         .moveToTradable(
           holder,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId
@@ -1681,13 +1660,13 @@ exports.Token = class {
       const gasUsed = await contractInst.methods
         .moveToTradable(
           holder,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId
@@ -1716,9 +1695,8 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1735,7 +1713,7 @@ exports.Token = class {
    *  shareCat : "Token category to withdraw from",
    *  recordId : "Index of record to withdraw in the specified category",
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1755,13 +1733,13 @@ exports.Token = class {
         .withdraw(
           holder,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId,
@@ -1777,13 +1755,13 @@ exports.Token = class {
         .withdraw(
           holder,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId,
@@ -1813,7 +1791,7 @@ exports.Token = class {
       );
 
       return {
-        transactionDetails : transactionId
+        transactionDetails: transactionId
       };
     } catch (error) {
       return this.errorHandler(error);
