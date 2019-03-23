@@ -1,9 +1,15 @@
-const { Token } = require("../libraries/tokenContract.js");
-const token = new Token();
+// const { Token } = require("../libraries/tokenContract.js");
+const ethUser = require("../libraries/ethUser.js");
+// const {provider } = require("../libraries/base.js");
+// const token = new Token();
+
 
 module.exports = {
   async sample(req, res, next) {
     try {
+      // const signerAddr0 = await provider.getSigner(0).getAddress()
+      // const signerAddr1 = await provider.getSigner(1).privateKey()
+      
       // const result1 = await token.transferOwnership(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
@@ -47,13 +53,31 @@ module.exports = {
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
       //   0
       // );
-      const result1 = await token.addShareholder(
-        "fbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e",
-        "0x368eb314285235b7f692fbf14d075760e957848e",
-        "0x2f70c1993862d1d3c8ffa8edfa30ef0ffff3e0ee",
-        true,
-        false
-      );
+      // const result1 = await token.addShareholder(
+      //   "fbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e",
+      //   "0x368eb314285235b7f692fbf14d075760e957848e",
+      //   "0x2f70c1993862d1d3c8ffa8edfa30ef0ffff3e0ee",
+      //   true,
+      //   false
+      // );
+      // const mne = await ethUser.newMnemonic()
+      // const seed = await ethUser.generateSeed(mne)
+      // const key = await ethUser.generateKeys(seed)
+      // console.log(key)
+      // const transact = await provider.getSigner(0).sendTransaction(
+      //   {
+      //     to: "0x54A86D02D6A034F8B3F327Cb424B29BF949575b1",
+      //     value: 50
+      // })
+      const bal1 = await ethUser.balance("0x54A86D02D6A034F8B3F327Cb424B29BF949575b1")
+      // const transfered = await ethUser.transfer(signerAddr0,"2","40a8b074d5c49a2c6f1001c52960083269b89efae9a9551dab499dfb715a6ee7")
+      // const bal = await ethUser.balance(signerAddr0)
+      const result1 = {
+        bal1,
+        // bal,
+        // // transact
+        // transfered
+      }
       // const result2 = await token.getShareholder(
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f"

@@ -160,3 +160,6 @@ Handle Nounce Error
 Handle Revert Error(solidity error handling)
 Handle Runtime Error
 Handle Argument Error
+
+Error Handling
+Insufficient funds (ethers)

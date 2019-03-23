@@ -1,13 +1,4 @@
-FROM node:10
-WORKDIR '/app'
-# COPY ./package.json ./
-# RUN npm install
-COPY . .
-RUN npm install
-VOLUME ["/app", "/app/node_modules"]
-
-# EXPOSE 7000
-CMD ["npm", "run", "dev"]
+FROM node:10 AS base
 
 ENV JWT_SECRET="mysuperjwtsecret"
 ENV GANACHE="http://ganachecli"
@@ -21,8 +12,17 @@ ENV ENCRYPTION_KEY="573rl1ng573rl1ng3ncry973ncry97ng"
 ENV PORT=3000
 ENV REDIS_URL=redis://redis
 ENV AMQP_URL=amqp://rabbitMQ
-#REDIS_URL_PROD=redis://redis                                                                                                      
-RUN touch /env.txt                                                                                                     
-RUN printenv > /env.txt 
 
+FROM base AS build
+WORKDIR /src
+COPY package.json .
+RUN npm install
+RUN npm i -g etherlime
+#development  
 
+FROM build AS publish
+WORKDIR /app
+COPY . .
+COPY --from=build /src .
+VOLUME ["/app","/app/node_modules"]
+ENTRYPOINT ["npm", "run", "dev"]

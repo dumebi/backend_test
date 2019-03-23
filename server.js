@@ -75,6 +75,6 @@ app.use((err, req, res, next) => {
   res.status(httpErr || 500).json(err);
 });
 
-base.getCoinbase()
+// base.getCoinbase()
 
 module.exports = app;

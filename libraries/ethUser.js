@@ -1,6 +1,6 @@
 const bip39 = require("bip39");
 var HDKey = require("hdkey");
-const { web3, EthereumTx, ethUtil } = require("./base.js");
+const { ethers, ethUtil, ethProvider, provider } = require("./base.js");
 
 module.exports = {
   newMnemonic() {
@@ -35,94 +35,32 @@ module.exports = {
 
   async balance(address) {
     try {
-      const balance = await web3.eth.getBalance(address);
-      const balanceToEther = await web3.utils.fromWei(balance, 'ether');
+      var balance = await ethProvider.getBalance(address)
+      balance = await ethers.utils.formatEther(balance);
 
-      return balanceToEther;
+      return balance;
     } catch (error) {
       console.log(error);
     }
   },
 
-  async fundAcct(fromAddress, toAddress, amount, _privateKey) {
+
+  async transfer(toAddress, amount, privateKey) {
     try {
-      const isValidFrom = await ethUtil.isValidAddress(fromAddress);
-      const isValidTo = await ethUtil.isValidAddress(toAddress);
+      // We require a provider to send transactions
+      let wallet = new ethers.Wallet(privateKey, provider);
+      amount = await ethers.utils.parseEther(amount);
 
-      if (!isValidFrom) {
-        return 'Invalid from address';
-      } if (!isValidTo) {
-        return 'Invalid to address';
-      }
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      let nounce = await web3.eth.getTransactionCount(fromAddress);
-      const gasUsed = await web3.eth.estimateGas({
-        to: toAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
-        chainId: 4
-      });
-      const txParams = {
-        nonce: nounce++,
-        gasLimit: gasUsed,
-        gasPrice: 4 * 1000000000,
-        to: toAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
-        chainId: 4
+      let tx = {
+          to: toAddress,
+          value: amount
       };
 
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-      console.log('transactionId', transactionId);
-      return transactionId;
+      let transaction = await wallet.sendTransaction(tx);
+      console.log(transaction)
+      return transaction
     } catch (error) {
-      console.log('error >> ', error);
-    }
-  },
-
-  async transfer(fromAddress, toAddress, amount, _privateKey) {
-    try {
-      const isValidFrom = await ethUtil.isValidAddress(fromAddress);
-      const isValidTo = await ethUtil.isValidAddress(toAddress);
-
-      if (!isValidFrom) {
-        return 'Invalid from address';
-      } if (!isValidTo) {
-        return 'Invalid to address';
-      }
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      let nounce = await web3.eth.getTransactionCount(fromAddress);
-      const gasUsed = await web3.eth.estimateGas({
-        to: toAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
-        chainId: 4 // Rinkeby - Changed for production
-      });
-
-      const txParams = {
-        nonce: nounce++,
-        gasLimit: gasUsed,
-        gasPrice: 4 * 1000000000,
-        from: fromAddress,
-        to: toAddress,
-        value: web3.utils.toHex(web3.utils.toWei(amount, 'ether')),
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-      console.log('transactionId', transactionId);
-      return transactionId;
-    } catch (error) {
-      console.log('error >> ', error);
+      console.log('error >> ', error.reason);
       throw error;
     }
   }
