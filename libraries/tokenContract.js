@@ -82,7 +82,7 @@ exports.Token = class {
   errorHandler(error) {
     console.log('er > ', error)
     // solidity error
-    if (error.name ==== 'RuntimeError') {
+    if (error.name === 'RuntimeError') {
       console.log('RuntimeError')
       return {
         ok: false,
@@ -90,7 +90,7 @@ exports.Token = class {
         field: error.arg
       }
     }
-    if (error.code ==== '-32000') {
+    if (error.code === '-32000') {
       console.log('32000')
       return {
         ok: false,
