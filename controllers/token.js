@@ -28,7 +28,6 @@ const TokenController = {
         name: 'STTP'
       })
       newToken = await newToken.save();
-      console.log('hard worker')
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token created successfully', data: newToken });
     } catch (error) {
       console.log('error >> ', error)
@@ -401,14 +400,14 @@ const TokenController = {
       const buyOffers = await OfferModel.find({ token: token._id, type: 'Buy', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order book gotten successfully', data: buyOffers });
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not get buy order book',
-        devError: error
-      }
-      next(err)
+      // console.log('error >> ', error)
+      // const err = {
+      //   http: HttpStatus.BAD_REQUEST,
+      //   status: 'failed',
+      //   message: 'Could not get buy order book',
+      //   devError: error
+      // }
+      // next(err)
     }
   },
 
@@ -466,7 +465,7 @@ const TokenController = {
       const price = req.body.price;
       const amount = req.body.amount;
       if (price) {
-        if (price <= token.max && price >= token.min) {
+        if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_BUY', {
             token: token._id, price, user: user._id, amount
           })])
@@ -522,7 +521,7 @@ const TokenController = {
 
 
       if (price) {
-        if (price <= token.max && price >= token.min) {
+        if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_SELL', {
             token: token._id, price, user: user._id, amount
           })])
