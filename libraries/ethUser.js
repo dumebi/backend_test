@@ -1,6 +1,8 @@
 const bip39 = require("bip39");
 var HDKey = require("hdkey");
-const { ethers, ethUtil, ethProvider, provider } = require("./base.js");
+var { ethers, ethUtil, ethProvider } = require("./base.js");
+
+console.log("ethProvider >> ", ethProvider)
 
 module.exports = {
   newMnemonic() {
@@ -41,6 +43,7 @@ module.exports = {
       return balance;
     } catch (error) {
       console.log(error);
+      throw error;
     }
   },
 
@@ -48,7 +51,7 @@ module.exports = {
   async transfer(toAddress, amount, privateKey) {
     try {
       // We require a provider to send transactions
-      let wallet = new ethers.Wallet(privateKey, provider);
+      let wallet = new ethers.Wallet(privateKey, ethProvider);
       amount = await ethers.utils.parseEther(amount);
 
       let tx = {
@@ -57,7 +60,6 @@ module.exports = {
       };
 
       let transaction = await wallet.sendTransaction(tx);
-      console.log(transaction)
       return transaction
     } catch (error) {
       console.log('error >> ', error.reason);

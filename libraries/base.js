@@ -1,6 +1,5 @@
 // Import libraries
 const ethers = require("ethers");
-const {config} = require("../helpers/utils");
 const ethUtil = require("ethereumjs-util");
 const Ganache = require("ganache-cli");
 
@@ -8,17 +7,35 @@ let coinbase_amount = 0;
 let coinbase = '';
 
 // Setup RPC connection
-const provider = config.blockchain;
-const ethProvider = new ethers.providers.JsonRpcProvider("http://localhost:8545")
+const ethProvider = new ethers.providers.JsonRpcProvider("http://192.168.8.109:8545")
 
-// const ganache = Ganache.provider();
-// const provider = new ethers.providers.Web3Provider(ganache);
-// const ethProvider = provider
-// const signer = provider.getSigner();
+ 
+// async function GanacheGeneralHttpWebSockerServer() {
+//     try {
+//         const server = await Ganache.server({
+//             default_balance_ether : 3000000000,
+//             total_accounts : 10,
+//             ws : true
+//         });
+//         server.listen(8545, async function(err, blockchain) {
+//             if (err) {
+//                 throw err
+//             }
+//             console.log("blockchain >> ", blockchain)
+//             provider = "http://localhost:8545";
+//             // console.log(ethProvider)
+//         });
 
-const server = Ganache.server();
-server.listen(7545, function(err, blockchain) {
-});
+//     } catch (error) {
+//         console.log("error >> ", error)
+//     }
+//     // server.listen(8545, function(err, blockchain) {
+//     //     console.log("blockchain >> ", blockchain)
+//     //     provider = config.blockchain;
+//     //     ethProvider = new ethers.providers.Json/RpcProvider("http://localhost:8545")
+//     // });
+// }
+// GanacheGeneralHttpWebSockerServer()
 
 /**
  * Get Coinbase address and amount
@@ -50,8 +67,6 @@ server.listen(7545, function(err, blockchain) {
 
 exports.ethers = ethers;
 exports.ethProvider = ethProvider
-exports.provider = provider;
-// exports.signer = signer;
 // exports.coinbase = coinbase
 // exports.coinbase_amount = coinbase_amount
 exports.ethUtil = ethUtil

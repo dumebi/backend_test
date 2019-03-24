@@ -69,15 +69,15 @@ module.exports = {
       //     to: "0x54A86D02D6A034F8B3F327Cb424B29BF949575b1",
       //     value: 50
       // })
-      const bal1 = await ethUser.balance("0x54A86D02D6A034F8B3F327Cb424B29BF949575b1")
-      // const transfered = await ethUser.transfer(signerAddr0,"2","40a8b074d5c49a2c6f1001c52960083269b89efae9a9551dab499dfb715a6ee7")
-      // const bal = await ethUser.balance(signerAddr0)
-      const result1 = {
-        bal1,
-        // bal,
-        // // transact
-        // transfered
-      }
+      // const bal1 = await ethUser.balance("0xc3a96259891bc4efab334bfe9e98ed194a3bb836")
+      // const transfered = await ethUser.transfer("0xc3a96259891bc4efab334bfe9e98ed194a3bb836","2","fbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e")
+      // const bal = await ethUser.balance("0x368eb314285235b7f692fbf14d075760e957848e")
+      // const result1 = {
+      //   bal1,
+      //   bal,
+      //   // // transact
+      //   transfered
+      // }
       // const result2 = await token.getShareholder(
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f"

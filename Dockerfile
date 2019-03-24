@@ -17,7 +17,7 @@ FROM base AS build
 WORKDIR /src
 COPY package.json .
 RUN npm install
-RUN npm i -g etherlime
+# RUN npm i -g etherlime
 #development  
 
 FROM build AS publish

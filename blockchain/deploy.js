@@ -1,6 +1,6 @@
 var fs = require("fs");
 var path = require("path");
-const { web3, EthereumTx } = require("../base");
+const { web3, EthereumTx } = require("../libraries/base");
 var linker = require("solc/linker");
 
 const { compiledTokenContract, compiledTokenFuncLib } = require("./compile.js");
