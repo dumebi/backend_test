@@ -46,6 +46,7 @@ router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
 router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
+router.get('/users/exchange/price', middleware.isUser, TokenController.getPrice);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /** 

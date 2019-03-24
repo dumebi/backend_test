@@ -43,6 +43,30 @@ const TokenController = {
   },
 
   /**
+   * Initialize token
+   * @description initialize the STTP token
+   * @return {object} token
+   */
+  async getPrice(req, res, next) {
+    try {
+      const token = await TokenModel.findOne({ name: 'STTP' }, {name: 0, min: 0, max: 0});
+      if (token) {
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price gotten successfully', data: token });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'success', message: 'Token has not been initialized' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get token price',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
    * Market Buy
    * @description Buy a token at market price
    * @param {object} token  MongoDB token object
@@ -402,14 +426,14 @@ const TokenController = {
       const sellOffers = await OfferModel.find({ token: token._id, type: 'Sell', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order book gotten successfully', data: sellOffers });
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not get sell order book',
-        devError: error
-      }
-      next(err)
+      // console.log('error >> ', error)
+      // const err = {
+      //   http: HttpStatus.BAD_REQUEST,
+      //   status: 'failed',
+      //   message: 'Could not get sell order book',
+      //   devError: error
+      // }
+      // next(err)
     }
   },
 
@@ -419,6 +443,7 @@ const TokenController = {
    * @param {string} id Token ID
    */
   async buy(req, res, next) {
+    console.log('buy')
     try {
       if (paramsNotValid(req.body.amount)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
