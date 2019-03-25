@@ -2,13 +2,13 @@
 const ethers = require("ethers");
 const ethUtil = require("ethereumjs-util");
 const Ganache = require("ganache-cli");
+const {config} = require('../helpers/utils');
 
 let coinbase_amount = 0;
 let coinbase = '';
 
 // Setup RPC connection
-const ethProvider = new ethers.providers.JsonRpcProvider("http://192.168.8.109:8545")
-
+const ethProvider = new ethers.providers.JsonRpcProvider("http://10.0.12.71:8545")
  
 // async function GanacheGeneralHttpWebSockerServer() {
 //     try {

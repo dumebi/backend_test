@@ -2,7 +2,6 @@ const bip39 = require("bip39");
 var HDKey = require("hdkey");
 var { ethers, ethUtil, ethProvider } = require("./base.js");
 
-console.log("ethProvider >> ", ethProvider)
 
 module.exports = {
   newMnemonic() {

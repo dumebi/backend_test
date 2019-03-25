@@ -163,3 +163,7 @@ Handle Argument Error
 
 Error Handling
 Insufficient funds (ethers)
+
+TODO:
+List of all allawance for a user
+List of all spender on my account

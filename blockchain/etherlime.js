@@ -1,7 +1,7 @@
 const etherlime = require('etherlime');
 const {provider} = require('../libraries/base.js');
 
-const { compiledTokenContract, compiledTokenFuncLib } = require("./compile.js");
+const { compiledTokenContract, compiledTokenFuncLib } = require("../blockchain1/compile.js");
 
 const deploy = async (network, secret) => {
 

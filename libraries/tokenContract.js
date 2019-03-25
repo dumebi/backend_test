@@ -1,12 +1,12 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-useless-constructor */
-const { web3, EthereumTx } = require('./base.js');
-const { compiledTokenContract } = require('./deploy/compile.js');
-
-const deployedContractAddr = "0xc9cdd5ddea427852c518f81f703028013f18fa1f";
+const { ethers, ethProvider } = require('./base.js');
+const { compiledTokenContract } = require('../blockchain/compile.js');
+const {config} = require('../helpers/utils');
+console.log("config.Contract >> ", config.contract)
+const deployedContractAddr = config.contract;
 const contractABI = compiledTokenContract.abi;
-const contractInst = new web3.eth.Contract(contractABI, deployedContractAddr);
 
 // Steps to Replicate
 // => Copy contract folder from the Blockcjhain directory into remix
@@ -93,11 +93,12 @@ exports.Token = class {
         field : error.arg
       }
     }
+    //VM Revert error
     if (error.code == "-32000"){
       console.log("32000")
       return {
         ok : false,
-        reason : error.reason,
+        reason : error.data.stack,
         field : error.arg
       }
       
@@ -111,56 +112,34 @@ exports.Token = class {
     }
   }
 
+
+  constructor(_privateKey) {
+    this.wallet = new ethers.Wallet(_privateKey, ethProvider);
+    this.contractInst = new ethers.Contract(deployedContractAddr, contractABI, ethProvider);
+    this.contractTX = new ethers.Contract(deployedContractAddr, contractABI, this.wallet);
+  }
+
+
   /**
    * @description : This function allows the owner transfer ownership to another account
    * @dev : This function should be called by the contract owner
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
-   *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  newOwner{string} : "Address of new owner"
    * }
    * @returns 
    *  transactionDetails : {}
    */
-  async transferOwnership(fromAddress, _privateKey, newOwner) {
+  async transferOwnership(newOwner) {
     try {
-      const isValidAddress = await web3.utils.isAddress(newOwner);
-      if (!isValidAddress) {
-        return 'Invalid New Owner Address';
-      }
 
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      const data = await contractInst.methods
+      const tx = await this.contractTX
         .transferOwnership(newOwner)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-      const gasUsed = await contractInst.methods
-        .transferOwnership(newOwner)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      
+      await tx.wait();
+      console.loglog("tx  >> ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -172,15 +151,12 @@ exports.Token = class {
   /**
    * @description : This function returns the owner address (Super Admin)
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
-   * @params : {
-   *  fromAddress{address} : "Address of the function caller"
-   * }
    * @returns {address} Address of the contract owner, super admin
    */
-  async getOwner(fromAddress) {
+  async getOwner() {
     try {
-      const token = await contractInst.methods;
-      const result = await token.owner().call({ from: fromAddress });
+      const result = await this.contractInst.owner()
+      
       return result;
     } catch (error) {
       return this.errorHandler(error);
@@ -190,16 +166,13 @@ exports.Token = class {
   /**
    * @description : This function returns the manager / developer address
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
-   * @params : {
-   *  fromAddress{address} : "Address of the function caller"
-   * }
    * @returns {address} Address of the contract owner, super admin
    */
-  async getManager(fromAddress) {
+  async getManager() {
     try {
-      const token = await contractInst.methods;
-      const result = await token.aManager().call({ from: fromAddress });
+      const result = await this.contractInst.aManager()
       return result;
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -217,14 +190,12 @@ exports.Token = class {
         granularity{number}   Token Granularity
    * 
    */
-  async getTokenInfo(fromAddress) {
+  async getTokenInfo() {
     try {
-      const token = await contractInst.methods;
-      const name = await token.sName().call({ from: fromAddress });
-      const symbol = await token.sSymbol().call({ from: fromAddress });
-      const granularity = await token
-        .uGranularity()
-        .call({ from: fromAddress });
+      const name = await this.contractInst.sName()
+      const symbol = await this.contractInst.sSymbol()
+      const granularity = await this.contractInst.uGranularity()
+        
 
       return {
         name,
@@ -240,16 +211,13 @@ exports.Token = class {
   /**
    * @description : This function returns the token base account of the contract, where withdrawers are kept
    * @dev : Can be called by either the Owner | Manage/developer | Admins
-   * @params : {
-   *  fromAddress{address} : "Address of the function caller"
-   * }
    * @returns {address} : "Address of the token base"
    */
   async getTokenbase() {
     try {
-      const token = await contractInst.methods;
-      const result = await token.aTokenbase().call();
+      const result = await this.contractInst.aTokenbase()
       return result;
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -259,18 +227,16 @@ exports.Token = class {
    * @description : This function returns the token base balance of the contract, where withdrawers are kept
    * @dev : Can be called by either the Owner | Manage/developer | Admins
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
    *  tokenbase {address} : "Address of token base"
    * }
    * @returns {Number}  Token base balance
    */
-  async getTokenbaseBal(fromAddress, tokenbase) {
+  async getTokenbaseBal(tokenbase) {
     try {
-      const token = await contractInst.methods;
-      const result = await token
-        .balanceOf(tokenbase)
-        .call({ from: fromAddress });
-      return result
+
+      const result = await this.contractInst.balanceOf(tokenbase)
+      return result.toNumber()
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -279,16 +245,13 @@ exports.Token = class {
   /**
    * @description : This function returns the total supplies of token in the contract
    * @dev : Can be called by either the Owner | Manage/developer | Admins
-   * @params : {
-   *  fromAddress{address} : "Address of the function caller"
-   * }
    * @returns {Number}    Total supply of tokens at any given time
    */
-  async getTotalSupply(fromAddress) {
+  async getTotalSupply() {
     try {
-      const token = await contractInst.methods;
-      const result = await token.totalSupply().call({from: fromAddress});
-      return result
+      const result = await this.contractInst.totalSupply()
+      return result.toNumber()
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -298,53 +261,23 @@ exports.Token = class {
    * @description : This function allows the contract owner change contract manager
    * @dev : Can be called by only the owner
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  manager{string} : "address of the new account to be made manager",}
    * @returns 
         transactionDetails: {}
    */
-  async changeManager(_privateKey, fromAddress, manager) {
+  async changeManager(manager) {
     try {
       
-      const isValidAddress = await web3.utils.isAddress(manager);
-      if (!isValidAddress) {
-        return "Invalid manager address";
-      }
+      manager = ethers.utils.getAddress(manager)
 
-      const privateKey = Buffer.from(_privateKey, "hex");
-      const data = await contractInst.methods
-        .changeManager(manager)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
-      const gasUsed = await contractInst.methods
-      .changeManager(manager)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
+      const tx = await this.contractTX.changeManager(manager)
+      await tx.wait()
+      console.log("tx >>  ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -354,53 +287,23 @@ exports.Token = class {
    * @description : This function allows the contract owner add an admin to the contract
    * @dev : Can be called by only the owner
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
-    *  admin{string} : "address of the account to be made an admin",}
+    *  admin{address} : "address of the account to be made an admin",}
    * @returns 
         transactionDetails: {}
    */
-  async addAdmin(_privateKey, fromAddress, admin) {
+  async addAdmin(admin) {
     try {
-      
-      const isValidAddress = await web3.utils.isAddress(admin);
-      if (!isValidAddress) {
-        return "Invalid admin address";
-      }
+    
+      admin = ethers.utils.getAddress(admin)
 
-      const privateKey = Buffer.from(_privateKey, "hex");
-      const data = await contractInst.methods
-        .addAdmin(admin)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
-      const gasUsed = await contractInst.methods
-      .addAdmin(admin)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
+      const tx = await this.contractTX.addAdmin(admin)
+      await tx.wait()
+      console.log("tx >>  ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
+      
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -409,53 +312,22 @@ exports.Token = class {
    * @description : This function allows the contract owner remove an admin from the contract
    * @dev : Should be called by the contract Owner
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  admin : "address of the account to be removed as an admin"
    * }
    * @returns 
    *  transactionDetails: {}
    */
-  async removeAdmin(_privateKey, fromAddress , admin) {
+  async removeAdmin(admin) {
     try {
       
-      const isValidAddress = await web3.utils.isAddress(admin);
-      if (!isValidAddress) {
-        return "Invalid admin address";
-      }
+      admin = ethers.utils.getAddress(admin)
 
-      const privateKey = Buffer.from(_privateKey, "hex");
-      const data = await contractInst.methods
-        .removeAdmin(admin)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
-      const gasUsed = await contractInst.methods
-        .removeAdmin(admin)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
+      const tx = await this.contractTX.removeAdmin(admin)
+      await tx.wait()
+      console.log("tx >>  ", tx)
 
       return {
-        transactionDetails :transactionId
+        transactionDetails :tx
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -466,54 +338,22 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin add an authorizer to the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
     *  authorizer{address} : "address of the account to be made an authhorizer",
     *  type{string} : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
    * }
    * @returns 
         transactionDetails: {}
    */
-  async addAuthorizer(_privateKey, fromAddress, authorizer, type) {
-    try {
+  async addAuthorizer(authorizer, type) {
+    try {     
+      authorizer = ethers.utils.getAddress(authorizer)
       
-      const isValidAddress = await web3.utils.isAddress(authorizer);
-      if (!isValidAddress) {
-        return 'Invalid authorizer address';
-      }
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      const data = await contractInst.methods
-        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-      const gasUsed = await contractInst.methods
-        .addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      const tx = await this.contractTX.addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
+      await tx.wait()
+      console.log("tx >>  ", tx)
 
       return {
-        transactionDetails :transactionId
+        transactionDetails :tx
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -524,53 +364,21 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin remove an authorizer from the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  authorizer{address} : "address of the account to be removed as an authhorizer"
    * }
    * @returns 
    *  transactionDetails: {}
    */
-  async removeAuthorizer(_privateKey, fromAddress , authorizer) {
+  async removeAuthorizer(authorizer) {
     try {
+      authorizer = ethers.utils.getAddress(authorizer)
       
-      const isValidAddress = await web3.utils.isAddress(authorizer);
-      if (!isValidAddress) {
-        return 'Invalid authorizer address';
-      }
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      const data = await contractInst.methods
-        .removeAuthorizer(authorizer)
-        .encodeABI();
-
-      const gasPrice = 2000;
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-      const gasUsed = await contractInst.methods
-        .removeAuthorizer(authorizer)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      const tx = await this.contractTX.removeAuthorizer(authorizer)
+      await tx.wait()
+      console.log("tx >>  ", tx)
 
       return {
-        transactionDetails :transactionId
+        transactionDetails :tx
       };
 
     } catch (error) {
@@ -582,24 +390,24 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin get details of an authorizer in the contract
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
    *  authorizer{address} : "address of the account to be removed as an authhorizer",
    * }
    * @returns 
    *  authorizer{address}   Authorizer address
    *  type{string}          Authorization type
    */
-  async getAuthorizer(fromAddress, authorizer) {
+  async getAuthorizer(authorizer) {
     try {
-      const token = await contractInst.methods;
-      const result = await token
-        .getAuthorizer(authorizer)
-        .call({ from: fromAddress });
 
+      authorizer = ethers.utils.getAddress(authorizer)
+
+      const result = await this.contractInst.getAuthorizer(authorizer)
+        
       return {
         authorizer: result.authorizerAddr,
         type: result.authorizerType == 0 ? 'Pay Scheme' : 'Upfront Scheme'
       };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -609,7 +417,6 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin get authorizers of a schedule, approved or not
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
    *  scheduleId : "Unique schedule id",
    *  authorizerId : "Unique position of authorizer in the schedule, always within [0,1,2]"
    * }
@@ -617,17 +424,17 @@ exports.Token = class {
    *  authorizer{address}             address of the authorizer
    *  reason{string}            Reason for approval or rejection
    */
-  async getScheduleAuthorizer(fromAddress, scheduleId, authorizerIndex) {
+  async getScheduleAuthorizer(scheduleId, authorizerIndex) {
     try {
-      const token = await contractInst.methods;
-      const result = await token
-        .getScheduleAuthorizer(scheduleId, authorizerIndex)
-        .call({ from: fromAddress });
-      const reason = await web3.utils.toString(result.reason);
+
+      const result = await this.contractInst.getScheduleAuthorizer(scheduleId, authorizerIndex)
+      const reason = await ethers.utils.parseBytes32String(result.reason);
+
       return {
         authorizer: result.authorizerAddress,
         reason
       };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -637,17 +444,16 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin check if a shareholder is valid or not
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
    *  holder : "address of the shareholder"
    * }
    * @returns {boolean}
    */
-  async isValidShareholder(fromAddress, holder) {
+  async isValidShareholder(holder) {
     try {
-      const token = await contractInst.methods;
-      const result = await token.isValid(holder).call({ from: fromAddress });
+      const result = await this.contractInst.isValid(holder)
 
       return result;
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -657,15 +463,13 @@ exports.Token = class {
    * @description : This function allows the contract owner / admin check if a shareholder is withheld from operations
    * @dev : Can be called by either the Owner | Admins
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
    *  holder{address} : "address of the shareholder"
    * }
    * @returns {boolean}
    */
-  async isWithhold(fromAddress, holder) {
+  async isWithhold(holder) {
     try {
-      const token = await contractInst.methods;
-      const result = await token.isWithhold(holder).call({ from: fromAddress });
+      const result = await this.contractInst.isWithhold(holder)
 
       return result;
     } catch (error) {
@@ -677,17 +481,15 @@ exports.Token = class {
    * @description : This returns the tradable balance of a shareholder
    * @dev : Can be called by anyone
    * @params : {
-   *  fromAddress{address} : "Address of the function caller",
    *  holder{address} : "address of the shareholder"
    * }
    * @returns {Number}  Share holder balance
    */
-  async getBalance(fromAddress, holder) {
+  async getBalance(holder) {
     try {
-      const result = await contractInst.methods
-        .balanceOf(holder)
-        .call({ from: fromAddress });
-      return result;
+      const result = await this.contractInst.balanceOf(holder)
+        
+      return  result.toNumber();
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -700,54 +502,19 @@ exports.Token = class {
    *  holder{address} : "address of the recipient",
    *  amount{Number} : "Amount to transfer"
    */
-  async transfer(_privateKey, fromAddress, recipient, amount) {
+  async transfer(recipient, amount) {
     try {
-      const isValidHolder = await web3.utils.isAddress(recipient);
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
+      
+      recipient = ethers.utils.getAddress(recipient)
 
-      if (!isValidHolder) {
-        return 'Invalid shareholder address';
-      }
-      if (!isValidFrom) {
-        return 'Invalid initiator address';
-      }
+      const tx = await this.contractTX.transfer(recipient, amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
 
-      const gasPrice = 4;
-
-      const data = await contractInst.methods
-        .transfer(recipient, amount)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .transfer(recipient, amount)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
+      return {
+        transactionDetails : tx
       };
 
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
-      return transactionId;
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -765,55 +532,17 @@ exports.Token = class {
    *  transactionDetails : {}
    */
 
-  async approveSender(_privateKey, fromAddress, spender, amount) {
+  async approveSender(spender, amount) {
     try {
-      const isValidHolder = await web3.utils.isAddress(spender);
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
+      spender = ethers.utils.getAddress(spender)
 
-      if (!isValidHolder) {
-        return 'Invalid shareholder address';
-      }
-      if (!isValidFrom) {
-        return 'Invalid initiator address';
-      }
-
-      const gasPrice = 4;
-
-      const data = await contractInst.methods
+      const tx = await this.contractInst
         .approve(spender, amount)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .approve(spender, amount)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      await tx.wait();
+      console.log("tx >> ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -825,19 +554,20 @@ exports.Token = class {
    * @description : This function returns how much a spender has on a holders account
    * @dev : Called by anyone
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
    *  holder : "address of the account owner",
    *  spender : "Address of spender"
    * @returns {Number}    Spender allowance
    */
 
-  async getAllowance(fromAddress, holder, spender) {
+  async getAllowance(holder, spender) {
     try {
-      const token = await contractInst.methods;
-      const result = await token
-        .allowance(holder, spender)
-        .call({ from: fromAddress });
-      return result;
+
+      holder = ethers.utils.getAddress(holder)
+      spender = ethers.utils.getAddress(spender)
+
+      const result = await this.contractInst.allowance(holder, spender)
+        
+      return  result.toNumber();
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -847,8 +577,6 @@ exports.Token = class {
    * @description : This function allows a spender, transfer from a holder's account
    * @dev : Called by the spender account
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder{address} : "address of the account owner",
    *  recipient{address} : "Address of recipient",
    *  amount{Number} : " Amount to transfer"
@@ -856,55 +584,18 @@ exports.Token = class {
    * transactionDetails {object}
    */
 
-  async transferFrom(_privateKey, fromAddress, holder, recipient, amount) {
+  async transferFrom(holder, recipient, amount) {
     try {
-      const isValidHolder = await web3.utils.isAddress(recipient);
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
+      holder = ethers.utils.getAddress(holder)
+      recipient = ethers.utils.getAddress(recipient)
 
-      if (!isValidHolder) {
-        return 'Invalid shareholder address';
-      }
-      if (!isValidFrom) {
-        return 'Invalid initiator address';
-      }
-
-      const gasPrice = 4;
-
-      const data = await contractInst.methods
+      const tx = await this.contractInst
         .transferFrom(holder, recipient, amount)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .transferFrom(holder, recipient, amount)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      await tx.wait();
+      console.log("tx >> ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -916,8 +607,6 @@ exports.Token = class {
    * @description : This function allows the contract owner | admins add a shareholder
    * @dev : Called by Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder{address} : "address of the shareholder",
    *  isEnabled{boolean} : "accepts a boolean field, sets the shareholder to valid or not",
    *  isWithhold{boolean} : "accepts a boolean field, sets the shareholder to withhold or not"
@@ -926,62 +615,19 @@ exports.Token = class {
    */
 
   async addShareholder(
-    _privateKey,
-    fromAddress,
     holder,
     isEnabled,
     isWithhold
   ) {
     try {
-      console.log('here')
-      const isValidAddress = await web3.utils.isAddress(holder);
+      holder = ethers.utils.getAddress(holder)
 
-      if (!isValidAddress) {
-        return 'Invalid from address';
-      }
-
-      const gasPrice = 2000;
-
-      const data = await contractInst.methods
-        .addShareholder(holder, isEnabled, isWithhold)
-        .encodeABI();
-        console.log('here 2')
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-
-      const gasUsed = await contractInst.methods
-        .addShareholder(holder, isEnabled, isWithhold)
-        .estimateGas({
-          from: fromAddress
-        });
-        console.log('here 3')
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice.high * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.gasPrice = tx.sign(privateKey);
-      console.log('here 4', tx)
-
-      const serializedTx = tx.serialize();
-      console.log('here 5 ?> ', serializedTx)
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-      console.log('here 6 ?> ', transactionId)
-
+      const tx = await this.contractTX.addShareholder(holder, isEnabled, isWithhold)
+      await tx.wait();
+      console.log("tx >> ", tx)
+  
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -993,7 +639,6 @@ exports.Token = class {
    * @description : This function returns a shareholder details
    * @dev : Called anyone
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
    *  holder{address} : "address of the shareholder"
    * }
    * @returns 
@@ -1005,8 +650,9 @@ exports.Token = class {
         lien {number}
    */
 
-  async getShareholder(fromAddress, holder) {
+  async getShareholder(holder) {
     try {
+
       const {
         isEnabled,
         isWithhold,
@@ -1014,18 +660,18 @@ exports.Token = class {
         allocated,
         vesting,
         lien
-      } = await contractInst.methods
-        .getShareHolder(holder)
-        .call({ from: fromAddress });
+      } = await this.contractInst.getShareHolder(holder)
+        
 
       return {
         isEnabled,
         isWithhold,
-        tradable,
-        allocated,
-        vesting,
-        lien
+        tradable : tradable.toNumber(),
+        allocated: allocated.toNumber(),
+        vesting: vesting.toNumber(),
+        lien: lien.toNumber(),
       };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1035,8 +681,6 @@ exports.Token = class {
    * @description : This function updates a shareholder details
    * @dev : Called Owner | Admin
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder : "address of the shareholder",
    *  access : "Accepts bool, if holder is valid or not"
    *  withhold : "Accepts bool, if holder is withhold or not"
@@ -1045,62 +689,19 @@ exports.Token = class {
         transactionDetails {object}
    */
 
-  async updateShareholder(_privateKey, fromAddress, holder, access, withhold) {
+  async updateShareholder(holder, access, withhold) {
     try {
-      const isValidHolder = await web3.utils.isAddress(holder);
-      const isValidFrom = await web3.utils.isAddress(fromAddress);
+      holder = ethers.utils.getAddress(holder)
 
-      if (!isValidHolder) {
-        return 'Invalid shareholder address';
-      }
-      if (!isValidFrom) {
-        return 'Invalid initiator address';
-      }
+      const tx = await this.contractTX.updateShareHolder(holder, access, withhold)
+        await tx.wait();
+        console.log("tx >> ", tx)
+    
+        return {
+          transactionDetails : tx
+        };
 
-      if (typeof access != 'boolean') {
-        return 'Can only set shareholders status to true or false';
-      }
-
-      const gasPrice = 2000;
-
-      const data = await contractInst.methods
-        .updateShareHolder(holder, access, withhold)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .updateShareHolder(holder, access, withhold)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 4
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
-      return {
-        transactionDetails :transactionId
-      };
-
-    } catch (error) {
+      } catch (error) {
       return this.errorHandler(error);
     }
   }
@@ -1109,62 +710,24 @@ exports.Token = class {
    * @description : This function allows the contract owner | admins add a shareholder
    * @dev : Called by Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder{address} : "address of the shareholder",
    * @returns 
         transactionDetails {object}
    */
 
   async removeShareholder(
-    _privateKey,
-    fromAddress,
     holder
   ) {
     try {
-      const isValidAddress = await web3.utils.isAddress(holder);
+      holder = ethers.utils.getAddress(holder)
 
-      if (!isValidAddress) {
-        return "Invalid from address";
-      }
+      const tx = await this.contractTX.removeShareholder(holder)
 
-      const gasPrice = 2000;
-
-      const data = await contractInst.methods
-        .removeShareholder(holder)
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, "hex");
-
-      var nounce = await web3.eth.getTransactionCount(fromAddress, "pending");
-
-      const gasUsed = await contractInst.methods
-        .removeShareholder(holder)
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice.high * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.gasPrice = tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        "0x" + serializedTx.toString("hex")
-      );
-
+      await tx.wait();
+      console.log("tx >> ", tx)
+  
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -1177,17 +740,15 @@ exports.Token = class {
    * @description : This function returns count of shareholder total records in any category
    * @dev : Called anyone
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
    *  holder{address} : "address of the shareholder",
    *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
    * }
    * @returns {Number}    Total records in a share category for a particular shareholder
    */
 
-  async totalRecordsPerCat(fromAddress, holder, category) {
+  async totalRecordsPerCat(holder, category) {
     try {
-      const result = await contractInst.methods
-        .totalRecordsByCat(
+      const result = await this.contractInst.totalRecordsByCat(
           holder,
           category == "Tradable"
             ? 0
@@ -1199,7 +760,7 @@ exports.Token = class {
             ? 3
             : "00"
         )
-        .call({ from: fromAddress });
+        
 
       return result
     } catch (error) {
@@ -1223,7 +784,7 @@ exports.Token = class {
         isMovedToTradable{Boolean}    Weather or not the record has been moved to tradable
    */
 
-  async getRecordByCat(fromAddress, holder, category, recordId) {
+  async getRecordByCat(holder, category, recordId) {
     try {
       const {
         amount,
@@ -1231,8 +792,7 @@ exports.Token = class {
         duration,
         isWithdrawn,
         isMovedToTradable
-      } = await contractInst.methods
-        .recordByCat(
+      } = await this.contractInst.recordByCat(
           holder,
           category == 'Tradable'
             ? 0
@@ -1245,7 +805,7 @@ exports.Token = class {
             : "00",
           recordId
         )
-        .call({ from: fromAddress });
+        
 
       return {
         amount,
@@ -1263,8 +823,6 @@ exports.Token = class {
    * @description : This function allows Owner or admins create a new schedule
    * @dev : Called by only Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
    *  amount{Number} : "Amount specified for the schedule",
    *  scheduleType{String} : "Either 'Pay Scheme' or 'Upfront Scheme' ",
@@ -1275,61 +833,25 @@ exports.Token = class {
    */
 
   async createSchedule(
-    _privateKey,
-    fromAddress,
     scheduleId,
     amount,
     scheduleType,
     reason
   ) {
     try {
-      const gasPrice = 2000;
 
-      const data = await contractInst.methods
+      const tx = await this.contractTX
         .createSchedule(
           scheduleId,
           amount,
           scheduleType == 'Pay Scheme' ? 0 : 1,
-          web3.utils.toHex(reason)
+          ethers.utils.toHexString(reason)
         )
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .createSchedule(
-          scheduleId,
-          amount,
-          scheduleType == 'Pay Scheme' ? 0 : 1,
-          web3.utils.toHex(reason)
-        )
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
+      await tx.wait()
+      console.log("tx >> ", tx)
 
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -1341,8 +863,6 @@ exports.Token = class {
    * @description : This function allows Owner or admins remove a schedule
    * @dev : Called by only Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
@@ -1350,45 +870,15 @@ exports.Token = class {
         transactionDetails : {}
    */
 
-  async removeSchedule(_privateKey, fromAddress, scheduleId, reason) {
+  async removeSchedule(scheduleId, reason) {
     try {
-      const gasPrice = 2000;
 
-      const data = await contractInst.methods
-        .removeSchedule(scheduleId, web3.utils.toHex(reason))
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .removeSchedule(scheduleId, web3.utils.toHex(reason))
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
+      const tx = await this.contractInst.removeSchedule(scheduleId, ethers.utils.toHexString(reason))
+      await tx.wait()
+      console.log("tx >> ", tx)
+  
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -1400,7 +890,6 @@ exports.Token = class {
    * @description : This returns a schedule details
    * @dev : Called by only Owner | Admins | manager
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
    *  scheduleId{Number} : "Unique id for the schedule, used to identify the schedule"
    * }
    * @returns 
@@ -1412,7 +901,7 @@ exports.Token = class {
         isRejected{Boolean}           Returns true if the schedule has been rejected and false if not
    */
 
-  async getSchedule(fromAddress, scheduleId) {
+  async getSchedule(scheduleId) {
     try {
       const {
         scheduleType,
@@ -1421,9 +910,7 @@ exports.Token = class {
         isActive,
         isApproved,
         isRejected
-      } = await contractInst.methods
-        .getSchedule(scheduleId)
-        .call({ from: fromAddress });
+      } = await this.contractInst.getSchedule(scheduleId)
 
       return {
         scheduleType: scheduleType == 0 ? 'Pay Scheme' : 'Upfront Scheme',
@@ -1442,8 +929,6 @@ exports.Token = class {
    * @description : This function allows the authorizer approve a schedule
    * @dev : Called by only authorizers
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{string} : "Reasone for approval"
    * }
@@ -1451,41 +936,17 @@ exports.Token = class {
    *  transactionDetails : {}
    */
 
-  async approveSchedule(_privateKey, fromAddress, scheduleId, reason) {
+  async approveSchedule(scheduleId, reason) {
     try {
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      const data = await contractInst.methods
-        .approveSchedule(scheduleId, web3.utils.toHex(reason))
-        .encodeABI();
-
-      const gasPrice = 2000;
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-      const gasUsed = await contractInst.methods
-        .approveSchedule(scheduleId, web3.utils.toHex(reason))
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
+      
+      const tx = await this.contractTX.approveSchedule(scheduleId, ethers.utils.toHexString(reason))
+      await tx.wait()
+      console.log("tx >> ", tx)
+  
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
+
 
     } catch (error) {
       return this.errorHandler(error);
@@ -1496,8 +957,6 @@ exports.Token = class {
    * @description : This function allows the authorizer reject a schedule
    * @dev : Called by only authorizers
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{String} : "Reasone for approval"
    * }
@@ -1505,40 +964,15 @@ exports.Token = class {
    *  transactionDetails : {}
    */
 
-  async rejectSchedule(_privateKey, fromAddress, scheduleId, reason) {
+  async rejectSchedule(scheduleId, reason) {
     try {
-      const privateKey = Buffer.from(_privateKey, 'hex');
-      const data = await contractInst.methods
-        .rejectSchedule(scheduleId, web3.utils.toHex(reason))
-        .encodeABI();
-
-      const gasPrice = 2000;
-      const nounce = await web3.eth.getTransactionCount(fromAddress, 'pending');
-      const gasUsed = await contractInst.methods
-        .rejectSchedule(scheduleId, web3.utils.toHex(reason))
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-      tx.gasPrice = tx.sign(privateKey);
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
+      
+      const tx = await this.contractTX.rejectSchedule(scheduleId, ethers.utils.toHexString(reason))
+      await tx.wait()
+      console.log("tx >> ", tx)
+  
       return {
-        transactionDetails : transactionId
+        transactionDetails : tx
       };
 
     } catch (error) {
@@ -1550,8 +984,6 @@ exports.Token = class {
    * @description : This function allows the Owner | Admins mint tokens to an account
    * @dev : Called by only Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  scheduleId : "Unique schedule id",
    *  recipient : "recipient account",
    *  amount : "How much to mint to recipient",
@@ -1564,8 +996,6 @@ exports.Token = class {
    */
 
   async mint(
-    _privateKey,
-    fromAddress,
     scheduleId,
     recipient,
     amount,
@@ -1574,10 +1004,9 @@ exports.Token = class {
     reason
   ) {
     try {
-      const gasPrice = 2000;
+      recipient = ethers.utils.getAddress(recipient)
 
-      const data = await contractInst.methods
-        .mint(
+      const tx = await this.contractTX.mint(
           scheduleId,
           recipient,
           amount,
@@ -1591,56 +1020,15 @@ exports.Token = class {
                   ? 3
                   : '00',
           duration,
-          web3.utils.toHex(reason)
+          ethers.utils.toHexString(reason)
         )
-        .encodeABI();
+        await tx.wait()
+        console.log("tx >> ", tx)
+    
+        return {
+          transactionDetails : tx
+        };
 
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .mint(
-          scheduleId,
-          recipient,
-          amount,
-          shareCat == 'Tradable'
-            ? 0
-            : shareCat == 'Lien'
-              ? 1
-              : shareCat == 'Allocated'
-                ? 2
-                : shareCat == 'Vesting'
-                  ? 3
-                  : '00',
-          duration,
-          web3.utils.toHex(reason)
-        )
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-      return {
-        transactionDetails : transactionId
-      };
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -1650,8 +1038,6 @@ exports.Token = class {
    * @description : This function allows the Owner | Admins move holder's tokens from any of the categories to tradable
    * @dev : Called by only Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder{address} : "holder account",
    *  shareCat{string} : "Token category to move to tradable",
    *  recordId{Number} : "Index of record to move in the specified category",
@@ -1660,12 +1046,11 @@ exports.Token = class {
    *  transactionDetails : {}
    */
 
-  async makeTradable(_privateKey, fromAddress, holder, shareCat, recordId) {
+  async makeTradable(holder, shareCat, recordId) {
     try {
-      const gasPrice = 2000;
+      holder = ethers.utils.getAddress(holder)
 
-      const data = await contractInst.methods
-        .moveToTradable(
+      const tx = await this.contractTX.moveToTradable(
           holder,
           shareCat == 'Tradable'
             ? 0
@@ -1678,52 +1063,12 @@ exports.Token = class {
                   : '00',
           recordId
         )
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .moveToTradable(
-          holder,
-          shareCat == 'Tradable'
-            ? 0
-            : shareCat == 'Lien'
-              ? 1
-              : shareCat == 'Allocated'
-                ? 2
-                : shareCat == 'Vesting'
-                  ? 3
-                  : '00',
-          recordId
-        )
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
-      return {
-        transactionDetails : transactionId
-      };
+        await tx.wait()
+        console.log("tx >> ", tx)
+    
+        return {
+          transactionDetails : tx
+        };
 
     } catch (error) {
       return this.errorHandler(error);
@@ -1734,8 +1079,6 @@ exports.Token = class {
    * @description : This function allows the Owner | Admins withdraw from a  holder's tokens from any of the categories to tradable
    * @dev : Called by only Owner | Admins
    * @params : {
-    *  fromAddress{address} : "Address of the function caller",
-    *  _privateKey{string} : "Private key of the function caller, used to sign the message",
    *  holder : "holder account",
    *  amount : "Amount to withdraw, optional for other category except tradable"
    *  shareCat : "Token category to withdraw from",
@@ -1746,8 +1089,6 @@ exports.Token = class {
    */
 
   async withdraw(
-    _privateKey,
-    fromAddress,
     holder,
     amount,
     shareCat,
@@ -1755,10 +1096,9 @@ exports.Token = class {
     reason
   ) {
     try {
-      const gasPrice = 2000;
+      holder = ethers.utils.getAddress(holder)
 
-      const data = await contractInst.methods
-        .withdraw(
+      const tx = await this.contractTX.withdraw(
           holder,
           amount,
           shareCat == 'Tradable'
@@ -1773,54 +1113,12 @@ exports.Token = class {
           recordId,
           web3.utils.toHex(reason)
         )
-        .encodeABI();
-
-      const privateKey = Buffer.from(_privateKey, 'hex');
-
-      const nounce = await web3.eth.getTransactionCount(fromAddress);
-
-      const gasUsed = await contractInst.methods
-        .withdraw(
-          holder,
-          amount,
-          shareCat == 'Tradable'
-            ? 0
-            : shareCat == 'Lien'
-              ? 1
-              : shareCat == 'Allocated'
-                ? 2
-                : shareCat == 'Vesting'
-                  ? 3
-                  : '00',
-          recordId,
-          web3.utils.toHex(reason)
-        )
-        .estimateGas({
-          from: fromAddress
-        });
-
-      const txParams = {
-        nonce: nounce,
-        gasLimit: gasUsed || 1200000,
-        gasPrice: gasPrice * 1000000000,
-        from: fromAddress,
-        to: deployedContractAddr,
-        data,
-        chainId: 5777
-      };
-
-      const tx = await new EthereumTx(txParams);
-
-      tx.sign(privateKey);
-
-      const serializedTx = tx.serialize();
-      const transactionId = await web3.eth.sendSignedTransaction(
-        `0x${serializedTx.toString('hex')}`
-      );
-
-      return {
-        transactionDetails : transactionId
-      };
+        await tx.wait()
+        console.log("tx >> ", tx)
+    
+        return {
+          transactionDetails : tx
+        };
     } catch (error) {
       return this.errorHandler(error);
     }

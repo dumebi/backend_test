@@ -4,12 +4,12 @@ const fs = require('fs');
 
 const TokenContract = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'token.sol'
 );
 const MessagesLibrary = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'libMsgCode.sol'
 );
 // const AuthorizerLib = path.join(
@@ -19,12 +19,12 @@ const MessagesLibrary = path.join(
 // );
 const OwnerLib = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'libOwner.sol'
 );
 const TokenFuncLib = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'libTokenFunc.sol'
 );
 // const TokenScheduleLib = path.join(
@@ -34,17 +34,17 @@ const TokenFuncLib = path.join(
 // );
 const TokenSafeMathLib = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'libSafeMath.sol'
 );
 const InterfaceIERCs = path.join(
   __dirname,
-  '../../blockchain/contracts',
+  'contracts',
   'iERCs.sol'
 );
 const InterfaceSharing = path.join(
   __dirname,
-  "../../blockchain/contracts",
+  "contracts",
   "libSharing.sol"
 );
 
@@ -90,8 +90,16 @@ var input = {
         '*': ['abi', 'evm.bytecode']
       }
     }
+    // libraries: {
+    //   // The top level key is the the name of the source file where the library is used.
+    //   // If remappings are used, this source file should match the global path after remappings were applied.
+    //   // If this key is an empty string, that refers to a global level.
+    //   "myFile.sol": {
+    //     "MyLib": "0x123123..."
+    //   }
+    }
+ 
   }
-};
 
 function getImports(dependency) {
   // console.log("Searching for dependency: ", dependency);

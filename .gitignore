@@ -13,13 +13,11 @@ package-lock.json
 logs
 *.log
 npm-debug.log*
+
+#Environment
 yarn.lock
-<<<<<<< HEAD
 .env
+
+#Docker
 Dockerfile
 Dockerfile.dev
-=======
-
-# Externals
-external
->>>>>>> oluchi
