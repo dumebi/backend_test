@@ -8,24 +8,6 @@ console.log("config.Contract >> ", config.contract)
 const deployedContractAddr = config.contract;
 const contractABI = compiledTokenContract.abi;
 
-// Steps to Replicate
-// => Copy contract folder from the Blockcjhain directory into remix
-// => Compile and deploy the token, this will as part of it's dependencies deploy the associated libraries
-// => Copy the deployed contract address from remix and replace the "deployedContractAddr" variable with it
-// => Call libraryu functions to talk with the blockchain
-
-
-
-// Contract Deployment Params
-
-// _symbol {string}  The Token Symbol
-// _name:  {string}  The Token Name
-// _granular: {uint8} The Token Granularity
-// _tokenbase: {address} The Tokenbase address, where withdrawed tokens will sit
-// owner: {address}    The Token Contract owner Address
-
-
-
 // Error Meaning
 
 // errorCode: "UNVERIFIED_HOLDER",
