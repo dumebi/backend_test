@@ -1,3 +1,9 @@
 dump.rdb
 .log
 */node_modules
+#.env
+.gitignore
+README.md
+.eslintrc.json
+.vs
+package-lock.json

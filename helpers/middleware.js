@@ -9,27 +9,26 @@ const {
  * Check Query originates from resource with at user rights
  */
 exports.isUser = async (req, res, next) => {
+  console.log("req > ", req, "res > ", res, "next > ", next)
   try {
     const token = await checkToken(req);
-    //if (token.status === 'failed') {
-      if (true) {
-        // return res.status(token.data).json({
-        //   status: 'failed',
-        //   message: token.message
-        // })
-        next()
+    if (token.status === 'failed') {
+        return res.status(token.data).json({
+          status: 'failed',
+          message: token.message
+        })
       }
     if (token.data.type === Object.values(UserModel.UserType)[0]
       || token.data.type === Object.values(UserModel.UserType)[1]
       || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
+      req.jwtUser = token.data.id
       next()
     } else {
-      // return res.status(HttpStatus.UNAUTHORIZED).json({
-      //   status: 'failed',
-      //   data: 'Access not granted to this resource.'
-      // })
-      next()
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        status: 'failed',
+        data: 'Access not granted to this resource.'
+      })
     }
   } catch (err) {
     return res.status(HttpStatus.BAD_REQUEST).json({
@@ -45,7 +44,6 @@ exports.isUser = async (req, res, next) => {
 exports.isAdmin = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    console.log(token)
     if (token.status === 'failed') {
       return res.status(token.data).json({
         status: 'failed',

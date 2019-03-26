@@ -1,53 +1,72 @@
 // Import libraries
-const Web3 = require("web3");
-const utils = require("../helpers/utils");
+const ethers = require("ethers");
 const ethUtil = require("ethereumjs-util");
-const EthereumTx = require("ethereumjs-tx");
+const Ganache = require("ganache-cli");
+const {config} = require('../helpers/utils');
 
 let coinbase_amount = 0;
-let coinbase = "";
+let coinbase = '';
 
 // Setup RPC connection
-const provider = utils.config.blockchain;
-const wsProvider = new Web3.providers.WebsocketProvider("ws://localhost:7545");
-const web3 = new Web3(wsProvider);
-// const ganache = require("ganache-cli");
-// const server = ganache.server();
-// server.listen(7545, function(err, blockchain) {
-//   console.log("blockchain >> ", blockchain);
-// });
+const ethProvider = new ethers.providers.JsonRpcProvider("http://10.0.12.71:8545")
+ 
+// async function GanacheGeneralHttpWebSockerServer() {
+//     try {
+//         const server = await Ganache.server({
+//             default_balance_ether : 3000000000,
+//             total_accounts : 10,
+//             ws : true
+//         });
+//         server.listen(8545, async function(err, blockchain) {
+//             if (err) {
+//                 throw err
+//             }
+//             console.log("blockchain >> ", blockchain)
+//             provider = "http://localhost:8545";
+//             // console.log(ethProvider)
+//         });
+
+//     } catch (error) {
+//         console.log("error >> ", error)
+//     }
+//     // server.listen(8545, function(err, blockchain) {
+//     //     console.log("blockchain >> ", blockchain)
+//     //     provider = config.blockchain;
+//     //     ethProvider = new ethers.providers.Json/RpcProvider("http://localhost:8545")
+//     // });
+// }
+// GanacheGeneralHttpWebSockerServer()
 
 /**
  * Get Coinbase address and amount
  */
-exports.getCoinbase = async () => {
-  try {
-    // console.log('coinbase')
-    web3.eth.getCoinbase((err, account) => {
-      if (err === null) {
-        // console.log(err, coinbase)
-        coinbase = account
-        // $('#account').text(account);
-        web3.eth.getBalance(account, (error, balance) => {
-          if (error === null) {
-            console.log(error, balance)
-            coinbase_amount = web3.utils.fromWei(balance, 'ether')
-            console.log(coinbase, coinbase_amount)
-          }
-        })
-      } else {
-        console.log(err)
-      }
-    })
-  } catch (err) {
-    console.log('error')
-    console.log(err)
-  }
-};
+// exports.getCoinbase = async () => {
+//   try {
+//     // console.log('coinbase')
+//     web3.eth.getCoinbase((err, account) => {
+//       if (err === null) {
+//         // console.log(err, coinbase)
+//         coinbase = account
+//         // $('#account').text(account);
+//         web3.eth.getBalance(account, (error, balance) => {
+//           if (error === null) {
+//             console.log(error, balance)
+//             coinbase_amount = web3.utils.fromWei(balance, 'ether')
+//             console.log(coinbase, coinbase_amount)
+//           }
+//         })
+//       } else {
+//         console.log(err)
+//       }
+//     })
+//   } catch (err) {
+//     console.log('error')
+//     console.log(err)
+//   }
+// };
 
-exports.web3 = web3;
-// exports.UserContract = UserContract
-exports.coinbase = coinbase
-exports.coinbase_amount = coinbase_amount
+exports.ethers = ethers;
+exports.ethProvider = ethProvider
+// exports.coinbase = coinbase
+// exports.coinbase_amount = coinbase_amount
 exports.ethUtil = ethUtil
-exports.EthereumTx = EthereumTx

@@ -83,8 +83,22 @@ library TokenFunc {
     }
     
     
-    function messageForTransferRestriction (uint8 restrictionCode) public view returns (string memory){
+    function messageForTransferRestriction (uint8 restrictionCode) internal pure returns (string memory){
         return MessagesAndCodes.appCode(restrictionCode);
+    }
+    
+    function addToEscrow(Sharing.DataToken storage self, address _holder, uint _amount) internal returns(uint totalInEscrow) {
+        self.exchangeEscrow[_holder] = self.exchangeEscrow[_holder].add(_amount);
+        totalInEscrow = self.exchangeEscrow[_holder];
+    }
+    
+    function removeFromEscrow(Sharing.DataToken storage self, address _holder, uint _amount) internal returns(uint totalInEscrow) {
+        self.exchangeEscrow[_holder] = self.exchangeEscrow[_holder].sub(_amount);
+        totalInEscrow = self.exchangeEscrow[_holder];
+    }
+    
+    function totalInEscrow(Sharing.DataToken storage self, address _holder) internal view returns(uint total) {
+       return self.exchangeEscrow[_holder];
     }
         
     function getRecordByCat(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, uint _catIndex) internal view returns (uint256 amount, uint256 dateAdded, uint256 duration, bool isMovedToTradable, bool isWithdrawn) {
@@ -177,8 +191,10 @@ library TokenFunc {
     }
     
     function withdraw(Sharing.DataToken storage self, uint8 _granularity, address _coinBase, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint _recordId, bytes memory _reason) internal returns (string memory success) {
- 
-        require(_amount % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
+        
+        if(_amount % _granularity != 0) {
+           return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR));
+        }
         if (Sharing.TokenCat.Lien == _sitCat) {
             require(!self.mLiens[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
             self.mLiens[_holder][_recordId].amount = 0;

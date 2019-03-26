@@ -1,30 +1,38 @@
 const Joi = require('joi');
+const HttpStatus = require('./status')
 
-module.exports = {
-
-  async users(userObj) {
+  
+  exports.wallet = async (req, res, next) => {
     try {
       const schema = Joi.object().keys({
-        userType: Joi.string().alphanum().required(),
-        employmentStatus: Joi.string().required(),
-        userGroup: Joi.string().required(),
-        staffId: Joi.string().required(),
-        email: Joi.string().email({ minDomainAtoms: 2 }).required(),
-        fullname: Joi.string().required(),
-        isVesting: Joi.boolean().required(),
-        lienPeriod: Joi.number().integer().required(),
-        dividendAcct: Joi.string().allow(''),
-        beneficiary: Joi.string().allow(''),
-        password: Joi.string().required(),
-        workflow: Joi.boolean().default(false),
-        status: Joi.string().allow('')
+        account: Joi.string().required().label("Account is required!")
       })
 
-      const result = await Joi.validate(userObj, schema);
+      await Joi.validate(req.body, schema);
+      next()
 
-      return result
     } catch (error) {
-      throw error
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          status: 'failed',
+          message: error.details,
+        })
+    }
+  },
+
+  exports.walletAction =  async (req, res, next) => {
+    try {
+      const schema = Joi.object().keys({
+        amount: Joi.number().required().label("Amount is required!"),
+        remark: Joi.string().label("Remark must be a string!")
+      })
+
+      await Joi.validate(req.body, schema);
+      next()
+      
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: error.details,
+      })
     }
   }
-}

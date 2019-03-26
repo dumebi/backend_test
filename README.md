@@ -101,9 +101,7 @@ What is left :
 Test with Remix
 Write Solidity test
 Write Javascript Test
-Write Oraclize for detectrestriction
 Write Upgradability Functions, function to disable(If this function is called, no interaction can occur to the contract unless it is enabled ahain, ) an to selfDestroy
-Oraclize.
 
 Optimization Check
 Ensure all delecate functionality is ascertained with assert()
@@ -162,3 +160,10 @@ Handle Nounce Error
 Handle Revert Error(solidity error handling)
 Handle Runtime Error
 Handle Argument Error
+
+Error Handling
+Insufficient funds (ethers)
+
+TODO:
+List of all allawance for a user
+List of all spender on my account

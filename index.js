@@ -1,79 +1,89 @@
-// Package Dependencies
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const winston = require('winston');
-const cors = require('cors');
-const compression = require('compression');
-const flash = require('connect-flash');
-const base = require('./libraries/base')
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-restricted-globals */
+/**
+ * Module dependencies.
+ */
 
-const app = express();
+const debug = require('debug')('sttp:server');
+const http = require('http');
+const app = require('./server')
 require('dotenv').config();
-require('./helpers/connection').start();
 
-// redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
+/**
+ * Get port from environment and store in Express.
+ */
 
-// logger settings
-const appLogger = winston.createLogger({
-  transports: [
-    new (winston.transports.File)({
-      name: 'info-file',
-      filename: 'logs/sttp.log',
-      level: 'info'
-    }),
-    new (winston.transports.File)({
-      name: 'error-file',
-      filename: 'logs/sttp.log',
-      level: 'error'
-    })
-  ]
-});
+const port = normalizePort(process.env.PORT) || 8080;
+app.set('port', port);
 
-// Midelware stack
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(cookieParser());
-app.use(cors());
-app.use(compression());
-app.use(flash());
-app.use(logger('dev'));
+/**
+ * Create HTTP server.
+ */
 
+const server = http.createServer(app);
 
-/* Application Routes */
-app.use('/v1/', require('./routes'));
-// require("./libraries/events.js");
+/**
+ * Listen on provided port, on all network interfaces.
+ */
 
-// catch 404 and forward to error handler
-app.use((next) => {
-  let error = {
-    status: 404,
-    success: 'failed',
-    message: 'Page Not Found'
-  };
-  next(error);
-});
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
 
-// error handler
-app.use((err, req, res) => {
-  // We log the error internaly
-  appLogger.error(err);
+/**
+ * Normalize a port into a number, string, or false.
+ */
 
-  //  Remove Error's `stack` property. We don't want users to see this at the production env
-  if (req.app.get('env') !== 'development') {
-    delete err.stack;
-    delete err.devError;
+function normalizePort(val) {
+  const portVal = parseInt(val, 10);
+
+  if (isNaN(portVal)) {
+    // named pipe
+    return val;
   }
 
-  const httpErr = err.http
-  delete err.http
+  if (portVal >= 0) {
+    // port number
+    return portVal;
+  }
 
-  // This responds to the request
-  res.status(httpErr || 500).json(err);
-});
+  return false;
+}
 
-base.getCoinbase()
+/**
+ * Event listener for HTTP server "error" event.
+ */
 
-module.exports = app;
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(`${bind} requires elevated privileges`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`${bind} is already in use`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+  debug(`Listening on ${bind}`);
+}
+
+module.exports = server;

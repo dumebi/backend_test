@@ -1,51 +1,53 @@
-var Role = require('../models/userRolePermissions');
-var mongoose = require('mongoose');
+const User = require('../models/user');
+const EthAccount = require('../libraries/ethUser.js');
+const secure = require('../helpers/encryption.js');
 
 console.log('This script seeds startup data into the db.');
 
-//Get arguments passed on command line
-var argsPassed = process.argv.slice(2);
-if (!argsPassed[0].startsWith('mongodb://')) {
-    console.log('ERROR: You need to specify a valid mongodb URL as the first argument');
-    return
-}
+async function dbSeeder() {
+  try {
+    const userMnemonic = await EthAccount.newMnemonic()
+    const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
+    const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
+    const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
 
-const mongoDB =  argsPassed[0];
-mongoose.connect(mongoDB);
-mongoose.Promise = global.Promise;
+    const users = [
+      {
+        fname: 'Oluwadara',
+        mname: 'Ayotunde',
+        lname: 'Olayebi',
+        email: 'admin@gmail.com',
+        phone: '09088994563',
+        sex: 'Female',
+        type: User.UserType.ADMIN,
+        staffId: '004502',
+        // houseAddress: 'Head Office, Marina',
+        employment: User.EmploymentStatus.EMPLOYED,
+        group: User.UserGroup.ET,
+        beneficiary: 'Dara',
+        activated: true,
+        enabled: true,
+        password: '12345678',
+        vesting: false,
+        mnemonic,
+        privateKey,
+        publicKey,
+        address: Ethkeys.childAddress
+      }
+    ]
 
+    const userSavePromise = users.map(user => User.create(user))
+    const newUsers = await Promise.all(userSavePromise)
+    console.log(newUsers)
 
-const roles = [
-    {
-        role: "Admin",
-        permissions : []
-    },
-    {
-        role: "Authorizer",
-        permissions : []
-    },
-    {
-        role: "User",
-        permissions : []
-    }
-]
-
-var dbSeeder =  async function() {
-    try {
-
-        for (let i = 0; i < roles.length; i++) {
-
-            let saveRole = new Role(roles[i]);
-            result = await saveRole.save()
-            console.log('result >>> ',result, '\n')
-        }
-
-        mongoose.disconnect()
-
-    } catch (error) {
-        console.log('error >>> ', error)
-    }
-        
+    // for (let i = 0; i < users.length; i++) {
+    //   const saveUser = new User(users[i]);
+    //   result = await saveUser.save()
+    //   // console.log('result >>> ',result, '\n')
+    // }
+  } catch (error) {
+    console.log('error >>> ', error)
+  }
 }
 
 dbSeeder()

@@ -1,12 +1,11 @@
 const UserModel = require('../models/user.js');
 const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
-const Wallet = require('../models/wallet.js');
 const { getAsync, client } = require('../helpers/redis');
 const {
   paramsNotValid, checkToken
 } = require('../helpers/utils');
-
+const publisher = require('../helpers/rabbitmq');
 
 const UserController = {
 
@@ -114,12 +113,8 @@ const UserController = {
         { safe: true, multi: true, new: true }
       )
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -156,15 +151,15 @@ const UserController = {
           message: token.message
         })
       }
-      const user = await UserModel.findById(token.data.id)
+      const user = await UserModel.findById(token.data.id).populate('wallet')
 
       if (user) {
-        const user_wallet = await Wallet.findById(user.wallet)
-
+        // const user_wallet = await Wallet.findById(user.wallet)
+        console.log(user)
         return res.status(HttpStatus.OK).json({
           status: 'success',
-          message: 'User balance gotten successfully',
-          data: user_wallet.bank
+          message: 'User bank gotten successfully',
+          data: user.wallet.bank
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({
@@ -197,16 +192,16 @@ const UserController = {
           message: token.message
         })
       }
-      const user = await UserModel.findById(token.data.id)
+      const user = await UserModel.findById(token.data.id).populate('wallet')
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        const user_wallet = await Wallet.findById(user.wallet)
+        // const user_wallet = await Wallet.findById(user.wallet)
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
-          data: { naira: user_wallet.balance, sit: 0 }
+          data: { naira: user.wallet.balance, sit: 0 }
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({
@@ -287,12 +282,8 @@ const UserController = {
         { safe: true, multi: true, new: true }
       )
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -338,12 +329,8 @@ const UserController = {
       )
 
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -389,12 +376,8 @@ const UserController = {
       )
 
       if (user) {
-        let newUser = JSON.stringify(user)
-        newUser = JSON.parse(newUser)
-        delete newUser.password;
-
-
-        await UserController.addUserOrUpdateCache(newUser)
+        const newUser = UserController.deepCopy(user)
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
 
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -418,120 +401,39 @@ const UserController = {
   },
 
   /**
-   * Buy Token
-   * @description Buy an SIT token
-   * @param amount amount of tokens
-   * @return {object} user
-   */
-  async buy(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.amount)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
-
-      if (user) {
-        // TODO: Get price of token
-        // TODO: Subtract price from user balance
-        // TODO: Call buy token function
-        // TODO: Add to transaction
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User balance gotten successfully',
-          data: null
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error purchasing tokens',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-   * Sell Token
-   * @description Sell an SIT token
-   * @param amount amount of tokens
-   * @return {object} user
-   */
-  async sell(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.amount)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
-
-      if (user) {
-        // TODO: Get price of token
-        // TODO: Add price from user naira balance
-        // TODO: Call sell token function
-        // TODO: Add to transaction
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User balance gotten successfully',
-          data: null
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error purchasing tokens',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
    * Redis Cache User
    * @description Add or Update redis user caching
    * @param user User object
    */
   async addUserOrUpdateCache(user) {
     try {
+      console.log(user)
       const sttpUsers = await getAsync('STTP_users');
       if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
         const users = JSON.parse(sttpUsers);
         users[user._id] = user
         await client.set('STTP_users', JSON.stringify(users));
       }
+    } catch (err) {
+      console.log(err)
+    }
+  },
+
+  /**
+   * Deep Copy
+   * @description copy mongo object into  a user object
+   * @param user User object
+   */
+  deepCopy(user) {
+    try {
+      let newUser = JSON.stringify(user)
+      newUser = JSON.parse(newUser)
+      delete newUser.password;
+      delete newUser.mnemonic;
+      delete newUser.privateKey;
+      delete newUser.publicKey;
+
+      return newUser;
     } catch (err) {
       console.log(err)
     }

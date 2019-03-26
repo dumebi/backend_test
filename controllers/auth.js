@@ -4,13 +4,12 @@ const EthAccount = require('../libraries/ethUser.js');
 // const validate = require('../helpers/validation.js');
 const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
-const WalletModel = require('../models/wallet');
-const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const {
-  paramsNotValid, sendMail, createToken, config, checkToken
+  paramsNotValid, createToken, config, checkToken
 } = require('../helpers/utils');
 const HttpStatus = require('../helpers/status');
-const { addUserOrUpdateCache } = require('../controllers/user');
+const { deepCopy } = require('../controllers/user');
+const publisher = require('../helpers/rabbitmq');
 
 const AuthController = {
   /**
@@ -87,7 +86,6 @@ const AuthController = {
    * @param {string} type         User type
    * @param {string} employment   User employment
    * @param {string} group        User group
-   * @param {string} account        User group
    * @param {string} staffId      User staff ID
    * @return {object} user
    */
@@ -95,7 +93,7 @@ const AuthController = {
     try {
       if (paramsNotValid(req.body.fname, req.body.lname, req.body.email, req.body.phone,
         req.body.sex, req.body.dob, req.body.password, req.body.vesting,
-        req.body.type, req.body.employment, req.body.group, req.body.account, req.body.staffId)) {
+        req.body.type, req.body.employment, req.body.group, req.body.staffId)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -135,38 +133,11 @@ const AuthController = {
       const jwtToken = createToken(user.email, user._id, user.type);
       user.token = jwtToken;
 
-      await user.save()
-
-      const userWallet = await new WalletModel.create({
-        user: user.id,
-        balance: 0,
-        account_number: req.body.account
-      })
-
-      console.log("userWallet >> " , userWallet)
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-      delete newUser.mnemonic;
-      delete newUser.privateKey;
-      delete newUser.publicKey;
-
-      await addUserOrUpdateCache(newUser)
+      const newUser = deepCopy(user)
 
       const link = `${config.host}/users/activate/${Buffer.from(user.email).toString('base64')}`
 
-      const userTokenMailBody = sendUserSignupEmail(user, link)
-      const mailparams = {
-        email: user.email,
-        body: userTokenMailBody,
-        subject: 'Activate your account'
-      };
-      sendMail(mailparams, (error, result) => {
-        console.log(error)
-        console.log(result)
-      });
-
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser }), publisher.queue('SEND_USER_STTP_SIGNUP_EMAIL', { user, link })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User created successfully', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -195,10 +166,12 @@ const AuthController = {
           message: 'some parameters were not supplied'
         })
       }
+
       const email = req.body.email;
       const password = req.body.password;
-      const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password').populate('wallet');
+      const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password');
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
+
       if (!user.validatePassword(password)) {
         return res.status(401).json({ status: 'failed', message: 'Wrong password' });
       }
@@ -207,14 +180,9 @@ const AuthController = {
       }
       const jwtToken = createToken(email, user._id, user.type);
       user.token = jwtToken;
-      await user.save();
-      // Deep copy
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
+      const newUser = deepCopy(user)
 
-      await addUserOrUpdateCache(newUser)
-
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User signed in', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -247,14 +215,8 @@ const AuthController = {
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = true;
-      await user.save();
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User activated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -286,14 +248,8 @@ const AuthController = {
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
 
       user.activated = false;
-      await user.save();
-
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'User deactivated' });
     } catch (error) {
       console.log('error >> ', error)
@@ -330,18 +286,8 @@ const AuthController = {
         charset: 'numeric'
       });
       user.recover_token = user.encrypt(token);
-      await user.save();
 
-      const userTokenMailBody = sendUserToken(user, token)
-      const mailparams = {
-        email: user.email,
-        body: userTokenMailBody,
-        subject: 'Recover your password'
-      };
-      sendMail(mailparams, (error, result) => {
-        console.log(error)
-        console.log(result)
-      });
+      await Promise.all([user.save(), publisher.queue('SEND_USER_STTP_TOKEN_EMAIL', { user, token })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
     } catch (error) {
       console.log('error >> ', error)
@@ -387,14 +333,8 @@ const AuthController = {
       user.password = user.encrypt(password);
       user.token = jwtToken;
 
-      // Deep copy
-      await user.save()
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
-
-      await addUserOrUpdateCache(newUser)
-
+      const newUser = deepCopy(user)
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Password reset', data: newUser });
     } catch (error) {
       console.log('error >> ', error)
@@ -407,43 +347,6 @@ const AuthController = {
       next(err)
     }
   },
-
-  // /**
-  //    * Send token to a user
-  //    * @param {string} email
-  //    * @return {null}
-  //    */
-  // async token(req, res, next) {
-  //   try {
-  //     if (paramsNotValid(req.body.email)) {
-  //       return res.status(HttpStatus.PRECONDITION_FAILED).json({
-  //         status: 'failed',
-  //         message: 'some parameters were not supplied'
-  //       })
-  //     }
-  //     const email = req.body.email;
-  //     const user = await UserModel.findOne({ email });
-  //     if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
-
-  //     const token = randomstring.generate({
-  //       length: 5,
-  //       charset: 'numeric'
-  //     });
-  //     user.recover_token = user.encrypt(token);
-  //     await user.save();
-
-  //     return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token sent', data: token });
-  //   } catch (error) {
-  //     console.log('error >> ', error)
-  //     const err = {
-  //       http: HttpStatus.BAD_REQUEST,
-  //       status: 'failed',
-  //       message: 'Error getting user',
-  //       devError: error
-  //     }
-  //     next(err)
-  //   }
-  // },
 
   /**
      * Change User Password
@@ -468,11 +371,9 @@ const AuthController = {
       const user = await UserModel.findById(token.data.id);
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       user.password = user.encrypt(req.body.password);
-      await user.save()
 
-      let newUser = JSON.stringify(user)
-      newUser = JSON.parse(newUser)
-      delete newUser.password;
+      const newUser = deepCopy(user)
+      await Promise.all([user.save()])
 
       return res.status(HttpStatus.OK).json({
         status: 'success',
