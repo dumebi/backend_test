@@ -98,7 +98,7 @@ const TokenController = {
         if (result.status === 'success') {
           const newamount = lowestSellOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          result = await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
+          await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
         }
       }
     } else {
@@ -147,7 +147,7 @@ const TokenController = {
         if (result.status === 'success') {
           const newamount = highestBuyOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          result = await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
+          await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
         }
       }
     } else {
@@ -220,12 +220,12 @@ const TokenController = {
       result = {
         http: HttpStatus.OK,
         status: 'success',
-        message: 'Buy process completed successfully'
+        message: 'Sell process completed successfully'
       }
     }
-    await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
-      result, seller
-    })])
+    // await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
+    //   result, seller
+    // })])
     return result
   },
 
@@ -661,7 +661,66 @@ const TokenController = {
       }
       next(err)
     }
-  }
+  },
+
+  /**
+   * User Trades
+   * @description Get all trades made by a user on the platform
+   * @param {string} id Token ID
+   */
+  async userTrades(req, res, next) {
+    try {
+      const usertoken = await checkToken(req);
+      if (usertoken.status === 'failed') {
+        return res.status(usertoken.data).json({
+          status: 'failed',
+          message: usertoken.message
+        })
+      }
+      const user = await UserModel.findById(usertoken.data.id)
+      const token = await TokenModel.findOne({ name: 'STTP' });
+
+      const offers = await OfferModel.find({
+        token, user: user._id
+      }).sort('createdAt');
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User trades gotten successfully', data: offers });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get user trades',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * All Trades
+   * @description Get all trades made on the platform
+   */
+  async allTrades(req, res, next) {
+    try {
+      const token = await TokenModel.findOne({ name: 'STTP' });
+
+      const offers = await OfferModel.find({
+        token
+      }, { token: 0 }).populate('user').sort('createdAt');
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'All trades gotten successfully', data: offers });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get trades',
+        devError: error
+      }
+      next(err)
+    }
+  },
 };
 
 module.exports = TokenController;
