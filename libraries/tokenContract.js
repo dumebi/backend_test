@@ -571,7 +571,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
-        transactionDetails : tx
+        transactionDetails: tx
       };
     } catch (error) {
       return this.errorHandler(error);

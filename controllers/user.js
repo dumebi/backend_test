@@ -6,6 +6,7 @@ const {
   paramsNotValid, checkToken
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
+const tokenContract = require('../libraries/tokenContract');
 
 const UserController = {
 
