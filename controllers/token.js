@@ -28,7 +28,6 @@ const TokenController = {
         name: 'STTP'
       })
       newToken = await newToken.save();
-      console.log('hard worker')
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token created successfully', data: newToken });
     } catch (error) {
       console.log('error >> ', error)
@@ -36,6 +35,30 @@ const TokenController = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
         message: 'Could not initialize token',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Initialize token
+   * @description initialize the STTP token
+   * @return {object} token
+   */
+  async getPrice(req, res, next) {
+    try {
+      const token = await TokenModel.findOne({ name: 'STTP' }, {name: 0, min: 0, max: 0});
+      if (token) {
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token price gotten successfully', data: token });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'success', message: 'Token has not been initialized' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get token price',
         devError: error
       }
       next(err)
@@ -75,7 +98,7 @@ const TokenController = {
         if (result.status === 'success') {
           const newamount = lowestSellOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          result = await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
+          await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
         }
       }
     } else {
@@ -124,7 +147,7 @@ const TokenController = {
         if (result.status === 'success') {
           const newamount = highestBuyOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          result = await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
+          await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
         }
       }
     } else {
@@ -197,12 +220,12 @@ const TokenController = {
       result = {
         http: HttpStatus.OK,
         status: 'success',
-        message: 'Buy process completed successfully'
+        message: 'Sell process completed successfully'
       }
     }
-    await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
-      result, seller
-    })])
+    // await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
+    //   result, seller
+    // })])
     return result
   },
 
@@ -377,14 +400,14 @@ const TokenController = {
       const buyOffers = await OfferModel.find({ token: token._id, type: 'Buy', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order book gotten successfully', data: buyOffers });
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not get buy order book',
-        devError: error
-      }
-      next(err)
+      // console.log('error >> ', error)
+      // const err = {
+      //   http: HttpStatus.BAD_REQUEST,
+      //   status: 'failed',
+      //   message: 'Could not get buy order book',
+      //   devError: error
+      // }
+      // next(err)
     }
   },
 
@@ -402,14 +425,14 @@ const TokenController = {
       const sellOffers = await OfferModel.find({ token: token._id, type: 'Sell', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order book gotten successfully', data: sellOffers });
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not get sell order book',
-        devError: error
-      }
-      next(err)
+      // console.log('error >> ', error)
+      // const err = {
+      //   http: HttpStatus.BAD_REQUEST,
+      //   status: 'failed',
+      //   message: 'Could not get sell order book',
+      //   devError: error
+      // }
+      // next(err)
     }
   },
 
@@ -419,6 +442,7 @@ const TokenController = {
    * @param {string} id Token ID
    */
   async buy(req, res, next) {
+    console.log('buy')
     try {
       if (paramsNotValid(req.body.amount)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
@@ -441,7 +465,7 @@ const TokenController = {
       const price = req.body.price;
       const amount = req.body.amount;
       if (price) {
-        if (price <= token.max && price >= token.min) {
+        if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_BUY', {
             token: token._id, price, user: user._id, amount
           })])
@@ -497,7 +521,7 @@ const TokenController = {
 
 
       if (price) {
-        if (price <= token.max && price >= token.min) {
+        if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_SELL', {
             token: token._id, price, user: user._id, amount
           })])
@@ -637,7 +661,66 @@ const TokenController = {
       }
       next(err)
     }
-  }
+  },
+
+  /**
+   * User Trades
+   * @description Get all trades made by a user on the platform
+   * @param {string} id Token ID
+   */
+  async userTrades(req, res, next) {
+    try {
+      const usertoken = await checkToken(req);
+      if (usertoken.status === 'failed') {
+        return res.status(usertoken.data).json({
+          status: 'failed',
+          message: usertoken.message
+        })
+      }
+      const user = await UserModel.findById(usertoken.data.id)
+      const token = await TokenModel.findOne({ name: 'STTP' });
+
+      const offers = await OfferModel.find({
+        token, user: user._id
+      }).sort('createdAt');
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'User trades gotten successfully', data: offers });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get user trades',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * All Trades
+   * @description Get all trades made on the platform
+   */
+  async allTrades(req, res, next) {
+    try {
+      const token = await TokenModel.findOne({ name: 'STTP' });
+
+      const offers = await OfferModel.find({
+        token
+      }, { token: 0 }).populate('user').sort('createdAt');
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'All trades gotten successfully', data: offers });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get trades',
+        devError: error
+      }
+      next(err)
+    }
+  },
 };
 
 module.exports = TokenController;

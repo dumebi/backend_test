@@ -46,6 +46,11 @@ router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
 router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
+// TODO: Add to tests
+router.get('/users/exchange/price', middleware.isUser, TokenController.getPrice);
+// TODO: Add to tests
+router.get('/users/exchange/trades', middleware.isUser, TokenController.userTrades);
+// router.get('/users/exchange/trades/all', middleware.isUser, TokenController.allTrades);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /** 
@@ -91,5 +96,7 @@ router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, Dividen
 router.get('/admin/transactions', middleware.isAdmin, TransactionController.all);
 
 router.get('/admin/token/', middleware.isAdmin, TokenController.init);
+// TODO: Add to tests
+router.get('/admin/token/trades', middleware.isAdmin, TokenController.allTrades);
 router.patch('/admin/token/', middleware.isAdmin, TokenController.setPrice);
 module.exports = router;
