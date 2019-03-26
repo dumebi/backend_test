@@ -119,7 +119,7 @@ const AuthController = {
         group: req.body.group,
         staffId: req.body.staffId,
         beneficiary: req.body.beneficiary,
-        activated: false,
+        activated: true,
         enabled: true,
         password: req.body.password,
         vesting: req.body.vesting

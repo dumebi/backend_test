@@ -21,3 +21,6 @@ yarn.lock
 #Docker
 Dockerfile
 Dockerfile.dev
+
+# Externals
+external

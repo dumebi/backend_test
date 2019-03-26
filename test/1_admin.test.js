@@ -194,7 +194,6 @@ describe('Admin Test', () => {
       .set('authorization', `Bearer ${admin_jwt}`)
       .expect(200)
       .end((err, res) => {
-        console.log(res.body)
         expect(res.body.status).to.equal('success')
         expect(res.body.message).to.equal('User deactivated')
         done()

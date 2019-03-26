@@ -14,7 +14,7 @@ const contractABI = compiledTokenContract.abi;
 // Meaning: "Only verified SIT holders can perform this transaction"
 // errorCode: "RECEIPT_TRANSFER_BLOCKED",
 // Meaning: "Recipient not authorized"
-// errorCode: "SEND_TRANSFER_BLOCKED", 
+// errorCode: "SEND_TRANSFER_BLOCKED",
 // Meaning: "Sender not authorized"
 // errorCode: "TOKEN_GRANULARITY_ERROR",
 // Meaning: "Token cannot be granular below the specified granularity"
@@ -26,7 +26,7 @@ const contractABI = compiledTokenContract.abi;
 // Meaning: "Token amount specified is invalid"
 // errorCode: "SPENDER_BALANCE_ERROR",
 // Meaning: "Amount specified is morethan spendable amount"
-// errorCode: "ACCOUNT_WITHHOLD_ERROR", 
+// errorCode: "ACCOUNT_WITHHOLD_ERROR",
 // Meaning: "Account on hold"
 // errorCode: "MOVE_LIEN_ERROR",
 // Meaning: "Lien cannot be moved to tradable balance, lien period not over yet"
@@ -36,43 +36,42 @@ const contractABI = compiledTokenContract.abi;
 
 // Available Functionality
 // [
-// 		"Function": "approve",
-// 		"Function": "removeAdmin",
-// 		"Function": "totalSupply"
-// 		"Function": "totalInEscrow",
-// 		"Function": "sSymbol",
-// 		"Function": "transferFrom",
-// 		"Function": "isAdmin",
-// 		"Function": "isWithhold",
-// 		"Function": "uGranularity",
-// 		"Function": "addAdmin",
-// 		"Function": "balanceOf"
-// 		"Function": "messageForTransferRestriction",
-// 		"Function": "isValid",
-// 		"Function": "transfer",
-// 		"Function": "aTokenbase",
-// 		"Function": "addToEscrow",
-// 		"Function": "removeFromEscrow",
-// 		"Function": "addShareholder",
-// 		"Function": "detectTransferRestriction",
-// 		"Function": "getShareHolder",
-// 		"Function": "sName",
-// 		"Function": "allowance"
-// 		"Function": "aManager"
+//   "Function": "approve",
+//   "Function": "removeAdmin",
+//   "Function": "totalSupply"
+//   "Function": "totalInEscrow",
+//   "Function": "sSymbol",
+//   "Function": "transferFrom",
+//   "Function": "isAdmin",
+//   "Function": "isWithhold",
+//   "Function": "uGranularity",
+//   "Function": "addAdmin",
+//   "Function": "balanceOf"
+//   "Function": "messageForTransferRestriction",
+//   "Function": "isValid",
+//   "Function": "transfer",
+//   "Function": "aTokenbase",
+//   "Function": "addToEscrow",
+//   "Function": "removeFromEscrow",
+//   "Function": "addShareholder",
+//   "Function": "detectTransferRestriction",
+//   "Function": "getShareHolder",
+//   "Function": "sName",
+//   "Function": "allowance"
+//   "Function": "aManager"
 // ]
 
 
 exports.Token = class {
-
-  errorHandler(error){
-    console.log("er > ", error)
+  errorHandler(error) {
+    console.log('er > ', error)
     // solidity error
-    if (error.name == "RuntimeError"){
-      console.log("RuntimeError")
+    if (error.name === 'RuntimeError') {
+      console.log('RuntimeError')
       return {
-        ok : false,
-        reason : error.reason,
-        field : error.arg
+        ok: false,
+        reason: error.reason,
+        field: error.arg
       }
     }
     //VM Revert error
@@ -83,14 +82,12 @@ exports.Token = class {
         reason : error.data.stack,
         field : error.arg
       }
-      
     }
-    if (!error.reason){
+    if (!error.reason) {
       return {
-        ok : false,
-        reason : error.Error
+        ok: false,
+        reason: error.Error
       }
-      
     }
   }
 
@@ -108,7 +105,7 @@ exports.Token = class {
    * @params : {
    *  newOwner{string} : "Address of new owner"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
   async transferOwnership(newOwner) {
@@ -129,7 +126,6 @@ exports.Token = class {
   }
 
 
-  
   /**
    * @description : This function returns the owner address (Super Admin)
    * @dev : This function should be called by the either the contract manager/developer | admin "owner"
@@ -166,11 +162,11 @@ exports.Token = class {
    * @params : {
    *    fromAddress{address} : "Address of the function caller"
    * }
-   * @returns 
+   * @returns
         name{string}          Token Name
         symbol{string}        Token Symbol
         granularity{number}   Token Granularity
-   * 
+   *
    */
   async getTokenInfo() {
     try {
@@ -184,7 +180,6 @@ exports.Token = class {
         symbol,
         granularity
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -244,7 +239,7 @@ exports.Token = class {
    * @dev : Can be called by only the owner
    * @params : {
     *  manager{string} : "address of the new account to be made manager",}
-   * @returns 
+   * @returns
         transactionDetails: {}
    */
   async changeManager(manager) {
@@ -290,13 +285,14 @@ exports.Token = class {
       return this.errorHandler(error);
     }
   }
-/**
+
+  /**
    * @description : This function allows the contract owner remove an admin from the contract
    * @dev : Should be called by the contract Owner
    * @params : {
     *  admin : "address of the account to be removed as an admin"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails: {}
    */
   async removeAdmin(admin) {
@@ -323,7 +319,7 @@ exports.Token = class {
     *  authorizer{address} : "address of the account to be made an authhorizer",
     *  type{string} : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails: {}
    */
   async addAuthorizer(authorizer, type) {
@@ -348,7 +344,7 @@ exports.Token = class {
    * @params : {
    *  authorizer{address} : "address of the account to be removed as an authhorizer"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails: {}
    */
   async removeAuthorizer(authorizer) {
@@ -362,7 +358,6 @@ exports.Token = class {
       return {
         transactionDetails :tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -374,7 +369,7 @@ exports.Token = class {
    * @params : {
    *  authorizer{address} : "address of the account to be removed as an authhorizer",
    * }
-   * @returns 
+   * @returns
    *  authorizer{address}   Authorizer address
    *  type{string}          Authorization type
    */
@@ -387,7 +382,7 @@ exports.Token = class {
         
       return {
         authorizer: result.authorizerAddr,
-        type: result.authorizerType == 0 ? 'Pay Scheme' : 'Upfront Scheme'
+        type: result.authorizerType === 0 ? 'Pay Scheme' : 'Upfront Scheme'
       };
 
     } catch (error) {
@@ -402,7 +397,7 @@ exports.Token = class {
    *  scheduleId : "Unique schedule id",
    *  authorizerId : "Unique position of authorizer in the schedule, always within [0,1,2]"
    * }
-   * @returns 
+   * @returns
    *  authorizer{address}             address of the authorizer
    *  reason{string}            Reason for approval or rejection
    */
@@ -505,11 +500,11 @@ exports.Token = class {
   /**
    * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
    * @dev : Called by only shareholders
-   * @params : 
+   * @params :
     *  fromAddress{address}           Address of the function caller
     *  _privateKey{string}          Private key of the function caller, used to sign the message
    *  spender           address of the spender
-   *  amount          Amount to allow for the spender 
+   *  amount          Amount to allow for the spender
    * @returns :
    *  transactionDetails : {}
    */
@@ -526,7 +521,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -579,7 +573,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -611,19 +604,18 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
   }
-  
+
   /**
    * @description : This function returns a shareholder details
    * @dev : Called anyone
    * @params : {
    *  holder{address} : "address of the shareholder"
    * }
-   * @returns 
+   * @returns
         isEnabled {bool}
         isWithhold {bool}
         tradable {number}
@@ -667,7 +659,7 @@ exports.Token = class {
    *  access : "Accepts bool, if holder is valid or not"
    *  withhold : "Accepts bool, if holder is withhold or not"
    * }
-   * @returns 
+   * @returns
         transactionDetails {object}
    */
 
@@ -693,7 +685,7 @@ exports.Token = class {
    * @dev : Called by Owner | Admins
    * @params : {
    *  holder{address} : "address of the shareholder",
-   * @returns 
+   * @returns
         transactionDetails {object}
    */
 
@@ -711,7 +703,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -732,15 +723,15 @@ exports.Token = class {
     try {
       const result = await this.contractInst.totalRecordsByCat(
           holder,
-          category == "Tradable"
+          category === 'Tradable'
             ? 0
-            : category == "Lien"
-            ? 1
-            : category == "Allocated"
-            ? 2
-            : category == "Vesting"
-            ? 3
-            : "00"
+            : category === 'Lien'
+              ? 1
+              : category === 'Allocated'
+                ? 2
+                : category === 'Vesting'
+                  ? 3
+                  : '00'
         )
         
 
@@ -758,7 +749,7 @@ exports.Token = class {
    *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
    *  recordId{Number} : "Index of the specific record to pull in this category, accepts a number"
    * }
-   * @returns 
+   * @returns
         amount{Number}                Amount,
         dateAdded{Date}               Date added,
         duration {String}
@@ -776,15 +767,15 @@ exports.Token = class {
         isMovedToTradable
       } = await this.contractInst.recordByCat(
           holder,
-          category == 'Tradable'
+          category === 'Tradable'
             ? 0
-            : category == "Lien"
-            ? 1
-            : category == "Allocated"
-            ? 2
-            : category == "Vesting"
-            ? 3
-            : "00",
+            : category === 'Lien'
+              ? 1
+              : category === 'Allocated'
+                ? 2
+                : category === 'Vesting'
+                  ? 3
+                  : '00',
           recordId
         )
         
@@ -810,7 +801,7 @@ exports.Token = class {
    *  scheduleType{String} : "Either 'Pay Scheme' or 'Upfront Scheme' ",
    *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails : {}
    */
 
@@ -835,7 +826,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -848,7 +838,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique id for the schedule, used to update or pull schedule details later on",
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
-   * @returns 
+   * @returns
         transactionDetails : {}
    */
 
@@ -862,7 +852,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -874,7 +863,7 @@ exports.Token = class {
    * @params : {
    *  scheduleId{Number} : "Unique id for the schedule, used to identify the schedule"
    * }
-   * @returns 
+   * @returns
         scheduleType{string},
         amount{Number}                Amount schedule was created with
         activeAmount{Number}          What is left to be minted
@@ -895,7 +884,7 @@ exports.Token = class {
       } = await this.contractInst.getSchedule(scheduleId)
 
       return {
-        scheduleType: scheduleType == 0 ? 'Pay Scheme' : 'Upfront Scheme',
+        scheduleType: scheduleType === 0 ? 'Pay Scheme' : 'Upfront Scheme',
         amount,
         activeAmount,
         isActive,
@@ -914,7 +903,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{string} : "Reasone for approval"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -942,7 +931,7 @@ exports.Token = class {
    *  scheduleId{Number} : "Unique schedule id",
    *  reason{String} : "Reasone for approval"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -956,7 +945,6 @@ exports.Token = class {
       return {
         transactionDetails : tx
       };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -973,7 +961,7 @@ exports.Token = class {
    *  duration(number) : "For Lien, this means the duration and for Allocated this is dueDate"
    *  reason : "Reasone for minting to recipient account"
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -992,13 +980,13 @@ exports.Token = class {
           scheduleId,
           recipient,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           duration,
@@ -1024,7 +1012,7 @@ exports.Token = class {
    *  shareCat{string} : "Token category to move to tradable",
    *  recordId{Number} : "Index of record to move in the specified category",
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1034,13 +1022,13 @@ exports.Token = class {
 
       const tx = await this.contractTX.moveToTradable(
           holder,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId
@@ -1066,7 +1054,7 @@ exports.Token = class {
    *  shareCat : "Token category to withdraw from",
    *  recordId : "Index of record to withdraw in the specified category",
    * }
-   * @returns 
+   * @returns
    *  transactionDetails : {}
    */
 
@@ -1083,13 +1071,13 @@ exports.Token = class {
       const tx = await this.contractTX.withdraw(
           holder,
           amount,
-          shareCat == 'Tradable'
+          shareCat === 'Tradable'
             ? 0
-            : shareCat == 'Lien'
+            : shareCat === 'Lien'
               ? 1
-              : shareCat == 'Allocated'
+              : shareCat === 'Allocated'
                 ? 2
-                : shareCat == 'Vesting'
+                : shareCat === 'Vesting'
                   ? 3
                   : '00',
           recordId,
