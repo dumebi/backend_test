@@ -4,20 +4,28 @@ var linker = require("solc/linker");
 require('dotenv').config();
 
 // Load the wallet to deploy the contract with
-let privateKey = '0x639c4793182b4d1577b191bb9dd113f9c7224c26afe082c51b55e2b0f01fecf0';
+let privateKey = process.env.CONTRACT_OWNER_KEY;
 let wallet = new ethers.Wallet(privateKey, ethProvider);
+
+// Deployment Params
+
+const symbol = process.argv[2]
+const name = process.argv[3]
+const granularity = process.argv[4]
+const owner = process.argv[5]
+const tokenbase = process.argv[6] 
 
 (async function() {
 
     const tokenScheduleLib = new ethers.ContractFactory(compiledTokenScheduleLib.abi, compiledTokenScheduleLib.evm.bytecode, wallet)
-    await tokenScheduleLib.deploy()
-    console.log("tokenScheduleLib >> ", tokenScheduleLib.address)
-    await tokenScheduleLib.deployed()
+    const tokenScheduler = await tokenScheduleLib.deploy()
+    tokenScheduler.deployed()
+    console.log("tokenScheduleLib >> ", tokenScheduler.address)
 
     compiledTokenContract.evm.bytecode.object = await linker.linkBytecode(
       compiledTokenContract.evm.bytecode.object,
       {
-        $f7052eb780b0b8a74d049ee05427d21ee6$ : tokenScheduleLib.address
+        $f7052eb780b0b8a74d049ee05427d21ee6$ : tokenScheduler.address
       }
     );
     console.log("linked >> ", compiledTokenContract.evm.bytecode.object);
@@ -29,15 +37,14 @@ let wallet = new ethers.Wallet(privateKey, ethProvider);
     let factory = new ethers.ContractFactory(abi, bytecode, wallet);
 
     let contract = await factory.deploy(
-            "SIT",
-            "Sterling Investment Token",
-            1,
-            "0x0f08e214c8311c05bc16c0d65cd7f23231bdf1ca",
-            "0xca8323e6268cb4e5c36c51dc94a68db47d3e0d18");
+            symbol,
+            name,
+            granularity,
+            owner,
+            tokenbase);
         
     process.env.TEST_CONTRACT_ADDRESS = await contract.address;
     console.log("env TEST_CONTRACT_ADDRESS >>> ", process.env.TEST_CONTRACT_ADDRESS, '\n')
-    // process.stdout.write(contract.address);
     await contract.deployed()
 
 })();

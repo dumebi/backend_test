@@ -8,6 +8,14 @@ console.log("config.Contract >> ", config.contract)
 const deployedContractAddr = config.contract;
 const contractABI = compiledTokenContract.abi;
 
+// // Contract Deployment Params
+
+// // _symbol {string}  The Token Symbol
+// // _name:  {string}  The Token Name
+// // _granular: {uint8} The Token Granularity
+// // _tokenbase: {address} The Tokenbase address, where withdrawed tokens will sit
+// // owner: {address}    The Token Contract owner Address
+
 // Error Meaning
 
 // errorCode: "UNVERIFIED_HOLDER",

@@ -139,10 +139,10 @@ module.exports = {
       //   "Allocation was over"
       // );
       // ================================= For Transfers ================================
-      const result1 = await token.transfer(
-        "0x8c96f26c8a98ee00a372e0b8c8853096447714c4",
-        0
-      );
+      // const result1 = await token.transfer(
+      //   "0x8c96f26c8a98ee00a372e0b8c8853096447714c4",
+      //   0
+      // );
       // const result2 = await token.approveSender(
       //   "3065a5faf500affedf57a744baf7a3a9f567639a20253a97c47d035a15e7e1db",
       //   "0x1F08822Bb986329241Ba2Cfe4209167506483C4f",
