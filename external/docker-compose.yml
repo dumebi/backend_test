@@ -23,7 +23,7 @@ services:
       - ./rabbitmq:/data
   ganachecli:
     image: trufflesuite/ganache-cli:latest
-    command: ganache-cli -h 0.0.0.0 -a 10 -e 3000000000000000 -s 20
+    command: ganache-cli -h 0.0.0.0 -a 10 -e 3000000000000000 -s --allowUnlimitedContractSize 20
     ports:
       - 8545:8545
     environment:
