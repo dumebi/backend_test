@@ -66,40 +66,44 @@ const walletController = {
       // Get Users
       const user = await User.findById(userId)
       if (!user || user.wallet != walletId) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        return next({
+          http:HttpStatus.BAD_REQUEST,
           status: 'failed',
           message: 'Invalid user wallet',
-          data: []
+          devError: {}
         })
       }
 
       // Get User Wallet
       const wallet = await WalletModel.findById(user.wallet)
       if (!wallet) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
+        return next({
+          http:HttpStatus.BAD_REQUEST,
           status: 'failed',
           message: 'No wallet found for this user',
-          data: []
+          devError: {}
         })
       }
 
       if (wallet.account_number.length > 0) {
         wallet.account_number.forEach(result => {
           if (result.account == userWallet) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
+            return next({
+              http:HttpStatus.BAD_REQUEST,
               status: 'failed',
               message: 'This account has already been added',
-              data: []
+              devError: {}
             })
           }
         });
         // Validate account
         const isValidAccount = await verifyAccount(userWallet, user.fname, user.lname)
         if (!isValidAccount) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Account is not valid',
-            data: []
+            devError: {}
           })
         }  
         wallet.account_number.push({account : userWallet, isActive : false})
@@ -108,10 +112,11 @@ const walletController = {
         // Validate account
         const isValidAccount = await verifyAccount(userWallet, user.fname, user.lname)
         if (!isValidAccount) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Account is not valid',
-            data: []
+            devError: {}
           })
         }  
 
@@ -153,27 +158,30 @@ const walletController = {
   
         const user = await User.findById(userId)
         if (!user || user.wallet != walletId) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Invalid user',
-            data: []
+            devError: {}
           })
         }
 
         const wallet = await WalletModel.findById(user.wallet)
         if (!wallet) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'No wallet was found for this user',
-            data: []
+            devError: {}
           })
         }
         
         if (wallet.account_number.length == 1) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Unable to delete. You need at least one account tied to your wallet.',
-            data: []
+            devError: {}
           })
         }
 
@@ -222,19 +230,21 @@ const walletController = {
   
         const user = await User.findById(userId)
         if (!user || user.wallet != walletId) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
-            message: 'Invalid user',
-            data: []
+            message: 'Invalid user.',
+            devError: {}
           })
         }
 
         const wallet = await WalletModel.findById(user.wallet)
         if (!wallet) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
-            message: 'No wallet was found for this user',
-            data: []
+            message: 'No wallet was found for this user.',
+            devError: {}
           })
         }
         var accountExist = false
@@ -252,10 +262,11 @@ const walletController = {
         await wallet.save()
 
         if(!accountExist) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
-            message: 'Account number does not exist in user wallet',
-            data: []
+            message: 'Account number does not exist in user wallet.',
+            devError: {}
           })
         }
   
@@ -288,10 +299,11 @@ const walletController = {
         const walletId = req.params.id
         const user = await User.findById(userId)
         if (!user || user.wallet != walletId) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Invalid user',
-            data: []
+            devError: {}
           })
         }
         var transaction = await new TransactionModel() 
@@ -309,10 +321,11 @@ const walletController = {
         const transferSuccess = await transfer(referenceid,fromAccount, toAccount, amount, remark)
 
         if (!transferSuccess) {
-          return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          return next({
+            http:HttpStatus.PRECONDITION_FAILED,
             status: 'failed',
-            message: 'Wallet funding failed!',
-            data: {wallet}
+            message: 'Wallet funding failed for '+wallet,
+            devError: wallet
           })
         }
 
@@ -364,10 +377,11 @@ const walletController = {
         const walletId = req.params.id
         const user = await User.findById(userId)
         if (!user || user.wallet != walletId) {
-          return res.status(HttpStatus.BAD_REQUEST).json({
+          return next({
+            http:HttpStatus.BAD_REQUEST,
             status: 'failed',
             message: 'Invalid user',
-            data: []
+            devError: {}
           })
         }
         var transaction = await new TransactionModel() 
@@ -380,10 +394,11 @@ const walletController = {
         const fromAccount = config.appNairaAccount
 
         if (amount > wallet.balance) {
-          return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          return next({
+            http: HttpStatus.PRECONDITION_FAILED,
             status: 'failed',
             message: 'Insufficient wallet balance!',
-            data: {wallet}
+            devError: wallet
           })
         }
 
@@ -393,10 +408,11 @@ const walletController = {
         const transferSuccess = await transfer(referenceid,fromAccount, toAccount, amount, remark)
 
         if (!transferSuccess) {
-          return res.status(HttpStatus.PRECONDITION_FAILED).json({
+          return next({
+            http: HttpStatus.PRECONDITION_FAILED,
             status: 'failed',
             message: 'Wallet withdrawal failed!',
-            data: {wallet}
+            devError: wallet
           })
         }
 
