@@ -466,7 +466,7 @@ exports.Token = class {
     try {
       const result = await this.contractInst.balanceOf(holder)
         
-      return  result.toNumber();
+      return result.toNumber();
     } catch (error) {
       return this.errorHandler(error);
     }

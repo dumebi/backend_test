@@ -1,6 +1,7 @@
 var { ethers, ethProvider } = require("../libraries/base.js");
 const { compiledTokenContract, compiledTokenFuncLib } = require("./compile.js");
 var linker = require("solc/linker");
+const utils = require('../helpers/utils');
 require('dotenv').config();
 
 // The Contract interface
@@ -53,6 +54,7 @@ let wallet = new ethers.Wallet(privateKey, ethProvider);
     process.env.TEST_CONTRACT_ADDRESS = await contract.address;
     process.env.CONTRACT_ADDRESS = "contract.address"
     // console.log("env >>> ", process.env.TEST_CONTRACT_ADDRESS)
+    utils.config.contract = contract.address
     process.stdout.write(contract.address);
     
     await contract.deployed()
