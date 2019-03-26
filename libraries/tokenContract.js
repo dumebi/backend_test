@@ -35,31 +35,32 @@ const contractABI = compiledTokenContract.abi;
 
 
 // Available Functionality
-// [
-// 		"Function": "approve",
-// 		"Function": "removeAdmin",
-// 		"Function": "totalSupply"
-// 		"Function": "totalInEscrow",
-// 		"Function": "sSymbol",
-// 		"Function": "transferFrom",
-// 		"Function": "isAdmin",
-// 		"Function": "isWithhold",
-// 		"Function": "uGranularity",
-// 		"Function": "addAdmin",
-// 		"Function": "balanceOf"
-// 		"Function": "messageForTransferRestriction",
-// 		"Function": "isValid",
-// 		"Function": "transfer",
-// 		"Function": "aTokenbase",
-// 		"Function": "addToEscrow",
-// 		"Function": "removeFromEscrow",
-// 		"Function": "addShareholder",
-// 		"Function": "detectTransferRestriction",
-// 		"Function": "getShareHolder",
-// 		"Function": "sName",
-// 		"Function": "allowance"
-// 		"Function": "aManager"
-// ]
+//    name: createSchedule
+// 		name: approve
+// 		name: totalSupply
+// 		name: totalInEscrow
+// 		name: sSymbol
+// 		name: transferFrom
+// 		name: isAdmin
+// 		name: isWithhold"
+// 		name: uGranularity"
+// 		name: balanceOf
+// 		name: getAuthorizer
+// 		name: messageForTransferRestriction
+// 		name: mint
+// 		name: isValid
+// 		name: approveSchedule
+// 		name: transfer
+// 		name: aTokenbase
+// 		name: addToEscrow
+// 		name: removeFromEscrow
+// 		name: addShareholder
+// 		name: detectTransferRestriction
+// 		name: getShareHolder
+// 		name: addAuthorizer
+// 		name: sName
+// 		name: allowance
+// 		name: aManager
 
 
 exports.Token = class {
@@ -573,6 +574,109 @@ exports.Token = class {
 
       const tx = await this.contractInst
         .transferFrom(holder, recipient, amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @description : This function returns how much a shareholder has in escrow
+   * @dev : Called by anyone
+   * @params : {
+   *  holder : "address of the account owner"
+   * @returns {Number}    Spender allowance
+   */
+
+  async getTotalInEscrow(holder) {
+    try {
+
+      holder = ethers.utils.getAddress(holder)
+
+      const result = await this.contractInst.totalInEscrow(holder)
+        
+      return  result.toNumber();
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used in for the exchange functionality
+   * @params : {
+   *  holder{address} : "address of the account owner"
+   *  amount{Number} : " Amount to transfer"
+   * @returns :
+   * transactionDetails {object}
+   */
+
+  async addToEscrow(holder, recipient, amount) {
+    try {
+      holder = ethers.utils.getAddress(holder)
+
+      const tx = await this.contractInst
+        .addToEscrow(holder, amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used in for the exchange functionality
+   * @params : {
+   *  amount{Number} : " Amount to transfer"
+   * @returns :
+   * transactionDetails {object}
+   */
+
+  async addToEscrow(amount) {
+    try {
+      holder = ethers.utils.getAddress(holder)
+
+      const tx = await this.contractInst
+        .addToEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used in for the exchange functionality
+   * @params : {
+   *  amount{Number} : " Amount to transfer"
+   * @returns :
+   * transactionDetails {object}
+   */
+
+  async addToEscrow(amount) {
+    try {
+      holder = ethers.utils.getAddress(holder)
+
+      const tx = await this.contractInst
+        .addToEscrow(amount)
       await tx.wait();
       console.log("tx >> ", tx)
 

@@ -55,23 +55,23 @@ contract Token is IERC20, IERC1404 {
         // _;
     }
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    // event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event NewAuthorizer(address indexed _authorizer, Sharing.ScheduleType indexed _type);
-    event AuthorizerRemoved(address indexed _authorizer);
+    // event AuthorizerRemoved(address indexed _authorizer);
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event NewAllocated(address _from, address indexed _to, uint _amount, uint indexed _dateAdded);
     event NewVesting(address _from, address indexed _to, uint _amount, uint indexed _date);
     event NewLien(address _from, address indexed _to, uint _amount, uint indexed _dateAdded, uint indexed _lienPeriod);
-    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 catIndex);
+    // event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 catIndex);
     event NewShareholder(address indexed __holder);
-    event shareHolderUpdated(address indexed _holder,bool _isEnabled, bool _isWithhold);
-    event shareHolderRemoved(address _holder);
-    event Withdrawn(address initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
+    // event shareHolderUpdated(address indexed _holder,bool _isEnabled, bool _isWithhold);
+    // event shareHolderRemoved(address _holder);
+    // event Withdrawn(address initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
     event NewSchedule(uint256 _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _data);
     event ScheduleApproved(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for approval
-    event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
-    event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
+    // event ScheduleRejected(uint256 _requestId, address _authorizer, bytes _reason); //Emit the authorizer's address that vote for rejection
+    // event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
     event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _data);
 
     string public sName;
@@ -224,9 +224,9 @@ contract Token is IERC20, IERC1404 {
         success = TokenScheduler._createSchedule_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
-    function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
-        return TokenScheduler._getSchedule_(tokenScheduler, _scheduleId);
-    }
+    // function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
+    //     return TokenScheduler._getSchedule_(tokenScheduler, _scheduleId);
+    // }
     
     // function getScheduleAuthorizer (uint _scheduleId, uint _authorizerIndex) public view returns(address authorizerAddress, bytes memory reason) {
     //     return TokenScheduler._getScheduleAuthorizer_(tokenScheduler, _scheduleId, _authorizerIndex);
@@ -246,15 +246,15 @@ contract Token is IERC20, IERC1404 {
     //     scheduleId = TokenScheduler._removeSchedule_(tokenScheduler, _scheduleId, _reason);
     // } 
 
-    // function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint256 _duration, bytes memory _data) public onlyAdmin returns (string memory success) {
+    function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint256 _duration, bytes memory _data) public onlyAdmin returns (string memory success) {
         
-    //     if (TokenFunc._totalSupply_(tokenFunc).add(_amount) < TokenFunc._totalSupply_(tokenFunc)) {
-    //         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.FAILURE));
-    //     }
-    //     require(isValid(_holder), MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.RECEIPT_TRANSFER_BLOCKED)));
+        if (TokenFunc._totalSupply_(tokenFunc).add(_amount) < TokenFunc._totalSupply_(tokenFunc)) {
+            return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.FAILURE));
+        }
+        require(isValid(_holder), MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.RECEIPT_TRANSFER_BLOCKED)));
         
-    //     success = TokenScheduler._mint_(tokenScheduler, tokenFunc, uGranularity, aTokenbase, _scheduleIndex, _holder, _amount, _sitCat, _duration, _data );
-    // }
+        success = TokenScheduler._mint_(tokenScheduler, tokenFunc, uGranularity, aTokenbase, _scheduleIndex, _holder, _amount, _sitCat, _duration, _data );
+    }
     
     // function withdraw(address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint _recordId, bytes memory _reason) public onlyAdmin returns (string memory success) {
     //     if (_amount < 0) {

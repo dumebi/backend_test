@@ -2,13 +2,14 @@
 const Web3 = require('web3')
 const ethers = require("ethers");
 const ethUtil = require("ethereumjs-util");
+const {config} = require("../helpers/utils")
 
 let coinbase_amount = 0;
 let coinbase = '';
 
 // Setup RPC connection
-const web3 = new Web3("http://10.0.12.71:8545");
-const ethProvider = new ethers.providers.JsonRpcProvider("http://10.0.12.71:8545")
+const web3 = new Web3(config.blockchain);
+const ethProvider = new ethers.providers.JsonRpcProvider(config.blockchain)
  
 /**
  * Get Coinbase address and amount

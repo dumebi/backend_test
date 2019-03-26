@@ -1,8 +1,7 @@
-// require('dotenv').config()
-const config = require("../config");
+require('dotenv').config()
 const crypto = require("crypto");
 
-const ENCRYPTION_KEY = config.ENCRYPTION_KEY; // Must be 256 bytes (32 characters)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // Must be 256 bytes (32 characters)
 const IV_LENGTH = 16; // For AES, this is always 16
 
 async function encrypt(text) {

@@ -10,12 +10,12 @@ library TokenScheduler  {
     
     event NewSchedule(uint256 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
     event ScheduleApproved(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for approval
-    event ScheduleRejected(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for rejection
-    event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
+    // event ScheduleRejected(uint256 indexed _scheduleId, bytes _reason); //Emit the authorizer's address that vote for rejection
+    // event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
     event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _reason);
     
     
-    function _createSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) internal returns(string memory success ) {
+    function _createSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public returns(string memory success ) {
         require(self.mMintSchedules[_scheduleId].amount <= 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNIQUENESS_ERROR)));
         if(_amount < 0) {
             return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.ZERO_SCHEDULE_ERROR));
@@ -35,16 +35,16 @@ library TokenScheduler  {
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
     
-    function _getSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
-        Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
-        return (_schedule.amount, _schedule.activeAmount, _schedule.isApproved, _schedule.isRejected, _schedule.isActive, _schedule.scheduleType);
-    }  
+    // function _getSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
+    //     Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
+    //     return (_schedule.amount, _schedule.activeAmount, _schedule.isApproved, _schedule.isRejected, _schedule.isActive, _schedule.scheduleType);
+    // }  
     
     // function _getScheduleAuthorizer_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _authorizerIndex) internal view returns(address authorize, bytes memory reason) {
     //     return (self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].authorizer, self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].reason);
     // } 
     
-    function _approveSchedule_(Sharing.DataSchedule storage self, uint256 _scheduleId, bytes memory _reason, Sharing.ScheduleType _authorizerType) internal returns(string memory success)  {
+    function _approveSchedule_(Sharing.DataSchedule storage self, uint256 _scheduleId, bytes memory _reason, Sharing.ScheduleType _authorizerType) public returns(string memory success)  {
         require(!self.mMintSchedules[_scheduleId].isRejected, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_REJECTED_ERROR)));
         require(!self.mMintSchedules[_scheduleId].isApproved && !self.mMintSchedules[_scheduleId].isRejected, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SCHEDULE_APPROVED_ERROR)));
         if(self.mMintSchedules[_scheduleId].amount <= 0){
@@ -124,7 +124,7 @@ library TokenScheduler  {
     //     return _scheduleId;
     // } 
     
-    function _mint_(Sharing.DataSchedule storage self, Sharing.DataToken storage tokenFunc, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint256 _duration, bytes memory _data) internal returns (string memory success) {
+    function _mint_(Sharing.DataSchedule storage self, Sharing.DataToken storage tokenFunc, uint8 _granularity, address _coinBase, uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint256 _duration, bytes memory _data) public returns (string memory success) {
         
         require(tokenFunc.shareHolders[_holder].isEnabled, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNVERIFIED_HOLDER_ERROR)));
         require(self.mMintSchedules[_scheduleIndex].isActive, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INVALID_ERROR)));

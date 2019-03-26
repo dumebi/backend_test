@@ -18,21 +18,21 @@ library Ownable {
     }
 
     
-    function owner(Sharing.DataOwner storage self) internal view returns (address) {
+    function _owner_(Sharing.DataOwner storage self) internal view returns (address) {
         return self._owner;
     }
 
-    function isOwner(Sharing.DataOwner storage self) internal view returns (bool) {
+    function _isOwner_(Sharing.DataOwner storage self) internal view returns (bool) {
         return msg.sender == self._owner;
     }
     
-    function transferOwnership(Sharing.DataOwner storage self, address newOwner) internal  {
-        _transferOwnership(self, newOwner);
-    }
+    // function _transferOwnership_(Sharing.DataOwner storage self, address newOwner) internal  {
+    //     _transferOwnership(self, newOwner);
+    // }
 
-    function _transferOwnership(Sharing.DataOwner storage self, address newOwner) internal {
-        require(newOwner != address(0), "New Owner must have an address");
-        emit OwnershipTransferred(self._owner, newOwner);
-        self._owner = newOwner;
-    }
+    // function _transferOwnership(Sharing.DataOwner storage self, address newOwner) internal {
+    //     require(newOwner != address(0), "New Owner must have an address");
+    //     emit OwnershipTransferred(self._owner, newOwner);
+    //     self._owner = newOwner;
+    // }
 }
