@@ -88,12 +88,16 @@ library TokenFunc {
     }
     
     function _addToEscrow_(Sharing.DataToken storage self, address _holder, uint _amount) internal returns(uint totalInEscrow) {
+        require(self.mBalances[_holder] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
+        self.mBalances[_holder] = self.mBalances[_holder].sub(_amount);
         self.exchangeEscrow[_holder] = self.exchangeEscrow[_holder].add(_amount);
         totalInEscrow = self.exchangeEscrow[_holder];
     }
     
     function _removeFromEscrow_(Sharing.DataToken storage self, address _holder, uint _amount) internal returns(uint totalInEscrow) {
+        require(self.exchangeEscrow[_holder] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
         self.exchangeEscrow[_holder] = self.exchangeEscrow[_holder].sub(_amount);
+        self.mBalances[_holder] = self.mBalances[_holder].add(_amount);
         totalInEscrow = self.exchangeEscrow[_holder];
     }
     

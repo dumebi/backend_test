@@ -167,16 +167,16 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc._messageForTransferRestriction_(restrictionCode);
     }
     
-    function addToEscrow(address _holder, uint _amount) public returns(uint totalInEscrow) {
-        return TokenFunc._addToEscrow_(tokenFunc,_holder, _amount);
+    function addToEscrow(uint _amount) public onlyValidShareHolder  returns(uint totalInEscrow) {
+        return TokenFunc._addToEscrow_(tokenFunc,msg.sender, _amount);
     }
     
-    function removeFromEscrow(address _holder, uint _amount) public returns(uint totalInEscrow) {
-        return TokenFunc._removeFromEscrow_(tokenFunc,_holder, _amount);
+    function removeFromEscrow(uint _amount) public onlyValidShareHolder returns(uint totalInEscrow) {
+        return TokenFunc._removeFromEscrow_(tokenFunc,msg.sender, _amount);
     }
     
-    function totalInEscrow(address _holder) public view returns(uint total) {
-        return TokenFunc._totalInEscrow_(tokenFunc,_holder);
+    function totalInEscrow() public view returns(uint total) {
+        return TokenFunc._totalInEscrow_(tokenFunc,msg.sender);
     }
     
     // function totalRecordsByCat(address _holder, Sharing.TokenCat _sitCat) public view returns (uint) {
@@ -224,9 +224,9 @@ contract Token is IERC20, IERC1404 {
         success = TokenScheduler._createSchedule_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
-    // function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
-    //     return TokenScheduler._getSchedule_(tokenScheduler, _scheduleId);
-    // }
+    function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
+        return TokenScheduler._getSchedule_(tokenScheduler, _scheduleId);
+    }
     
     // function getScheduleAuthorizer (uint _scheduleId, uint _authorizerIndex) public view returns(address authorizerAddress, bytes memory reason) {
     //     return TokenScheduler._getScheduleAuthorizer_(tokenScheduler, _scheduleId, _authorizerIndex);

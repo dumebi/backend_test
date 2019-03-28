@@ -10,7 +10,7 @@ let coinbase = '';
 // Setup RPC connection
 const web3 = new Web3(config.blockchain);
 const ethProvider = new ethers.providers.JsonRpcProvider(config.blockchain)
- 
+ console.log("web3 >> ", web3)
 /**
  * Get Coinbase address and amount
  */

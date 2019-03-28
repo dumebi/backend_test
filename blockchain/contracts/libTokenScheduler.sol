@@ -35,10 +35,10 @@ library TokenScheduler  {
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
     
-    // function _getSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
-    //     Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
-    //     return (_schedule.amount, _schedule.activeAmount, _schedule.isApproved, _schedule.isRejected, _schedule.isActive, _schedule.scheduleType);
-    // }  
+    function _getSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId) internal view returns(uint amount, uint activeAmount, bool isApproved, bool isRejected, bool isActive, Sharing.ScheduleType scheduleType ) {
+        Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
+        return (_schedule.amount, _schedule.activeAmount, _schedule.isApproved, _schedule.isRejected, _schedule.isActive, _schedule.scheduleType);
+    }  
     
     // function _getScheduleAuthorizer_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _authorizerIndex) internal view returns(address authorize, bytes memory reason) {
     //     return (self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].authorizer, self.mMintSchedules[_scheduleId].authorizedBy[_authorizerIndex].reason);
