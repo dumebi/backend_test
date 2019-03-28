@@ -1,6 +1,7 @@
-var { ethers, ethProvider } = require("../libraries/base.js");
+let { ethers, ethProvider } = require("../libraries/base.js");
 const { compiledTokenContract, compiledTokenScheduleLib } = require("./compile.js");
-var linker = require("solc/linker");
+let linker = require("solc/linker");
+const utils = require('../helpers/utils');
 require('dotenv').config();
 
 // Load the wallet to deploy the contract with
