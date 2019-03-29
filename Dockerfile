@@ -17,7 +17,7 @@ ENV TEST_CONTRACT_ADDRESS=""
 ENV CONTRACT_ADDRESS=""
 ENV TEST_APP_NAIRA_ACCOUNT="0029614344"
 ENV APP_NAIRA_ACCOUNT=""
-ENV CONTRACT_OWNER_KEY="0xf2fca0e257c87df3f887a6203fb016cb0bcf08336891978af276bdcf496d21a3"
+ENV CONTRACT_OWNER_KEY="0xb6e0a61abdf5959fdb6badb23ce52f90f39ab067a051111e0d5993cfdf9a5eee"
 
 FROM base AS build
 WORKDIR /src
@@ -32,7 +32,7 @@ WORKDIR /app
 COPY . .
 COPY --from=build /src .
 VOLUME ["/app","/app/node_modules"]
-RUN node blockchain/deploy.js "SIT" "Sterling Investment Token" 1 "0xa8fef896d789d53fead1cfc1c95b6f36f9aacba3" "0x3d3ef3a735a628437079900f28c1eab717de1945"
+RUN node blockchain/deploy.js "SIT" "Sterling Investment Token" 1 "0x1ae2ec290b416fa2bfcd36af39b818d40ba28d9b" "0x739cf050d51e4f6dd21b85c0c1159defc0bfda4d"
 # RUN touch contract.txt && node blockchain/deploy.js > contract.txt && cat contract.txt
 # CMD [ "sh", "-c", "TEST_CONTRACT_ADDRESS=cat contract.txt nodemon index.js" ]
 ENTRYPOINT ["npm", "run", "dev"]
