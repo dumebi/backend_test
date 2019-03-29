@@ -6,7 +6,6 @@ const {
   paramsNotValid, checkToken
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
-const { Token } = require("../libraries/tokenContract.js");
 
 const UserController = {
 
@@ -196,13 +195,13 @@ const UserController = {
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        // const token = new Token(user.privateKey);
-        // const balance = await token.getBalance(user.address)
-        // console.log('bal' + balance)
+        const balance = await req.SIT.getBalance(user.address);
+        console.log('bal' + balance)
+        
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
-          data: { naira: user.wallet.balance, sit: 0 }
+          data: { naira: user.wallet.balance, sit: balance }
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({

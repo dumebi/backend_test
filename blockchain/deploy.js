@@ -5,7 +5,7 @@ const utils = require('../helpers/utils');
 require('dotenv').config();
 
 // Load the wallet to deploy the contract with
-let privateKey = process.env.CONTRACT_OWNER_KEY;
+let privateKey = process.env.CONTRACT_MANAGER_KEY;
 let wallet = new ethers.Wallet(privateKey, ethProvider);
 
 (async function() {
