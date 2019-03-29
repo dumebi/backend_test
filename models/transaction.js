@@ -24,8 +24,8 @@ const WalletType = Object.freeze({
 })
 
 const PaymentMode = Object.freeze({
-  CARD: 'CARD',
-  ACCOUNT: 'ACCOUNT',
+  CARD: 'Card',
+  ACCOUNT: 'Account',
 })
 
 const TransactionSchema = new Schema(
