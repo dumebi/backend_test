@@ -4,7 +4,6 @@
 const { ethers, ethProvider } = require('./base.js');
 const { compiledTokenContract } = require('../blockchain/compile.js');
 const {config} = require('../helpers/utils');
-console.log("config.Contract >> ", config.contract)
 const deployedContractAddr = config.contract;
 const contractABI = compiledTokenContract.abi;
 
