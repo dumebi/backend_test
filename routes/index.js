@@ -60,7 +60,8 @@ router.get('/wallet/get_wallet/:id', middleware.isUser, walletController.getWall
 router.post('/wallet/activate_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.activateAccount);
 router.post('/wallet/add_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.addAccount);
 router.post('/wallet/remove_account/:id', middleware.isUser, validate.wallet, sanitize.wallet(), walletController.removeAccount);
-router.post('/wallet/fund/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundWallet);
+router.post('/wallet/fund_account/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.fundFromAccount);
+router.post('/wallet/fund_card/:id', middleware.isUser, validate.fundCard, sanitize.wallet(), walletController.fundFromCard);
 router.post('/wallet/withdraw/:id', middleware.isUser, validate.walletAction, sanitize.wallet(), walletController.withdraw);
 
 /**
