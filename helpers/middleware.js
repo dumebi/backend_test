@@ -8,6 +8,7 @@ const {
 } = require('../helpers/utils');
 const ethUser = require('../libraries/ethUser')
 const { Token } = require("../libraries/tokenContract");
+const secure = require('../helpers/encryption.js');
 
 /**
  * Check Query originates from resource with at user rights
@@ -109,17 +110,13 @@ exports.isSuperAdmin = async (req, res, next) => {
 exports.fundAcctFromCoinbase = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    console.log("token >> ", token)
     const user = await UserModel.findById(token.data.id)
-    console.log("user >> ", user)
     
     const etherBalance = await ethUser.balance(user.address)
-    console.log("fundAcctFromCoinbase >> ", etherBalance)
     if (etherBalance <= "90000") {
       return next()
     }
     const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
-    console.log('transfered >> ' + transfered)
     return next()
 
   } catch (err) {
@@ -137,11 +134,11 @@ exports.fundAcctFromCoinbase = async (req, res, next) => {
 exports.initializeToken = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    const user = await UserModel.findById(token.data.id)
+    const user = await UserModel.findById(token.data.id).select('+privateKey')
     
-    console.log("initializeToken >> ", user)
-    const sit = new Token(user.privateKey);
-    console.log("sit >> ", sit)
+    const privateKey = await secure.decrypt(user.privateKey)
+    const sit = new Token('0x'+privateKey);
+    
     req.SIT = sit
 
     return next()
