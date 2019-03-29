@@ -6,7 +6,8 @@ const {
   checkToken,
   config
 } = require('../helpers/utils');
-const base = require('../libraries/base')
+const ethUser = require('../libraries/ethUser')
+const { Token } = require("../libraries/tokenContract");
 
 /**
  * Check Query originates from resource with at user rights
@@ -108,10 +109,13 @@ exports.isSuperAdmin = async (req, res, next) => {
 exports.fundAcctFromCoinbase = async (req, res, next) => {
   try {
     const token = await checkToken(req);
+    console.log("token >> ", token)
     const user = await UserModel.findById(token.data.id)
+    console.log("user >> ", user)
     
     const etherBalance = await ethUser.balance(user.address)
-    if (etherBalance >= "90000") {
+    console.log("fundAcctFromCoinbase >> ", etherBalance)
+    if (etherBalance <= "90000") {
       return next()
     }
     const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
@@ -119,6 +123,7 @@ exports.fundAcctFromCoinbase = async (req, res, next) => {
     return next()
 
   } catch (err) {
+    console.log("err >> ", err)
     return res.status(HttpStatus.SERVER_ERROR).json({
       status: 'failed',
       data: 'Server error!.'
@@ -134,13 +139,15 @@ exports.initializeToken = async (req, res, next) => {
     const token = await checkToken(req);
     const user = await UserModel.findById(token.data.id)
     
-    const { Token } = require("../libraries/tokenContract.js");
+    console.log("initializeToken >> ", user)
     const sit = new Token(user.privateKey);
+    console.log("sit >> ", sit)
     req.SIT = sit
 
     return next()
 
   } catch (err) {
+    console.log("err >> ", err)
     return res.status(HttpStatus.SERVER_ERROR).json({
       status: 'failed',
       data: 'Server error!.'

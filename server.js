@@ -15,6 +15,8 @@ require('./helpers/connection').rabbitmq();
 require('./helpers/connection').subscribe();
 require('./helpers/connection').socket();
 
+
+require('./models/dbSeeder');
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 // logger settings
 const appLogger = winston.createLogger({
