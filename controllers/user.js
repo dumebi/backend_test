@@ -7,7 +7,6 @@ const {
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
 const { Token } = require("../libraries/tokenContract.js");
-const token = new Token("0x137d9ce46dafb9e41a593c68ce92028cb9df8d6586d7591e53e92b47237bdd57");
 
 const UserController = {
 
@@ -153,10 +152,9 @@ const UserController = {
           message: token.message
         })
       }
-      const user = await UserModel.findById(token.data.id).populate('wallet')
+      const user = await UserModel.findById(token.data.id).select('+privateKey').populate('wallet')
 
       if (user) {
-        // const user_wallet = await Wallet.findById(user.wallet)
         console.log(user)
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -198,9 +196,9 @@ const UserController = {
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        await token.getBalance(user.address)
-        // const user_wallet = await Wallet.findById(user.wallet)
-
+        // const token = new Token(user.privateKey);
+        // const balance = await token.getBalance(user.address)
+        // console.log('bal' + balance)
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
