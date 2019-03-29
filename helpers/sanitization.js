@@ -21,6 +21,7 @@ module.exports = {
   wallet() {
     return [
       sanitizeBody('account').escape(),
+      sanitizeBody('referenceid').escape(),
       sanitizeBody('remark').escape(),
       sanitizeBody('amount').toInt()
     ]

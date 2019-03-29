@@ -23,6 +23,11 @@ const WalletType = Object.freeze({
   SIT: 'SIT',
 })
 
+const PaymentMode = Object.freeze({
+  CARD: 'CARD',
+  ACCOUNT: 'ACCOUNT',
+})
+
 const TransactionSchema = new Schema(
   {
     user: { type: Schema.ObjectId, ref: 'User', required: true },
@@ -40,11 +45,16 @@ const TransactionSchema = new Schema(
       default: WalletType.NAIRA,
       required: true
     }, // Or token
+    mode: {
+      type: Schema.Types.String,
+      enum: Object.values(PaymentMode)
+    }, 
     volume: { type: Schema.Types.Number },
     amount: { type: Schema.Types.Number },
     min: { type: Schema.Types.Number },
     max: { type: Schema.Types.Number },
     txHash: { type: Schema.Types.String },
+    remark: { type: Schema.Types.String },
     status: {
       type: Schema.Types.String,
       enum: Object.values(TransactionStatus),
@@ -57,7 +67,8 @@ const TransactionSchema = new Schema(
 
 TransactionSchema.statics.Status = TransactionStatus
 TransactionSchema.statics.Type = TransactionType
-TransactionSchema.statics.Wallet = WalletType
+TransactionSchema.statics.Wallet = WalletType 
+TransactionSchema.statics.PaymentMode  = PaymentMode 
 
 const transaction = model('Transaction', TransactionSchema)
 module.exports = transaction
