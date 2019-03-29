@@ -10,30 +10,18 @@ let coinbase = '';
 // Setup RPC connection
 const web3 = new Web3(config.blockchain);
 const ethProvider = new ethers.providers.JsonRpcProvider(config.blockchain)
- console.log("web3 >> ", web3)
 /**
  * Get Coinbase address and amount
  */
 exports.getCoinbase = async () => {
   try {
     // console.log('coinbase')
-    web3.eth.getCoinbase((err, account) => {
-      if (err === null) {
-        console.log(err, coinbase)
+    const account = await web3.eth.getCoinbase() 
         coinbase = account
-        web3.eth.getBalance(account, (error, balance) => {
-          if (error === null) {
-            console.log(error, balance)
-            coinbase_amount = web3.utils.fromWei(balance, 'ether')
-            console.log(coinbase, coinbase_amount)
-          }
-        })
-      } else {
-        console.log(err)
-      }
-    })
+        const balance = await web3.eth.getBalance(account)
+        coinbase_amount = web3.utils.fromWei(balance, 'ether')
+        console.log(coinbase, coinbase_amount)
   } catch (err) {
-    console.log('error')
     console.log(err)
   }
 };
