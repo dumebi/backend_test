@@ -307,6 +307,9 @@ const walletController = {
             devError: {}
           })
         }
+
+        var transaction = await new TransactionModel() 
+        const wallet = await WalletModel.findById(user.wallet)
         
         if (!wallet.active_account) {
           return next({
@@ -316,9 +319,6 @@ const walletController = {
             devError: {}
           })
         }
-
-        var transaction = await new TransactionModel() 
-        const wallet = await WalletModel.findById(user.wallet)
 
         var referenceid = await crypto.randomBytes(10)
         referenceid = referenceid.toString('hex')
