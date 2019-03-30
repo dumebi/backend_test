@@ -295,6 +295,7 @@ const walletController = {
    */
   async fundFromAccount(req, res, next) {
     try {
+      
         const userId = req.jwtUser
         const walletId = req.params.id
         const user = await User.findById(userId)
@@ -306,8 +307,18 @@ const walletController = {
             devError: {}
           })
         }
+
         var transaction = await new TransactionModel() 
         const wallet = await WalletModel.findById(user.wallet)
+        
+        if (!wallet.active_account) {
+          return next({
+            http:HttpStatus.BAD_REQUEST,
+            status: 'failed',
+            message: 'Please set an active account!',
+            devError: {}
+          })
+        }
 
         var referenceid = await crypto.randomBytes(10)
         referenceid = referenceid.toString('hex')
