@@ -198,7 +198,7 @@ const UserController = {
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        await token.getBalance(user.address)
+        // await token.getBalance(user.address)
         // const user_wallet = await Wallet.findById(user.wallet)
 
         return res.status(HttpStatus.OK).json({
