@@ -327,7 +327,7 @@ const walletController = {
         const remark = req.body.remark
         const fromAccount = wallet.active_account
         const toAccount = config.appNairaAccount
-
+        console.log("erroring >> ", config.appNairaAccount)
         // Call IBS Service
         const transferSuccess = await transfer(referenceid,fromAccount, toAccount, amount, remark)
 
@@ -354,6 +354,8 @@ const walletController = {
         wallet.balance += amount
         wallet.transactions.push(transaction._id)
         await wallet.save()
+
+        delete wallet.transactions
 
         return res.status(HttpStatus.OK).json({ 
           status: 'success', 
@@ -411,6 +413,8 @@ const walletController = {
         wallet.balance += amount
         wallet.transactions.push(transaction._id)
         await wallet.save()
+
+        delete wallet.transactions
 
         return res.status(HttpStatus.OK).json({ 
           status: 'success', 
