@@ -37,7 +37,7 @@ router.get('/users/employment-status', middleware.isAdmin, AuthController.employ
 /**
  * User Exchange Routes
  */
-router.get('/users/balance', middleware.isUser, UserController.balance);
+router.get('/users/balance', middleware.isUser,middleware.fundAcctFromCoinbase, middleware.initializeToken, UserController.balance);
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
 // router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
 // router.post('/users/withdraw', middleware.isUser, UserController.withdraw);

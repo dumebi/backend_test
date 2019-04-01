@@ -11,7 +11,8 @@ exports.config = {
   amqp_url: '',
   port: '',
   appNairaAccount: '',
-  contract:  ''
+  contract:  '',
+  coinbaseKey:''
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -22,7 +23,8 @@ if (process.env.NODE_ENV === 'development') {
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
   this.config.contract = process.env.TEST_CONTRACT_ADDRESS
-  this.config.appNairaAccount = process.env.TEST_APP_NAIRA_ACCOUNT
+  this.config.appNairaAccount = process.env.TEST_APP_ESCROW_ACCOUNT
+  this.config.coinbaseKey = process.env.COINBASE_KEY
 } else {
   this.config.blockchain = process.env.GETH
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
@@ -31,7 +33,7 @@ if (process.env.NODE_ENV === 'development') {
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
   this.config.contract = process.env.CONTRACT_ADDRESS
-  this.config.appNairaAccount = process.env.APP_NAIRA_ACCOUNT
+  this.config.appNairaAccount = process.env.APP_ESCROW_ACCOUNT
 }
 
 exports.sendMail = (params, callback) => {

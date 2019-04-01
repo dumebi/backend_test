@@ -151,10 +151,9 @@ const UserController = {
           message: token.message
         })
       }
-      const user = await UserModel.findById(token.data.id).populate('wallet')
+      const user = await UserModel.findById(token.data.id).select('+privateKey').populate('wallet')
 
       if (user) {
-        // const user_wallet = await Wallet.findById(user.wallet)
         console.log(user)
         return res.status(HttpStatus.OK).json({
           status: 'success',
@@ -196,13 +195,13 @@ const UserController = {
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        // await token.getBalance(user.address)
-        // const user_wallet = await Wallet.findById(user.wallet)
-
+        const balance = await req.SIT.getBalance(user.address);
+        console.log('bal' + balance)
+        
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',
-          data: { naira: user.wallet.balance, sit: 0 }
+          data: { naira: user.wallet.balance, sit: balance }
         })
       }
       return res.status(HttpStatus.NOT_FOUND).json({
