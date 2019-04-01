@@ -26,13 +26,13 @@ library Ownable {
         return msg.sender == self._owner;
     }
     
-    // function _transferOwnership_(Sharing.DataOwner storage self, address newOwner) internal  {
-    //     _transferOwnership(self, newOwner);
-    // }
+    function _transferOwnership_(Sharing.DataOwner storage self, address newOwner) internal  {
+        _transferOwnership(self, newOwner);
+    }
 
-    // function _transferOwnership(Sharing.DataOwner storage self, address newOwner) internal {
-    //     require(newOwner != address(0), "New Owner must have an address");
-    //     emit OwnershipTransferred(self._owner, newOwner);
-    //     self._owner = newOwner;
-    // }
+    function _transferOwnership(Sharing.DataOwner storage self, address newOwner) internal {
+        require(newOwner != address(0), "New Owner must have an address");
+        emit OwnershipTransferred(self._owner, newOwner);
+        self._owner = newOwner;
+    }
 }
