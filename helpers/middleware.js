@@ -1,9 +1,14 @@
 // Import lbraries
 const UserModel = require('../models/user');
 const HttpStatus = require('./status')
+require('dotenv').config();
 const {
-  checkToken
+  checkToken,
+  config
 } = require('../helpers/utils');
+const ethUser = require('../libraries/ethUser')
+const { Token } = require("../libraries/tokenContract");
+const secure = require('../helpers/encryption.js');
 
 /**
  * Check Query originates from resource with at user rights
@@ -94,6 +99,55 @@ exports.isSuperAdmin = async (req, res, next) => {
     return res.status(HttpStatus.BAD_REQUEST).json({
       status: 'failed',
       data: 'Failed to authenticate token.'
+    })
+  }
+}
+
+
+/**
+ * Pre-fund Users blockchain account, for transaction gas
+ */
+exports.fundAcctFromCoinbase = async (req, res, next) => {
+  try {
+    const token = await checkToken(req);
+    const user = await UserModel.findById(token.data.id)
+    
+    const etherBalance = await ethUser.balance(user.address)
+    if (etherBalance <= "90000") {
+      return next()
+    }
+    const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
+    return next()
+
+  } catch (err) {
+    console.log("err >> ", err)
+    return res.status(HttpStatus.SERVER_ERROR).json({
+      status: 'failed',
+      data: 'Server error!.'
+    })
+  }
+}
+
+/**
+ * Initialize Token Contract
+ */
+exports.initializeToken = async (req, res, next) => {
+  try {
+    const token = await checkToken(req);
+    const user = await UserModel.findById(token.data.id).select('+privateKey')
+    
+    const privateKey = await secure.decrypt(user.privateKey)
+    const sit = new Token('0x'+privateKey);
+    
+    req.SIT = sit
+
+    return next()
+
+  } catch (err) {
+    console.log("err >> ", err)
+    return res.status(HttpStatus.SERVER_ERROR).json({
+      status: 'failed',
+      data: 'Server error!.'
     })
   }
 }

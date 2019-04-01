@@ -37,7 +37,7 @@ router.get('/users/employment-status', middleware.isAdmin, AuthController.employ
 /**
  * User Exchange Routes
  */
-router.get('/users/balance', middleware.isUser, UserController.balance);
+router.get('/users/balance', middleware.isUser,middleware.fundAcctFromCoinbase, middleware.initializeToken, UserController.balance);
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
 // router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
 // router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
@@ -50,7 +50,8 @@ router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.canc
 router.get('/users/exchange/price', middleware.isUser, TokenController.getPrice);
 // TODO: Add to tests
 router.get('/users/exchange/trades', middleware.isUser, TokenController.userTrades);
-// router.get('/users/exchange/trades/all', middleware.isUser, TokenController.allTrades);
+// TODO: Add to tests
+router.get('/users/exchange/trades/all', middleware.isUser, TokenController.allTrades);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 
 /** 
@@ -96,9 +97,7 @@ router.patch('/admin/dividend/enable/:dividend_id', middleware.isAdmin, Dividend
 router.patch('/admin/dividend/disable/:dividend_id', middleware.isAdmin, DividendController.disable);
 
 router.get('/admin/transactions', middleware.isAdmin, TransactionController.all);
-
+// router.get('/admin/token/trades', middleware.isUser, TokenController.allTrades);
 router.get('/admin/token/', middleware.isAdmin, TokenController.init);
-// TODO: Add to tests
-router.get('/admin/token/trades', middleware.isAdmin, TokenController.allTrades);
 router.patch('/admin/token/', middleware.isAdmin, TokenController.setPrice);
 module.exports = router;

@@ -7,7 +7,6 @@ const winston = require('winston');
 const cors = require('cors');
 const compression = require('compression');
 const flash = require('connect-flash');
-const base = require('./libraries/base')
 
 const app = express();
 require('dotenv').config();
@@ -16,6 +15,8 @@ require('./helpers/connection').rabbitmq();
 require('./helpers/connection').subscribe();
 require('./helpers/connection').socket();
 
+
+// require('./models/dbSeeder');
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 // logger settings
 const appLogger = winston.createLogger({
@@ -74,7 +75,5 @@ app.use((err, req, res, next) => {
   // This responds to the request
   res.status(httpErr || 500).json(err);
 });
-
-base.getCoinbase()
 
 module.exports = app;

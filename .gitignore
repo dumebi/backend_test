@@ -22,4 +22,6 @@ yarn.lock
 Dockerfile
 
 # Externals
-# external/
+external/mongo
+external/rabbitmq
+external/redis

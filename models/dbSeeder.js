@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const EthAccount = require('../libraries/ethUser.js');
 const secure = require('../helpers/encryption.js');
+const UserModel = require('../models/user');
 
 console.log('This script seeds startup data into the db.');
 
@@ -9,9 +10,8 @@ async function dbSeeder() {
     const userMnemonic = await EthAccount.newMnemonic()
     const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
     const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
-    const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
 
-    const users = [
+    const user = new UserModel(
       {
         fname: 'Oluwadara',
         mname: 'Ayotunde',
@@ -28,17 +28,22 @@ async function dbSeeder() {
         activated: true,
         enabled: true,
         password: '12345678',
-        vesting: false,
-        mnemonic,
-        privateKey,
-        publicKey,
-        address: Ethkeys.childAddress
-      }
-    ]
+        vesting: false
+      })
 
-    const userSavePromise = users.map(user => User.create(user))
-    const newUsers = await Promise.all(userSavePromise)
-    console.log(newUsers)
+    const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
+    user.mnemonic = mnemonic
+    user.privateKey = privateKey
+    user.publicKey = publicKey
+    user.address = Ethkeys.childAddress
+
+    await user.save()
+
+    // const userSavePromise = users.map(user => {
+    //   User.create(user)
+    // })
+    // const newUsers = await Promise.all(userSavePromise)
+    // console.log(newUsers)
 
     // for (let i = 0; i < users.length; i++) {
     //   const saveUser = new User(users[i]);
