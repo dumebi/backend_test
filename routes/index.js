@@ -1,5 +1,6 @@
 const express = require('express');
 const AuthController = require('../controllers/auth')
+const shareController = require('../controllers/share')
 const UserController = require('../controllers/user');
 const TransactionController = require('../controllers/transaction');
 const ScheduleController = require('../controllers/schedule');
@@ -24,8 +25,20 @@ router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
 router.patch('/users/activate/:id', AuthController.activate);
 router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
-router.get("/test", testController.sample);
 
+/**
+ * Shares
+ */
+router.get('/shares/get-lien/:id', middleware.isUser, shareController.getLien)
+router.post('/shares/lien', middleware.isUser, validate.lien, shareController.createLien)
+
+router.get('/shares/get-upfront/:id', middleware.isUser, shareController.getUpfront)
+router.post('/shares/upfront', middleware.isUser, shareController.createUpfront)
+
+router.get('/shares/get-loan/:id', middleware.isUser, shareController.getLoan)
+router.get('/shares/loan', middleware.isUser, shareController.createLoan)
+
+router.get("/test", testController.sample);
 
 /**
  * User Model routes

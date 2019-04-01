@@ -50,6 +50,13 @@ module.exports = {
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
+    // Create lien to the blockchain
+    subscriber.consume('CREATE_LIEN_BLOCKCHAIN', (msg) => {
+      const data = JSON.parse(msg.content.toString());
+      console.log(msg.content.toString());
+      
+    }, 3);
+
     // Send User Signup Mail
     subscriber.consume('SEND_USER_STTP_SIGNUP_EMAIL', (msg) => {
       const data = JSON.parse(msg.content.toString());

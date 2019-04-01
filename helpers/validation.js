@@ -55,3 +55,24 @@ const HttpStatus = require('./status')
       })
     }
   }
+
+  exports.lien = async (req, res, next) => {
+    try {
+      const schema = Joi.object().keys({
+        userID: Joi.string().required().label("User ID is not required!"),
+        amount: Joi.number().required().label("Amount is not required!"),
+        date_added: Joi.date().required().label("Date added is required!"),
+        isWithdrawn: Joi.boolean().required().label("isWithdrawn is required!"),
+        isMovedToTraddable: Joi.boolean().required().label("isMovedToTraddable is required!")
+      })
+
+      await Joi.validate(req.body, schema)
+      next()
+
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: error.details,
+      })
+    }
+  }
