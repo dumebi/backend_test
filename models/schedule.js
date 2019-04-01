@@ -16,10 +16,8 @@ const ScheduleStatus = Object.freeze({
 const ScheduleSchema = new Schema({
   scheduleId: { type: Schema.Types.Number, unique: true, dropDups: true },
   name: { type: Schema.Types.String },
-  group: {
-    type: Schema.Types.String, enum: Object.values(UserModel.UserGroup), default: UserModel.UserGroup.ENTRYLEVEL, required: true
-  },
-  amount: { type: Schema.Types.String },
+  reason: { type: Schema.Types.String },
+  type: { type: Schema.Types.String },
   date: { type: Schema.Types.Date },
   enabled: { type: Schema.Types.Boolean, default: false },
   status: {

@@ -83,6 +83,18 @@ module.exports = {
     }, 3);
 
     /**
+     * Scheduled and Dividend tokens
+     */
+    // process scheduled token
+    subscriber.consume('PROCESS_BLOCKCHAIN_SCHEDULE', async (msg) => {
+      const data = JSON.parse(msg.content.toString());
+      const result = await TokenController.marketSell(data.token, data.user, data.amount)
+      console.log(result)
+      ioClient.emit('broadcast', { user: data.user, result })
+      subscriber.acknowledgeMessage(msg);
+    }, 3);
+
+    /**
      * Token Exchange
      */
     // Limit Buy token

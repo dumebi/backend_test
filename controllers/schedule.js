@@ -1,5 +1,7 @@
 const ScheduleModel = require('../models/schedule');
+const ScheduleGroupModel = require('../models/scheduleGroup');
 const UserModel = require('../models/user');
+const UserController = require('../controllers/user');
 const HttpStatus = require('../helpers/status');
 const {
   paramsNotValid, generateTransactionReference, checkToken
@@ -18,9 +20,16 @@ const ScheduleController = {
     */
   async all(req, res, next) {
     try {
+      let { page, count } = req.query
       const {
         group, to, from, status
       } = req.query
+
+      page = parseInt(page, 10)
+      count = parseInt(count, 10)
+
+      page = req.query.page == null || page <= 0 ? 1 : page
+      count = req.query.count == null || count <= 0 ? 50 : count
 
       const query = { }
       if (status) query.status = ScheduleModel.Status[status.toUpperCase()]
@@ -30,19 +39,29 @@ const ScheduleController = {
       if (to && from == null) query.createdAt = { $lt: to }
       if (from && to) query.createdAt = { $lt: to, $gte: from }
 
-      const schedules = await ScheduleModel.find(query).sort({ createdAt: -1 })
-      // let schedules = {}
-      // const result = await getAsync('STTP_schedules');
-      // // console.log(result)
-      // if (result != null && JSON.parse(result).length > 0) {
-      //   schedules = JSON.parse(result);
-      // } else {
-      //   for (let index = 0; index < schedules.length; index++) {
-      //     schedules[schedules[index]._id] = schedules[index]
-      //   }
-      //   await client.set('STTP_schedules', JSON.stringify(schedules));
-      // }
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedules retrieved', data: schedules });
+      // const schedules = await ScheduleModel.find(query).sort({ createdAt: -1 })
+
+      const [schedules, scheduleCount] = await Promise.all([ScheduleModel.find(query).sort({ createdAt: -1 }).skip((page - 1) * count).limit(count), ScheduleModel.count(query)]);
+      const allSchedulesPromise = schedules.map(schedule => ScheduleGroupModel.find({ schedule: schedule._id }))
+      const ScheduleGroups = await Promise.all(allSchedulesPromise);
+      const new_schedules = UserController.deepCopy(schedules)
+      for (let index = 0; index < schedules.length; index++) {
+        // const schedule = ;
+        const ScheduleGroup = ScheduleGroups[index]
+        console.log('schedule items')
+        console.log(ScheduleGroup)
+        new_schedules[index].groups = ScheduleGroup
+      }
+      console.log(schedules.length)
+      if (new_schedules) {
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User schedules retrieved',
+          data: new_schedules,
+          count: scheduleCount
+        });
+      }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedules retrieved', data: [] });
     } catch (error) {
       const err = {
         http: HttpStatus.BAD_REQUEST,
@@ -67,7 +86,7 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.type, req.body.reason, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
@@ -80,21 +99,27 @@ const ScheduleController = {
           message: token.message
         })
       }
-      const schedule = new ScheduleModel({
+      const _schedule = new ScheduleModel({
         scheduleId: generateTransactionReference(),
         name: req.body.name,
-        group: req.body.group,
-        amount: req.body.amount,
+        type: req.body.type,
+        reason: req.body.reason,
         date: req.body.date,
         enabled: false,
         createdby: token.data.id
       })
 
-      await schedule.save()
+      const schedule = await _schedule.save()
+      const groups = req.body.group;
+      const createScheduleGropusPromise = groups.map( group => ScheduleGroupModel.create({ schedule: schedule._id, level: group.level, amount: group.amount }) )
+      const ScheduleGroups = await Promise.all(createScheduleGropusPromise);
 
+      const new_schedule = UserController.deepCopy(schedule)
+      new_schedule.group = ScheduleGroups
       // TODO: create blockchain schedule
+      await publisher.queue('PROCESS_BLOCKCHAIN_SCHEDULE', { new_schedule })
 
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: schedule });
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: new_schedule });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
