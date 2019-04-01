@@ -195,9 +195,9 @@ const UserController = {
 
       if (user) {
         // TODO: get user balance from blockchain lib
-        // await token.getBalance(user.address)
-        // const user_wallet = await Wallet.findById(user.wallet)
-
+        const balance = await req.SIT.getBalance(user.address);
+        console.log('bal' + balance)
+        
         return res.status(HttpStatus.OK).json({
           status: 'success',
           message: 'User balance gotten successfully',

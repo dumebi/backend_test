@@ -34,7 +34,8 @@ WORKDIR /app
 COPY . .
 COPY --from=build /src .
 VOLUME ["/app","/app/node_modules"]
-# RUN node blockchain/deploy.js "SIT" "Sterling Investment Token" 1 "0x1ae2ec290b416fa2bfcd36af39b818d40ba28d9b" "0x739cf050d51e4f6dd21b85c0c1159defc0bfda4d"
+RUN node models/dbSeeder.js
+RUN node blockchain/deploy.js "SIT" "Sterling Investment Token" 1 "0x1ae2ec290b416fa2bfcd36af39b818d40ba28d9b" "0x739cf050d51e4f6dd21b85c0c1159defc0bfda4d"
 # RUN touch contract.txt && node blockchain/deploy.js > contract.txt && cat contract.txt
 # CMD [ "sh", "-c", "TEST_CONTRACT_ADDRESS=cat contract.txt nodemon index.js" ]
 ENTRYPOINT ["npm", "run", "dev"]
