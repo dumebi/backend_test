@@ -7,52 +7,28 @@ pragma solidity >=0.4.0 <0.6.0;
 */
 library Sharing {
     enum ScheduleType { PayScheme, UpfrontScheme}
-    enum TokenCat { Tradable, Lien, Allocated, Vesting }
+    enum TokenCat { Tradable, Lien, Upfront, Loan }
     
     // Token Scheduler
-    
-    struct Authorising {
-        address authorizer;
-        bytes reason;
-    }
     struct Schedule {
         uint amount;
         uint activeAmount;
-        bool isApproved;
-        bool isRejected;
         bool isActive;
-        uint8 authorizedCount;
         Sharing.ScheduleType scheduleType;
-        mapping(uint => Authorising) authorizedBy;
     }
     
     struct DataSchedule {
         mapping(uint256 => Schedule) mMintSchedules;
-        mapping (address => bool) trackApproves;
     }
     
     // Owner 
-    
     struct DataOwner {
         address _owner;
     }
-    
-    
-    // Authorizer
-    struct Authorizer {
-        bool isUnique;
-        address authorizer;
-        Sharing.ScheduleType authorizerType; // Type can be montly or custom
-    }
-    
+
     struct TrackIndex {
         bool isUnique;
         uint index;
-    }
-    
-    struct DataAuthorizer {
-        mapping(address => TrackIndex) authorizerToIndex;
-        Authorizer[] mAuthorizers;
     }
     
     // Token Data
@@ -63,44 +39,44 @@ library Sharing {
         mapping(address => uint256) mBalances; //The tradable balance for SITHolders
         mapping (address => mapping (address => uint256)) mAllowed;
         mapping(address => Lien[]) mLiens;
-        mapping(address => Allocated[]) mAllocations;
-        mapping(address => Vesting[]) mVestings;
+        mapping(address => Upfront[]) mUpfronts;
+        mapping(address => Loan[]) mLoanEscrow;
         mapping(address => SitHolder) shareHolders; 
-        mapping(address => uint) exchangeEscrow; 
+        mapping(address => uint) mExchangeEscrow; 
     }
     
     struct Lien {
         uint amount;
         uint dateAdded;
-        uint lienPeriod;
+        uint lienId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
 
-    struct Vesting {
+    struct Loan {
         uint amount;
         uint dateAdded;
+        uint loanId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
 
-    struct Allocated {
+    struct Upfront {
         uint amount;
         uint dateAdded;
-        uint dueDate;
+        uint upfrontId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
 
     struct SitBalanceByCat {
-        uint256 allocated;
-        uint256 vesting;
+        uint256 upfront;
         uint256 lien;
+        uint256 loanEscrow;
     }
     
     struct SitHolder {
         bool uniqueHolder;
-        bool isEnabled;
         bool isWithhold;
         SitBalanceByCat sitBalances;
     }

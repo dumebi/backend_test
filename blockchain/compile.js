@@ -12,11 +12,6 @@ const MessagesLibrary = path.join(
   'contracts',
   'libMsgCode.sol'
 );
-const AuthorizerLib = path.join(
-  __dirname,
-  'contracts',
-  'libAuthorizer.sol'
-);
 const OwnerLib = path.join(
   __dirname,
   'contracts',
@@ -50,7 +45,6 @@ const InterfaceSharing = path.join(
 
 const solTokenContract = fs.readFileSync(TokenContract, "utf8");
 const solMessagesLibrary = fs.readFileSync(MessagesLibrary, "utf8");
-const solAuthorizerLib = fs.readFileSync(AuthorizerLib, "utf8");
 const solOwnerLib = fs.readFileSync(OwnerLib, "utf8");
 const solTokenFuncLib = fs.readFileSync(TokenFuncLib, "utf8");
 const solTokenScheduleLib = fs.readFileSync(TokenScheduleLib, "utf8");
@@ -66,9 +60,6 @@ var input = {
     },
     MsgCode: {
       content: solMessagesLibrary
-    },
-    Authorizer: {
-      content: solAuthorizerLib
     },
     TokenScheduler: {
       content: solTokenScheduleLib
@@ -112,8 +103,6 @@ function getImports(dependency) {
       return { contents: solOwnerLib };
     case 'libMsgCode.sol':
       return { contents: solMessagesLibrary };
-    case 'libAuthorizer.sol':
-      return { contents: solAuthorizerLib };
     case 'libTokenScheduler.sol':
       return { contents: solTokenScheduleLib };
     case 'libTokenFunc.sol':
@@ -131,10 +120,11 @@ function getImports(dependency) {
 
 var output = JSON.parse(solc.compile(JSON.stringify(input), getImports));
 
+console.log("output.contracts >>> ", output)
+
 module.exports = {
   compiledTokenContract: output.contracts['Token']['Token'],
   compiledMessagesLibrary: output.contracts['MsgCode']['MessagesAndCodes'],
-  compiledAuthorizerLib: output.contracts['Authorizer']['Authorizer'],
   compiledOwnerLib: output.contracts['Ownable']['Ownable'],
   compiledTokenFuncLib: output.contracts['TokenFunc']['TokenFunc'],
   compiledTokenScheduleLib: output.contracts['TokenScheduler']['TokenScheduler']
