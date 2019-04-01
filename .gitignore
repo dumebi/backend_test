@@ -24,4 +24,4 @@ Dockerfile
 # Externals
 external/mongo
 external/rabbitmq
-external/redis
+external/redis/
