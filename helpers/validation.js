@@ -36,3 +36,22 @@ const HttpStatus = require('./status')
       })
     }
   }
+
+  exports.fundCard =  async (req, res, next) => {
+    try {
+      const schema = Joi.object().keys({
+        amount: Joi.number().required().label("Amount is required!"),
+        remark: Joi.string().label("Remark must be a string!"),
+        referenceId: Joi.string().required().label("referenceid is required!")
+      })
+
+      await Joi.validate(req.body, schema);
+      next()
+      
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        status: 'failed',
+        message: error.details,
+      })
+    }
+  }

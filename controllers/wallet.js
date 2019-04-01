@@ -289,12 +289,13 @@ const walletController = {
     },  
 
     /**
-   * Fund Wallet
-   * @description Allow user fund wallet
+   * Fund Wallet From Account
+   * @description Allow user fund wallet by direct debit from account
    * @param {object} wallet        user naira wallet
    */
-  async fundWallet(req, res, next) {
+  async fundFromAccount(req, res, next) {
     try {
+      
         const userId = req.jwtUser
         const walletId = req.params.id
         const user = await User.findById(userId)
@@ -306,8 +307,18 @@ const walletController = {
             devError: {}
           })
         }
+
         var transaction = await new TransactionModel() 
         const wallet = await WalletModel.findById(user.wallet)
+        
+        if (!wallet.active_account) {
+          return next({
+            http:HttpStatus.BAD_REQUEST,
+            status: 'failed',
+            message: 'Please set an active account!',
+            devError: {}
+          })
+        }
 
         var referenceid = await crypto.randomBytes(10)
         referenceid = referenceid.toString('hex')
@@ -316,7 +327,7 @@ const walletController = {
         const remark = req.body.remark
         const fromAccount = wallet.active_account
         const toAccount = config.appNairaAccount
-
+        console.log("erroring >> ", config.appNairaAccount)
         // Call IBS Service
         const transferSuccess = await transfer(referenceid,fromAccount, toAccount, amount, remark)
 
@@ -334,6 +345,8 @@ const walletController = {
         transaction.to = toAccount
         transaction.txHash = referenceid
         transaction.amount = amount
+        transaction.remark = remark
+        transaction.mode = TransactionModel.PaymentMode.ACCOUNT
         transaction.type = TransactionModel.Type.FUND
         transaction.status = TransactionModel.Status.COMPLETED
         await transaction.save()
@@ -341,6 +354,8 @@ const walletController = {
         wallet.balance += amount
         wallet.transactions.push(transaction._id)
         await wallet.save()
+
+        delete wallet.transactions
 
         return res.status(HttpStatus.OK).json({ 
           status: 'success', 
@@ -361,6 +376,64 @@ const walletController = {
 
   },
 
+  /**
+   * Fund Wallet From Card
+   * @description Allow user fund wallet from card
+   * @param {object} wallet        user naira wallet
+   */
+  async fundFromCard(req, res, next) {
+    try {
+        const userId = req.jwtUser
+        const walletId = req.params.id
+        const user = await User.findById(userId)
+        if (!user || user.wallet != walletId) {
+          return next({
+            http:HttpStatus.BAD_REQUEST,
+            status: 'failed',
+            message: 'Invalid user',
+            devError: {}
+          })
+        }
+        var transaction = await new TransactionModel() 
+        const wallet = await WalletModel.findById(user.wallet)
+
+        const amount = req.body.amount
+        const referenceId = req.body.referenceId
+        const remark = req.body.remark
+
+        transaction.user = user.id
+        transaction.txHash = referenceId
+        transaction.amount = amount
+        transaction.remark = remark
+        transaction.mode = TransactionModel.PaymentMode.CARD
+        transaction.type = TransactionModel.Type.FUND
+        transaction.status = TransactionModel.Status.COMPLETED
+        await transaction.save()
+
+        wallet.balance += amount
+        wallet.transactions.push(transaction._id)
+        await wallet.save()
+
+        delete wallet.transactions
+
+        return res.status(HttpStatus.OK).json({ 
+          status: 'success', 
+          message: 'Account funded successfully!', 
+          data: {wallet} 
+        });
+
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.SERVER_ERROR,
+        status: 'failed',
+        message: 'Could not fund wallet!',
+        devError: error
+      }
+      next(err)
+    }
+
+  },
 
   /**
    * Withdraw Wallet
