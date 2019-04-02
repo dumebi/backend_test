@@ -770,7 +770,7 @@ exports.Token = class {
     reason
   ) {
     try {
-
+      console.log("schedule id >> ", ethers.utils.formatBytes32String(scheduleId))
       const tx = await this.contractTX
         .createSchedule(
           ethers.utils.formatBytes32String(scheduleId),

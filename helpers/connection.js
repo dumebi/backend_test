@@ -8,6 +8,8 @@ const utils = require('../helpers/utils');
 const RabbitMQ = require('./rabbitmq')
 const subscriber = require('./rabbitmq')
 
+const TxModel = require('../models/onchainTx');
+
 const { addUserOrUpdateCache } = require('../controllers/user');
 const { create_schedule_on_blockchain } = require('../helpers/schedule');
 const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
@@ -61,13 +63,26 @@ module.exports = {
     // Schedule..
     subscriber.consume('CREATE_SCHEDULE_ON_BLOCKCHAIN', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      console.log(data);
-      
-      const result = create_schedule_on_blockchain(data.userId, data.scheduleId, data.amount, data.scheduleType, data.reason)
+      const result = await create_schedule_on_blockchain(data.userId, data.scheduleId, data.amount, data.scheduleType, data.reason)
 
-      console.log(result);
-      // ioClient.emit('broadcast', { user: data.user, result })
-      // subscriber.acknowledgeMessage(msg);
+      // If fails return false and delete by id from mongodb
+
+      // save to transaction
+      var tx = await new TxModel()
+
+      tx.user = data.userId
+      tx.description = 'Created a new schedule'
+      tx.type = 'New Schedule'
+      tx.from = result.transactionDetails.from
+      tx.to = result.transactionDetails.to
+      tx.txHash = result.transactionDetails.hash
+
+      await tx.save()
+
+      // Return success to use via socket
+
+      ioClient.emit('broadcast', { user: data.user, message: 'Schedule created successfully' })
+      subscriber.acknowledgeMessage(msg);
       
       
     }, 3);
