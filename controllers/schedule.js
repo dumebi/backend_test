@@ -23,9 +23,8 @@ const ScheduleController = {
   async create(req, res, next) {
     try {
 
-      const userId = req.jwtUser
-
       // Get Users
+      const userId = req.jwtUser
       const user = await User.findById(userId)
       
       const schedule = new ScheduleModel({
