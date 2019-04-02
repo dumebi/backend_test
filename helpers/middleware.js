@@ -151,26 +151,3 @@ exports.initializeToken = async (req, res, next) => {
     })
   }
 }
-
-/**
- * Initialize Token Contract
- */
-exports.initializer = async (userId) => {
-  try {
-    const user = await UserModel.findById(userId).select('+privateKey')
-    
-    const privateKey = await secure.decrypt(user.privateKey)
-    const sit = new Token('0x'+privateKey);
-    
-    req.SIT = sit
-
-    return next()
-
-  } catch (err) {
-    console.log("err >> ", err)
-    return res.status(HttpStatus.SERVER_ERROR).json({
-      status: 'failed',
-      data: 'Server error!.'
-    })
-  }
-}
