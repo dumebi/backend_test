@@ -1,5 +1,6 @@
 const express = require('express');
 const AuthController = require('../controllers/auth')
+const shareController = require('../controllers/share')
 const UserController = require('../controllers/user');
 const TransactionController = require('../controllers/transaction');
 const ScheduleController = require('../controllers/schedule');
@@ -24,8 +25,20 @@ router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
 router.patch('/users/activate/:id', AuthController.activate);
 router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
-router.get("/test", testController.sample);
 
+/**
+ * Shares
+ */
+router.get('/shares/get-lien/:id', middleware.isUser, shareController.getLien)
+router.post('/shares/lien', middleware.isUser, validate.lien, shareController.createLien)
+
+router.get('/shares/get-upfront/:id', middleware.isUser, shareController.getUpfront)
+router.post('/shares/upfront', middleware.isUser, shareController.createUpfront)
+
+router.get('/shares/get-loan/:id', middleware.isUser, shareController.getLoan)
+router.get('/shares/loan', middleware.isUser, shareController.createLoan)
+
+router.get("/test", testController.sample);
 
 /**
  * User Model routes
@@ -80,12 +93,14 @@ router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
 router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup);
 router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
-router.get('/admin/schedule/', middleware.isAdmin, ScheduleController.all);
-router.post('/admin/schedule/', middleware.isAdmin, ScheduleController.create);
-router.get('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.one);
-router.patch('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.update);
-router.patch('/admin/schedule/enable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
-router.patch('/admin/schedule/disable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
+router.post('/admin/schedule/', middleware.isAdmin, validate.schedule, middleware.fundAcctFromCoinbase, middleware.initializeToken, ScheduleController.create);
+// router.patch('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.update);
+// router.get('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.one);
+// router.delete('admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.delete)
+// router.get('/admin/schedule/', middleware.isAdmin, ScheduleController.all);
+
+// router.patch('/admin/schedule/enable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
+// router.patch('/admin/schedule/disable/:schedule_id', middleware.isAdmin, ScheduleController.enable);
 
 router.get('/admin/dividend/', middleware.isAdmin, DividendController.all);
 router.post('/admin/dividend/', middleware.isAdmin, DividendController.create);

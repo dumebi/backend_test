@@ -1,12 +1,75 @@
 const ScheduleModel = require('../models/schedule');
 const UserModel = require('../models/user');
 const HttpStatus = require('../helpers/status');
+const publisher = require('../helpers/rabbitmq');
+
 const {
   paramsNotValid, generateTransactionReference, checkToken
 } = require('../helpers/utils');
 
-
 const ScheduleController = {
+  /**
+   * Create Schedule
+   * @description Create a schedule
+   * @param {string} name   Schedule name
+   * @param {string} group  User group
+   * @param {string} amount Schedule amount
+   * @param {string} scheduleType Schedule amount
+   * @param {string} date   Schedule amount
+   * @param {string} status Schedule status
+   *
+   * @return {object} schedule
+   */
+  async create(req, res, next) {
+    try {
+      
+      const schedule = new ScheduleModel({
+          name: req.body.name,
+          group: req.body.group,
+          amount: req.body.amount,
+          schedule_type: req.body.scheduleType,
+          schedule_status: req.body.scheduleStatus,
+          date_created: new Date().now
+      })
+  
+      await schedule.save()     
+      
+      await Promise.all([publisher.queue('CREATE_SCHEDULE_ON_BLOCKCHAIN', {
+        scheduleId: schedule._id, amount: req.body.amount, scheduleType: req.body.scheduleType, reason: req.body.name, 
+      })])
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully' });
+
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not create schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   /**
     * Get Schedules
     * @description Get all schedules
@@ -16,7 +79,7 @@ const ScheduleController = {
     * @param {string} status  Schedule status
     * @return {object[]} schedules
     */
-  async all(req, res, next) {
+   async all(req, res, next) {
     try {
       const {
         group, to, from, status
@@ -48,59 +111,6 @@ const ScheduleController = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
         message: 'Could not get schedules',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-   * Create Schedule
-   * @description Create a schedule
-   * @param {string} group  User group
-   * @param {string} name   Schedule name
-   * @param {string} amount Schedule amount
-   * @param {string} date   Schedule amount
-   * @param {string} status Schedule status
-   *
-   * @return {object} schedule
-   */
-  async create(req, res, next) {
-    try {
-      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const schedule = new ScheduleModel({
-        scheduleId: generateTransactionReference(),
-        name: req.body.name,
-        group: req.body.group,
-        amount: req.body.amount,
-        date: req.body.date,
-        enabled: false,
-        createdby: token.data.id
-      })
-
-      await schedule.save()
-
-      // TODO: create blockchain schedule
-
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: schedule });
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not create schedule',
         devError: error
       }
       next(err)
