@@ -18,7 +18,7 @@ library Sharing {
     }
     
     struct DataSchedule {
-        mapping(uint256 => Schedule) mMintSchedules;
+        mapping(bytes32 => Schedule) mMintSchedules;
     }
     
     // Owner 
@@ -48,7 +48,7 @@ library Sharing {
     struct Lien {
         uint amount;
         uint dateAdded;
-        uint lienId;
+        bytes32 lienId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
@@ -56,7 +56,7 @@ library Sharing {
     struct Loan {
         uint amount;
         uint dateAdded;
-        uint loanId;
+        bytes32 loanId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
@@ -64,7 +64,7 @@ library Sharing {
     struct Upfront {
         uint amount;
         uint dateAdded;
-        uint upfrontId;
+        bytes32 upfrontId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }

@@ -101,15 +101,15 @@ library TokenFunc {
        return self.mExchangeEscrow[_holder];
     }
     
-    function _addToLoanEscrow_(Sharing.DataToken storage self, address _holder, uint _amount, uint _loanId) internal returns(uint totalInEscrow) {
+    function _addToLoanEscrow_(Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _loanId) internal returns(uint totalInEscrow) {
         require(self.mBalances[_holder] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
         self.mBalances[_holder] = self.mBalances[_holder].sub(_amount);
         self.shareHolders[_holder].sitBalances.loanEscrow = self.shareHolders[_holder].sitBalances.loanEscrow.add(_amount);
-        _addToLoanEscrow(self, _holder, _loanId, _amount, now);
+        _addToLoanEscrow(self, _holder, _amount, _loanId, now);
         totalInEscrow = self.shareHolders[_holder].sitBalances.loanEscrow;
     }
         
-    function _getRecordByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, uint _recordId) internal view returns (uint256 amount, uint256 dateAdded, uint recordId, bool isMovedToTradable, bool isWithdrawn) {
+    function _getRecordByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) internal view returns (uint256 amount, uint256 dateAdded, bytes32 recordId, bool isMovedToTradable, bool isWithdrawn) {
         
         if (Sharing.TokenCat.Lien == _sitCat) {
             uint _lienCount = _totalRecordsByCat_(self, _holder, _sitCat);
@@ -151,19 +151,19 @@ library TokenFunc {
         } 
     }
     
-    function _addToUpfront (Sharing.DataToken storage self, address _holder, uint _amount, uint _upfrontId, uint _dateAdded) internal returns(bool success) {
+    function _addToUpfront (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _upfrontId, uint _dateAdded) internal returns(bool success) {
         self.mUpfronts[_holder].push(Sharing.Upfront(_amount, _dateAdded, _upfrontId, false, false));
         emit NewUpfront(_holder, _amount, _dateAdded);
         return true;
     }
     
-    function _addToLoanEscrow (Sharing.DataToken storage self, address _holder, uint _amount, uint _loanId, uint _dateAdded) internal returns(bool success) {
+    function _addToLoanEscrow (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _loanId, uint _dateAdded) internal returns(bool success) {
         self.mLoanEscrow[_holder].push(Sharing.Loan(_amount, _dateAdded, _loanId, false, false));
         emit NewLoan(_holder, _amount, _dateAdded);
         return true;
     }
     
-    function _addToLien (Sharing.DataToken storage self, address _holder, uint _amount, uint _lienId, uint _dateAdded) internal returns(bool success) {
+    function _addToLien (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _lienId, uint _dateAdded) internal returns(bool success) {
         self.mLiens[_holder].push(Sharing.Lien(_amount, _dateAdded, _lienId, false, false));
         emit NewLien(_holder, _amount, _dateAdded);
         return true;
@@ -239,9 +239,7 @@ library TokenFunc {
             self.mUpfronts[_holder][_recordId].isWithdrawn = true;
             self.shareHolders[_holder].sitBalances.upfront = self.shareHolders[_holder].sitBalances.upfront.sub(_amount);
         } else if (Sharing.TokenCat.Tradable == _sitCat) {
-            if(_balanceOf_(self, _holder) < _amount){
-                return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR));
-            } 
+            require(_balanceOf_(self, _holder) >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
             self.mBalances[_holder] = self.mBalances[_holder].sub(_amount);
         }
         

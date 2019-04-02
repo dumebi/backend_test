@@ -143,7 +143,7 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc._addToEscrow_(tokenFunc,msg.sender, _amount);
     }
     
-    function addToLoanEscrow(address _holder, uint _amount, uint _loanId) internal returns(uint totalInEscrow) {
+    function addToLoanEscrow(address _holder, uint _amount, bytes32 _loanId) internal returns(uint totalInEscrow) {
        return TokenFunc._addToLoanEscrow_(tokenFunc, _holder, _amount, _loanId);
     }
         
@@ -159,7 +159,7 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc._totalRecordsByCat_(tokenFunc, _holder, _sitCat);
     }
     
-    function recordByCat(address _holder, Sharing.TokenCat _sitCat, uint _recordId) public view returns (uint256 amount, uint256 dateAdded, uint recordId, bool isMovedToTradable, bool isWithdrawn) {
+    function recordByCat(address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) public view returns (uint256 amount, uint256 dateAdded, bytes32 recordId, bool isMovedToTradable, bool isWithdrawn) {
         (amount, dateAdded, recordId, isMovedToTradable, isWithdrawn) = TokenFunc._getRecordByCat_(tokenFunc, _holder, _sitCat, _recordId);
     }
     
@@ -189,23 +189,23 @@ contract Token is IERC20, IERC1404 {
         return tokenFunc.shareHolders[_holder].isWithhold;
     }
     
-    function test (uint256 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public  returns(string memory success) {
+    function test (bytes32 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public  returns(string memory success) {
         return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
-    function createSchedule (uint256 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public onlyAdmin returns(string memory success) {
+    function createSchedule (bytes32 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public onlyAdmin returns(string memory success) {
         return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
-    function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {
+    function getSchedule (bytes32 _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {
         return TokenScheduler._getSchedule_(tokenScheduler, _scheduleId);
     }
     
-    function removeSchedule(uint256 _scheduleId, bytes memory _reason) public onlyAdmin returns(uint256 scheduleId)  {
-        scheduleId = TokenScheduler._removeSchedule_(tokenScheduler, _scheduleId, _reason);
+    function removeSchedule(bytes32 _scheduleId, bytes memory _reason) public onlyAdmin returns(bool success)  {
+        success = TokenScheduler._removeSchedule_(tokenScheduler, _scheduleId, _reason);
     } 
 
-    function mint(uint256 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint _recordId, bytes memory _data) public onlyAdmin returns (string memory success) {
+    function mint(bytes32 _scheduleIndex, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, bytes32 _recordId, bytes memory _data) public onlyAdmin returns (string memory success) {
         
         if (TokenFunc._totalSupply_(tokenFunc).add(_amount) < TokenFunc._totalSupply_(tokenFunc)) {
             return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.FAILURE));
@@ -214,7 +214,7 @@ contract Token is IERC20, IERC1404 {
         success = TokenScheduler._mint_(tokenScheduler, tokenFunc, uGranularity, aTokenbase, _scheduleIndex, _holder, _amount, _sitCat, _recordId, _data );
     }
     
-    function preloadToken(address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _idLien, uint _idUpfront, uint _idLoan, bytes memory _data) public returns (string memory success) {
+    function preloadToken(address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, bytes32 _idLien, bytes32 _idUpfront, bytes32 _idLoan, bytes memory _data) public returns (string memory success) {
         return TokenScheduler._preloadToken_(tokenFunc, uGranularity, _holder, _lien, _upfront, _loan, _tradable, _idLien, _idUpfront, _idLoan, _data);
     }
 

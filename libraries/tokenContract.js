@@ -773,10 +773,10 @@ exports.Token = class {
 
       const tx = await this.contractTX
         .createSchedule(
-          scheduleId,
+          ethers.utils.formatBytes32String(scheduleId),
           amount,
-          scheduleType == 'PayScheme' ? 0 : 1,
-          ethers.utils.toHexString(reason)
+          scheduleType == 'Pay Scheme' ? 0 : 1,
+          ethers.utils.formatBytes32String (reason)
         )
       await tx.wait()
       console.log("tx >> ", tx)
@@ -803,7 +803,7 @@ exports.Token = class {
   async removeSchedule(scheduleId, reason) {
     try {
 
-      const tx = await this.contractInst.removeSchedule(scheduleId, ethers.utils.toHexString(reason))
+      const tx = await this.contractInst.removeSchedule(scheduleId, ethers.utils.formatBytes32String (reason))
       await tx.wait()
       console.log("tx >> ", tx)
   
@@ -890,7 +890,7 @@ exports.Token = class {
                   ? 3
                   : '00',
           duration,
-          ethers.utils.toHexString(reason)
+          ethers.utils.formatBytes32String (reason)
         )
         await tx.wait()
         console.log("tx >> ", tx)
@@ -981,7 +981,7 @@ exports.Token = class {
                   ? 3
                   : '00',
           recordId,
-          web3.utils.toHex(reason)
+          ethers.utils.formatBytes32String(reason)
         )
         await tx.wait()
         console.log("tx >> ", tx)
