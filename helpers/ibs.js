@@ -17,6 +17,8 @@ module.exports =  {
                   "NUBAN": account
                 }
             )
+            console.log("compare >> ", result.data.data.AccountName.includes(fname.toUpperCase()) &&  result.data.data.AccountName.includes(lname.toUpperCase()))
+            console.log("gotten >> ", result.data.data.AccountName, "sent >> ",fname.toUpperCase(), ' ', lname.toUpperCase()  )
             if (result.data.response == "success" && result.data.data.AccountName.includes(fname.toUpperCase()) &&  result.data.data.AccountName.includes(lname.toUpperCase())) {
                 return true
             }
