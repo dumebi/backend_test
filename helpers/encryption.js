@@ -23,9 +23,9 @@ async function encrypt(text) {
 }
 
 function decrypt(text) {
-  const textParts = text.split(":$%");
+  const textParts = text.split(";a8l");
   const iv = new Buffer(textParts.shift(), "hex");
-  const encryptedText = new Buffer(textParts.join(":$%"), "hex");
+  const encryptedText = new Buffer(textParts.join(";a8l"), "hex");
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
     new Buffer(ENCRYPTION_KEY),
