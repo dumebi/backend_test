@@ -17,6 +17,7 @@ library Sharing {
         Sharing.ScheduleType scheduleType;
     }
     
+    
     struct DataSchedule {
         mapping(bytes32 => Schedule) mMintSchedules;
     }

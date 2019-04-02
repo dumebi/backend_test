@@ -201,7 +201,7 @@ library TokenFunc {
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function _getShareHolder_(Sharing.DataToken storage self, address _holder) internal view returns(bool isWithhold, uint tradable, uint allocated, uint vesting, uint lien ) { 
+    function _getShareHolder_(Sharing.DataToken storage self, address _holder) internal view returns(bool isWithhold, uint tradable, uint upfront, uint loan, uint lien ) { 
         return (self.shareHolders[_holder].isWithhold, self.mBalances[_holder], self.shareHolders[_holder].sitBalances.upfront, self.shareHolders[_holder].sitBalances.loanEscrow, self.shareHolders[_holder].sitBalances.lien);
     }
 

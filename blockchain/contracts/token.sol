@@ -58,8 +58,10 @@ contract Token is IERC20, IERC1404 {
     event shareHolderUpdated(address indexed _holder, bool _isWithhold);
     event shareHolderRemoved(address indexed _holder);
     event Withdrawn(address _initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);event NewSchedule(uint256 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
-    event ScheduleRemoved(uint256 indexed _scheduleId, address indexed _initiator, bytes _reason);
-    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _reason);
+    event NewSchedule(bytes32 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
+    event ScheduleRemoved(bytes32 indexed _scheduleId, address indexed _initiator, bytes _reason);
+    event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes32 _scheduleId , bytes _reason);
+    event Preloaded(address indexed _holder, uint256 _lien, uint256 _upfront, uint256 _loan, uint256 _tradable, bytes _reason);
     
     string public sName;
     string public sSymbol;
@@ -143,7 +145,7 @@ contract Token is IERC20, IERC1404 {
         return TokenFunc._addToEscrow_(tokenFunc,msg.sender, _amount);
     }
     
-    function addToLoanEscrow(address _holder, uint _amount, bytes32 _loanId) internal returns(uint totalInEscrow) {
+    function addToLoanEscrow(address _holder, uint _amount, bytes32 _loanId) public returns(uint totalInEscrow) {
        return TokenFunc._addToLoanEscrow_(tokenFunc, _holder, _amount, _loanId);
     }
         
@@ -172,7 +174,7 @@ contract Token is IERC20, IERC1404 {
         success = TokenFunc._addShareholder_(tokenFunc, _holder, _isWithhold);
     }
     
-    function getShareHolder(address _holder) public view returns(bool isWithhold, uint tradable, uint allocated, uint vesting, uint lien ) { 
+    function getShareHolder(address _holder) public view returns(bool isWithhold, uint tradable, uint upfront, uint loan, uint lien ) { 
         return TokenFunc._getShareHolder_(tokenFunc, _holder);
     }
 
@@ -188,13 +190,9 @@ contract Token is IERC20, IERC1404 {
     function isWithhold(address _holder) public view returns (bool) {
         return tokenFunc.shareHolders[_holder].isWithhold;
     }
-    
-    function test (bytes32 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public  returns(string memory success) {
-        return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
-    } 
-    
+        
     function createSchedule (bytes32 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public onlyAdmin returns(string memory success) {
-        return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
+        return TokenScheduler._createSchedule_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
     function getSchedule (bytes32 _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {

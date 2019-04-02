@@ -20,15 +20,12 @@ const secure = require('../helpers/encryption.js');
   }
 
 exports.create_schedule_on_blockchain = async (userId, scheduleId, amount, scheduleType, reason) => {
-    // (async function () {
-    //     "use strict";
-        try {
-          const SIT = await initializeToken(userId)
-            const result = await SIT.createSchedule(scheduleId, amount, scheduleType, reason);
+  try {
+    const SIT = await initializeToken(userId)
+      const result = await SIT.createSchedule(scheduleId, amount, scheduleType, reason);
 
-        } catch (error) {
-            console.log('Second Thingy => ', error);
-            throw error
-        }
-    // }());
+  } catch (error) {
+      console.log('Second Thingy => ', error);
+      throw error
+  }
 }
