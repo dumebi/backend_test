@@ -9,6 +9,7 @@ const RabbitMQ = require('./rabbitmq')
 const subscriber = require('./rabbitmq')
 
 const { addUserOrUpdateCache } = require('../controllers/user');
+const { create_schedule_on_blockchain } = require('../helpers/schedule');
 const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const { sendMail } = require('../helpers/utils');
 require('dotenv').config();
@@ -53,7 +54,19 @@ module.exports = {
     // Create lien to the blockchain
     subscriber.consume('CREATE_LIEN_BLOCKCHAIN', (msg) => {
       const data = JSON.parse(msg.content.toString());
-      console.log(msg.content.toString());
+      // console.log(msg.content.toString());
+      
+    }, 3);
+
+    // Schedule..
+    subscriber.consume('CREATE_SCHEDULE_ON_BLOCKCHAIN', async (msg) => {
+      const data = JSON.parse(msg.content.toString());
+      const result = create_schedule_on_blockchain(data.scheduleId, data.amount, data.scheduleType, data.reason)
+
+      console.log(result);
+      // ioClient.emit('broadcast', { user: data.user, result })
+      // subscriber.acknowledgeMessage(msg);
+      
       
     }, 3);
 
