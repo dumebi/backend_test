@@ -21,7 +21,7 @@ module.exports =  {
             // console.log("compare >> ", result.data.data.AccountName.includes(fname.toUpperCase()) &&  result.data.data.AccountName.includes(lname.toUpperCase()))
             // console.log("gotten >> ", result.data.data.AccountName, "sent >> ",fname.toUpperCase(), ' ', lname.toUpperCase()  )
             if (result.data.data.AccountName.includes("We are sorry your transaction cannot be completed this moment. Please try again later or call your One-Customer Centre on 070078375464")) {
-                throw("Account can not be added at this time, please try again later")
+                throw(result.data.data.AccountName)
             }
             if (result.data.response == "success" && result.data.data.AccountName.includes(fname.toUpperCase()) &&  result.data.data.AccountName.includes(lname.toUpperCase())) {
                 return true
