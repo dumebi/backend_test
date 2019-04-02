@@ -23,7 +23,8 @@ exports.create_schedule_on_blockchain = async (userId, scheduleId, amount, sched
   try {
     const SIT = await initializeToken(userId)
       const result = await SIT.createSchedule(scheduleId, amount, scheduleType, reason);
-
+      return result
+      
   } catch (error) {
       console.log('Second Thingy => ', error);
       throw error
