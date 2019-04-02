@@ -78,8 +78,9 @@ exports.Token = class {
       console.log('RuntimeError')
       return {
         ok: false,
-        reason: error.reason,
-        field: error.arg
+        message: error.reason,
+        field: error.arg,
+        error: error.data.stack
       }
     }
     //VM Revert error
@@ -87,14 +88,17 @@ exports.Token = class {
       console.log("32000")
       return {
         ok : false,
-        reason : error.data.stack,
-        field : error.arg
+        message : error.data.stack,
+        field : error.arg,
+        error: error.data.stack
       }
     }
     if (!error.reason) {
       return {
         ok: false,
-        reason: error.Error
+        message: error.reason,
+        field : {},
+        error : error
       }
     }
   }
@@ -126,6 +130,8 @@ exports.Token = class {
       console.loglog("tx  >> ", tx)
 
       return {
+          ok : true,
+        ok   : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -260,6 +266,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -286,6 +293,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
       
@@ -313,6 +321,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails :tx
       };
     } catch (error) {
@@ -374,6 +383,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -404,6 +414,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -456,6 +467,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails: tx
       };
     } catch (error) {
@@ -505,6 +517,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -532,6 +545,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -564,6 +578,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -630,6 +645,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -659,41 +675,9 @@ exports.Token = class {
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-
-  /**
-   * @description : This function returns count of shareholder total records in any category
-   * @dev : Called anyone
-   * @params : {
-   *  holder{address} : "address of the shareholder",
-   *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
-   * }
-   * @returns {Number}    Total records in a share category for a particular shareholder
-   */
-
-  async totalRecordsPerCat(holder, category) {
-    try {
-      const result = await this.contractInst.totalRecordsByCat(
-          holder,
-          category === 'Tradable'
-            ? 0
-            : category === 'Lien'
-              ? 1
-              : category === 'Allocated'
-                ? 2
-                : category === 'Vesting'
-                  ? 3
-                  : '00'
-        )
-        
-
-      return result
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -778,10 +762,12 @@ exports.Token = class {
           scheduleType == 'Pay Scheme' ? 0 : 1,
           ethers.utils.formatBytes32String (reason)
         )
-      await tx.wait()
-      console.log("tx >> ", tx)
+        console.log("tx before>> ", tx)
+      const result = await tx.wait()
+      console.log("tx adter>> ", tx, "result >> ", result)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -808,6 +794,7 @@ exports.Token = class {
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -896,6 +883,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -937,6 +925,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -987,6 +976,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
     } catch (error) {

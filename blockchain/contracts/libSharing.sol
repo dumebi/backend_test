@@ -39,9 +39,9 @@ library Sharing {
         uint256 uTotalSupply;
         mapping(address => uint256) mBalances; //The tradable balance for SITHolders
         mapping (address => mapping (address => uint256)) mAllowed;
-        mapping(address => Lien[]) mLiens;
-        mapping(address => Upfront[]) mUpfronts;
-        mapping(address => Loan[]) mLoanEscrow;
+        mapping(address => mapping (bytes32 => Lien)) mLiens;
+        mapping(address => mapping (bytes32 => Upfront)) mUpfronts;
+        mapping(address => mapping (bytes32 => Loan)) mLoanEscrow;
         mapping(address => SitHolder) shareHolders; 
         mapping(address => uint) mExchangeEscrow; 
     }
@@ -49,7 +49,6 @@ library Sharing {
     struct Lien {
         uint amount;
         uint dateAdded;
-        bytes32 lienId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
@@ -57,7 +56,6 @@ library Sharing {
     struct Loan {
         uint amount;
         uint dateAdded;
-        bytes32 loanId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }
@@ -65,7 +63,6 @@ library Sharing {
     struct Upfront {
         uint amount;
         uint dateAdded;
-        bytes32 upfrontId;
         bool isWithdrawn;
         bool isMovedToTradable;
     }

@@ -23,9 +23,9 @@ library TokenScheduler  {
         success = MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     } 
     
-    function _getSchedule_ (Sharing.DataSchedule storage self, bytes32 _scheduleId) internal view returns(uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {
-        Sharing.Schedule memory _schedule = self.mMintSchedules[_scheduleId];
-        return (_schedule.amount, _schedule.activeAmount, _schedule.isActive, _schedule.scheduleType);
+    function _getSchedule_ (Sharing.DataSchedule storage self, bytes32 _scheduleId) internal view returns(bytes32 scheduleId, uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {
+        Sharing.Schedule memory _Mschedule = self.mMintSchedules[_scheduleId];
+        return (_scheduleId, _Mschedule.amount, _Mschedule.activeAmount, _Mschedule.isActive, _Mschedule.scheduleType);
     }  
     
     function _removeSchedule_(Sharing.DataSchedule storage self, bytes32 _scheduleId, bytes memory _reason) internal returns(bool success)  {

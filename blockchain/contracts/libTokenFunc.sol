@@ -12,14 +12,14 @@ library TokenFunc {
     
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
     event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
-    event NewUpfront(address indexed _to, uint _amount, uint indexed _dateAdded);
-    event NewLoan(address indexed _to, uint _amount, uint indexed _date);
-    event NewLien(address indexed _to, uint _amount, uint indexed _dateAdded);
-    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, uint256 _recordId);
+    event NewUpfront(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
+    event NewLoan(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _date);
+    event NewLien(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
+    event MovedToTradable(address indexed _holder, Sharing.TokenCat _sitCat, bytes32 _recordId);
     event NewShareholder(address indexed __holder);
     event shareHolderUpdated(address indexed _holder, bool _isWithhold);
     event shareHolderRemoved(address indexed _holder);
-    event Withdrawn(address _initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes _data);
+    event Withdrawn(address _initiator, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes32 _recordId, bytes _data);
     
 
     function _totalSupply_(Sharing.DataToken storage self) internal view  returns (uint256) {
@@ -112,64 +112,42 @@ library TokenFunc {
     function _getRecordByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) internal view returns (uint256 amount, uint256 dateAdded, bytes32 recordId, bool isMovedToTradable, bool isWithdrawn) {
         
         if (Sharing.TokenCat.Lien == _sitCat) {
-            uint _lienCount = _totalRecordsByCat_(self, _holder, _sitCat);
             Sharing.Lien memory _lien;
-            for (uint i=0; i<_lienCount; i++) {
-                if(self.mLiens[_holder][i].lienId == _recordId) {
-                    _lien = self.mLiens[_holder][i];
-                }
-            }
-            return(_lien.amount, _lien.dateAdded, _lien.lienId, _lien.isMovedToTradable, _lien.isWithdrawn);
+            _lien = self.mLiens[_holder][_recordId];
+                    
+            return(_lien.amount, _lien.dateAdded, _recordId, _lien.isMovedToTradable, _lien.isWithdrawn);
         } else  if (Sharing.TokenCat.Loan == _sitCat) {
-            uint _loanCount = _totalRecordsByCat_(self, _holder, _sitCat);
             Sharing.Loan memory _loan;
-            for (uint i=0; i<_loanCount; i++) {
-                if(self.mLoanEscrow[_holder][i].loanId == _recordId) {
-                    _loan = self.mLoanEscrow[_holder][i];
-                }
-            }
-            return(_loan.amount, _loan.dateAdded, _loan.loanId, _loan.isMovedToTradable, _loan.isWithdrawn);
+            _loan = self.mLoanEscrow[_holder][_recordId];
+                    
+            return(_loan.amount, _loan.dateAdded, _recordId, _loan.isMovedToTradable, _loan.isWithdrawn);
         } else  if (Sharing.TokenCat.Upfront == _sitCat) {
-            uint _upfrontCount = _totalRecordsByCat_(self, _holder, _sitCat);
             Sharing.Upfront memory _upfront;
-            for (uint i=0; i<_upfrontCount; i++) {
-                if(self.mUpfronts[_holder][i].upfrontId == _recordId) {
-                    _upfront = self.mUpfronts[_holder][i];
-                }
-            }
-            return(_upfront.amount, _upfront.dateAdded, _upfront.upfrontId, _upfront.isMovedToTradable, _upfront.isWithdrawn);
+            _upfront = self.mUpfronts[_holder][_recordId];
+                    
+            return(_upfront.amount, _upfront.dateAdded, _recordId, _upfront.isMovedToTradable, _upfront.isWithdrawn);
         } 
     }
 
-    function _totalRecordsByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat) internal view returns (uint) {
-        if (Sharing.TokenCat.Lien == _sitCat) {
-            return self.mLiens[_holder].length;
-        } else  if (Sharing.TokenCat.Loan == _sitCat) {
-            return self.mLoanEscrow[_holder].length;
-        } else  if (Sharing.TokenCat.Upfront == _sitCat) {
-            return self.mUpfronts[_holder].length;
-        } 
-    }
-    
     function _addToUpfront (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _upfrontId, uint _dateAdded) internal returns(bool success) {
-        self.mUpfronts[_holder].push(Sharing.Upfront(_amount, _dateAdded, _upfrontId, false, false));
-        emit NewUpfront(_holder, _amount, _dateAdded);
+        self.mUpfronts[_holder][_upfrontId] = Sharing.Upfront(_amount, _dateAdded, false, false);
+        emit NewUpfront(_holder, _amount, _upfrontId, _dateAdded);
         return true;
     }
     
     function _addToLoanEscrow (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _loanId, uint _dateAdded) internal returns(bool success) {
-        self.mLoanEscrow[_holder].push(Sharing.Loan(_amount, _dateAdded, _loanId, false, false));
-        emit NewLoan(_holder, _amount, _dateAdded);
+        self.mLoanEscrow[_holder][_loanId] = (Sharing.Loan(_amount, _dateAdded, false, false));
+        emit NewLoan(_holder, _amount, _loanId, _dateAdded);
         return true;
     }
     
     function _addToLien (Sharing.DataToken storage self, address _holder, uint _amount, bytes32 _lienId, uint _dateAdded) internal returns(bool success) {
-        self.mLiens[_holder].push(Sharing.Lien(_amount, _dateAdded, _lienId, false, false));
-        emit NewLien(_holder, _amount, _dateAdded);
+        self.mLiens[_holder][_lienId] = Sharing.Lien(_amount, _dateAdded, false, false);
+        emit NewLien(_holder, _amount, _lienId, _dateAdded);
         return true;
     }    
     
-    function _moveToTradable_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, uint _recordId) internal returns (string memory success) {
+    function _moveToTradable_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) internal returns (string memory success) {
         
         if (Sharing.TokenCat.Lien == _sitCat) {
             require(!self.mLiens[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
@@ -218,7 +196,7 @@ library TokenFunc {
         return  MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function _withdraw_(Sharing.DataToken storage self, uint8 _granularity, address _coinBase, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint _recordId, bytes memory _reason) internal returns (string memory success) {
+    function _withdraw_(Sharing.DataToken storage self, uint8 _granularity, address _coinBase, address _holder, uint256 _amount, Sharing.TokenCat _sitCat, bytes32 _recordId, bytes memory _reason) internal returns (string memory success) {
         
         if(_amount % _granularity != 0) {
           return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR));
@@ -244,7 +222,7 @@ library TokenFunc {
         }
         
         self.mBalances[_coinBase] = self.mBalances[_coinBase].add(_amount);
-        emit Withdrawn(msg.sender, _holder, _sitCat, _amount, _reason);
+        emit Withdrawn(msg.sender, _holder, _sitCat, _amount, _recordId, _reason);
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
 }
