@@ -1,28 +1,9 @@
-/**
- * Initialize Token Contract
- */
-exports.initializeToken = async (req, res, next) => {
-    try {
-      const token = await checkToken(req);
-      const user = await UserModel.findById(token.data.id).select('+privateKey')
-      
-      const privateKey = await secure.decrypt(user.privateKey)
-      const sit = new Token('0x'+privateKey);
-      
-      req.SIT = sit
-  
-      return next()
-  
-    } catch (err) {
-      console.log("err >> ", err)
-      return res.status(HttpStatus.SERVER_ERROR).json({
-        status: 'failed',
-        data: 'Server error!.'
-      })
-    }
-  }
-  
-  
+
+const UserModel = require('../models/user');
+const HttpStatus = require('./status')
+const { Token } = require("../libraries/tokenContract");
+const secure = require('../helpers/encryption.js');
+
   /**
    * Initialize Token Contract
    */
