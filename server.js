@@ -14,9 +14,6 @@ require('./helpers/connection').mongo();
 require('./helpers/connection').rabbitmq();
 require('./helpers/connection').subscribe();
 require('./helpers/connection').socket();
-require('./models/dbSeeder');
-
-
 // require('./models/dbSeeder');
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 // logger settings
