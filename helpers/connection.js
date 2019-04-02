@@ -61,7 +61,9 @@ module.exports = {
     // Schedule..
     subscriber.consume('CREATE_SCHEDULE_ON_BLOCKCHAIN', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      const result = create_schedule_on_blockchain(data.scheduleId, data.amount, data.scheduleType, data.reason)
+      console.log(data);
+      
+      const result = create_schedule_on_blockchain(data.userId, data.scheduleId, data.amount, data.scheduleType, data.reason)
 
       console.log(result);
       // ioClient.emit('broadcast', { user: data.user, result })

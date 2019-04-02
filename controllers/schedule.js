@@ -25,7 +25,7 @@ const ScheduleController = {
 
       // Get Users
       const userId = req.jwtUser
-      const user = await User.findById(userId)
+      const user = await UserModel.findById(userId)
       
       const schedule = new ScheduleModel({
           name: req.body.name,
