@@ -22,6 +22,11 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
+
+      const userId = req.jwtUser
+
+      // Get Users
+      const user = await User.findById(userId)
       
       const schedule = new ScheduleModel({
           name: req.body.name,
@@ -35,7 +40,7 @@ const ScheduleController = {
       await schedule.save()     
       
       await Promise.all([publisher.queue('CREATE_SCHEDULE_ON_BLOCKCHAIN', {
-        scheduleId: schedule._id, amount: req.body.amount, scheduleType: req.body.scheduleType, reason: req.body.name, 
+        userId:user._id, scheduleId: schedule._id, amount: req.body.amount, scheduleType: req.body.scheduleType, reason: req.body.name, 
       })])
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully' });

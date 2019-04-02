@@ -76,22 +76,22 @@ library TokenScheduler  {
         success = MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function _preloadToken_(Sharing.DataToken storage tokenFunc, uint8 _granularity, address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _recordId, bytes memory _data) public returns (string memory success) {
+    function _preloadToken_(Sharing.DataToken storage tokenFunc, uint8 _granularity, address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _idLien, uint _idUpfront, uint _idLoan, bytes memory _data) public returns (string memory success) {
       
         if (_lien > 0) {
             require(_lien % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
             tokenFunc.shareHolders[_holder].sitBalances.lien = tokenFunc.shareHolders[_holder].sitBalances.lien.add(_lien);
-            TokenFunc._addToLien(tokenFunc,_holder, _lien, _recordId, now);
+            TokenFunc._addToLien(tokenFunc,_holder,_lien, _idLien, now);
         }
         if (_upfront > 0) {
             require(_upfront % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
             tokenFunc.shareHolders[_holder].sitBalances.upfront = tokenFunc.shareHolders[_holder].sitBalances.upfront.add(_upfront);
-            TokenFunc._addToUpfront (tokenFunc, _holder, _upfront, _recordId, now);
+            TokenFunc._addToUpfront (tokenFunc, _holder, _upfront, _idUpfront, now);
         }
         if (_loan > 0) {
             require(_loan % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
             tokenFunc.shareHolders[_holder].sitBalances.upfront = tokenFunc.shareHolders[_holder].sitBalances.upfront.add(_loan);
-            TokenFunc._addToUpfront (tokenFunc, _holder, _loan, _recordId, now);
+            TokenFunc._addToUpfront (tokenFunc, _holder, _loan, _idLoan, now);
         }
         if (_tradable > 0) {
              require(_tradable % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));

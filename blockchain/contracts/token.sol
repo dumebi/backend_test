@@ -210,8 +210,8 @@ contract Token is IERC20, IERC1404 {
         success = TokenScheduler._mint_(tokenScheduler, tokenFunc, uGranularity, aTokenbase, _scheduleIndex, _holder, _amount, _sitCat, _recordId, _data );
     }
     
-    function preloadToken(address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _recordId, bytes memory _data) public returns (string memory success) {
-        return TokenScheduler._preloadToken_(tokenFunc, uGranularity, _holder, _lien, _upfront, _loan, _tradable, _recordId, _data);
+    function preloadToken(address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _idLien, uint _idUpfront, uint _idLoan, bytes memory _data) public returns (string memory success) {
+        return TokenScheduler._preloadToken_(tokenFunc, uGranularity, _holder, _lien, _upfront, _loan, _tradable, _idLien, _idUpfront, _idLoan, _data);
     }
 
     function withdraw(address _holder, uint256 _amount, Sharing.TokenCat _sitCat, uint _recordId, bytes memory _reason) public onlyAdmin returns (string memory success) {

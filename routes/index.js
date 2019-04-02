@@ -93,7 +93,7 @@ router.patch('/users/:id/type', middleware.isAdmin, UserController.changeType);
 router.patch('/users/:id/group', middleware.isAdmin, UserController.changeGroup);
 router.patch('/users/:id/employment-status', middleware.isAdmin, UserController.changeEmployment);
 
-router.post('/admin/schedule/', middleware.isAdmin, validate.schedule, middleware.fundAcctFromCoinbase, middleware.initializeToken, ScheduleController.create);
+router.post('/admin/schedule/', middleware.isAdmin, validate.schedule, middleware.fundAcctFromCoinbase, ScheduleController.create);
 // router.patch('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.update);
 // router.get('/admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.one);
 // router.delete('admin/schedule/:schedule_id', middleware.isAdmin, ScheduleController.delete)
