@@ -110,8 +110,8 @@ exports.isSuperAdmin = async (req, res, next) => {
  */
 exports.fundAcctFromCoinbase = async (req, res, next) => {
   try {
-    const token = await checkToken(req);
-    const user = await UserModel.findById(token.data.id)
+    const userId = req.jwtUser
+    const user = await UserModel.findById(userId)
     
     const etherBalance = await ethUser.balance(user.address)
     if (etherBalance <= "90000") {

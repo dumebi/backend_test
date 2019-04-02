@@ -189,8 +189,12 @@ contract Token is IERC20, IERC1404 {
         return tokenFunc.shareHolders[_holder].isWithhold;
     }
     
+    function test (uint256 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public  returns(string memory success) {
+        return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
+    } 
+    
     function createSchedule (uint256 _scheduleId, uint256 _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public onlyAdmin returns(string memory success) {
-        return TokenScheduler._createSchedule_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
+        return TokenScheduler._test_(tokenScheduler, _scheduleId, _amount, _scheduleType, _data);
     } 
     
     function getSchedule (uint _scheduleId) public view onlyAdmin returns(uint amount, uint activeAmount, bool isActive, Sharing.ScheduleType scheduleType ) {

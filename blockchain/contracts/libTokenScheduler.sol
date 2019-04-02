@@ -13,7 +13,7 @@ library TokenScheduler  {
     event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, uint256 _scheduleType, bytes _reason);
     event Preloaded(address indexed _holder, uint256 _lien, uint256 _upfront, uint256 _loan, uint256 _tradable, bytes _reason);
     
-    function _createSchedule_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public returns(string memory success ) {
+    function _test_ (Sharing.DataSchedule storage self, uint _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) public returns(string memory success ) {
         require(_amount > 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.ZERO_SCHEDULE_ERROR)));
         require(self.mMintSchedules[_scheduleId].amount == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNIQUENESS_ERROR)));
         
@@ -77,7 +77,7 @@ library TokenScheduler  {
     }
     
     function _preloadToken_(Sharing.DataToken storage tokenFunc, uint8 _granularity, address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, uint _idLien, uint _idUpfront, uint _idLoan, bytes memory _data) public returns (string memory success) {
-      
+
         if (_lien > 0) {
             require(_lien % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
             tokenFunc.shareHolders[_holder].sitBalances.lien = tokenFunc.shareHolders[_holder].sitBalances.lien.add(_lien);
