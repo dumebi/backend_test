@@ -1,3 +1,5 @@
+const UserModel = require('../models/user');
+
 /**
  * Initialize Token Contract
  */
@@ -47,7 +49,7 @@ exports.initializeToken = async (req, res, next) => {
   }
 
 exports.create_schedule_on_blockchain = (userId, scheduleId, amount, scheduleType, reason) => {
-    // console.log('First Thingy => ', scheduleId, amount, scheduleType, reason);
+    console.log('First Thingy => ', userId, scheduleId, amount, scheduleType, reason);
     (async function (req, res, next) {
         "use strict";
 
