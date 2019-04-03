@@ -2,12 +2,16 @@ const ScheduleModel = require('../models/schedule');
 const UserModel = require('../models/user');
 const HttpStatus = require('../helpers/status');
 const publisher = require('../helpers/rabbitmq');
+const { fetch_single_schedule_on_blockchain, delete_schedule_on_blockchain } = require('../helpers/schedule');
 
 const {
   paramsNotValid, generateTransactionReference, checkToken
 } = require('../helpers/utils');
 
 const ScheduleController = {
+
+  /* -----------------------------------------------------*/
+
   /**
    * Create Schedule
    * @description Create a schedule
@@ -56,23 +60,69 @@ const ScheduleController = {
     }
   },
 
+  /**
+   * Get Schedule
+   * @description Enable a schedule
+   * @param {string} schedule_id Schedule ID
+   * @return {object} schedule, onchainTX
+   */
+  async one(req, res, next) {
+    try {
+      // Get Users
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
 
+      const schedule = await ScheduleModel.findById(req.params.schedule_id)
+      if (schedule) {
+        const result = await fetch_single_schedule_on_blockchain(user._id, schedule._id)
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule gotten successfully', data: schedule, onchainTX: result });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not enable schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
 
+  /**
+   * Delete Schedule
+   * @description Delete a schedule
+   * @param {string} schedule_id Schedule ID
+   */
+  async delete(req, res, next) {
+    try {
+      // Get Users
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
 
+      const schedule = await ScheduleModel.deleteOne({_id: req.params.schedule_id})
+      console.log(req.params.schedule_id);
+      
+      if (schedule) {
+        await delete_schedule_on_blockchain(user._id, req.params.schedule_id)
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule deleted' });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });      
+      
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not delete schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  /* -----------------------------------------------------*/
 
   /**
     * Get Schedules
@@ -115,45 +165,6 @@ const ScheduleController = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
         message: 'Could not get schedules',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-   * Get Schedule
-   * @description Enable a schedule
-   * @param {string} schedule_id Schedule ID
-   * @return {object} schedule
-   */
-  async one(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.schedule_id)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
-      const schedule = await ScheduleModel.findById(req.params.schedule_id)
-      if (schedule) {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule gotten successfully', data: schedule });
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not enable schedule',
         devError: error
       }
       next(err)

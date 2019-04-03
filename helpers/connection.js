@@ -8,10 +8,11 @@ const utils = require('../helpers/utils');
 const RabbitMQ = require('./rabbitmq')
 const subscriber = require('./rabbitmq')
 
+const ScheduleModel = require('../models/schedule');
 const TxModel = require('../models/onchainTx');
 
 const { addUserOrUpdateCache } = require('../controllers/user');
-const { create_schedule_on_blockchain } = require('../helpers/schedule');
+const { create_schedule_on_blockchain, fetch_single_schedule_on_blockchain } = require('../helpers/schedule');
 const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const { sendMail } = require('../helpers/utils');
 require('dotenv').config();
@@ -53,6 +54,8 @@ module.exports = {
       subscriber.acknowledgeMessage(msg);
     }, 3);
 
+    /* -----------------------------------------------------*/
+
     // Create lien to the blockchain
     subscriber.consume('CREATE_LIEN_BLOCKCHAIN', (msg) => {
       const data = JSON.parse(msg.content.toString());
@@ -60,32 +63,35 @@ module.exports = {
       
     }, 3);
 
-    // Schedule..
+    // Schedule.. Create new
     subscriber.consume('CREATE_SCHEDULE_ON_BLOCKCHAIN', async (msg) => {
       const data = JSON.parse(msg.content.toString());
       const result = await create_schedule_on_blockchain(data.userId, data.scheduleId, data.amount, data.scheduleType, data.reason)
 
-      // If fails return false and delete by id from mongodb
+      if (!result.ok) {
+        // If fails return false and delete by id from mongodb
+        await ScheduleModel.remove({ _id: data.scheduleId }).exec();
 
-      // save to transaction
-      var tx = await new TxModel()
+        ioClient.emit('broadcast', { user: data.user, status: result.ok, message: 'Schedule not created' })
+        subscriber.acknowledgeMessage(msg);         
+      } else {           
+        var tx = await new TxModel()
 
-      tx.user = data.userId
-      tx.description = 'Created a new schedule'
-      tx.type = 'New Schedule'
-      tx.from = result.transactionDetails.from
-      tx.to = result.transactionDetails.to
-      tx.txHash = result.transactionDetails.hash
-
-      await tx.save()
-
-      // Return success to use via socket
-
-      ioClient.emit('broadcast', { user: data.user, message: 'Schedule created successfully' })
-      subscriber.acknowledgeMessage(msg);
-      
-      
+        tx.user = data.userId
+        tx.description = 'Created a new schedule'
+        tx.type = 'New Schedule'
+        tx.from = result.transactionDetails.from
+        tx.to = result.transactionDetails.to
+        tx.txHash = result.transactionDetails.hash
+  
+        await tx.save()
+  
+        ioClient.emit('broadcast', { user: data.user, status: result.ok, message: 'Schedule created successfully' })
+        subscriber.acknowledgeMessage(msg);        
+      }
     }, 3);
+
+    /* -----------------------------------------------------*/
 
     // Send User Signup Mail
     subscriber.consume('SEND_USER_STTP_SIGNUP_EMAIL', (msg) => {
