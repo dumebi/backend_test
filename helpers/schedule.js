@@ -9,6 +9,32 @@ exports.create_schedule_on_blockchain = async (userId, scheduleId, amount, sched
     const SIT = await _initializeToken(userId)
       const result = await SIT.createSchedule(scheduleId, amount, scheduleType, reason);
       return result
+
+  } catch (error) {
+      console.log('Second Thingy => ', error);
+      throw error
+  }
+}
+
+exports.fetch_single_schedule_on_blockchain = async (userId, scheduleId) => {
+  try {
+      const SIT = await _initializeToken(userId)
+      const result = await SIT.getSchedule(ethers.utils.formatBytes32String(scheduleId));
+      return result
+      
+  } catch (error) {
+      console.log('Second Thingy => ', error);
+      throw error
+  }
+}
+
+exports.delete_schedule_on_blockchain = async (userId, scheduleId) => {
+  try {
+      const SIT = await _initializeToken(userId)
+      const result = await SIT.removeSchedule(ethers.utils.formatBytes32String(scheduleId));
+      console.log(ethers.utils.formatBytes32String(scheduleId));
+      
+      return result
       
   } catch (error) {
       console.log('Second Thingy => ', error);
