@@ -116,7 +116,7 @@ exports.fundAcctFromCoinbase = async (req, res, next) => {
     if (etherBalance <= "90000") {
       return next()
     }
-    const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
+    const transfered = await ethUser.transfer(user.address, "3000000000", config.coinbaseKey)
     return next()
 
   } catch (err) {
