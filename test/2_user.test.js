@@ -251,4 +251,52 @@ describe('User Test', () => {
         done()
       })
   }).timeout(10000)
+
+  it('Get token price', (done) => {
+    api
+      .get('users/exchange/price')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Token price gotten successfully')
+        expect(res.body.data).to.be.instanceof(Object)
+        expect(res.body.price).to.equal(200)
+        expect(res.body.high).to.equal(0)
+        expect(res.body.open).to.equal(0)
+        expect(res.body.close).to.equal(0)
+        expect(res.body.low).to.equal(0)
+        expect(res.body.vol).to.equal(0)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Get user trades', (done) => {
+    api
+      .get('users/exchange/trades')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('User trades gotten successfully')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Get all trades', (done) => {
+    api
+      .get('users/exchange/trades/all')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('All trades gotten successfully')
+        expect(res.body.data).to.be.instanceof(Array)
+        done()
+      })
+  }).timeout(10000)
 })
