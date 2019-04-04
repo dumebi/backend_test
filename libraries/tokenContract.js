@@ -118,7 +118,8 @@ exports.Token = class {
    *  newOwner{string} : "Address of new owner"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
   async transferOwnership(newOwner) {
     try {
@@ -393,89 +394,6 @@ exports.Token = class {
   }
 
   /**
-   * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
-   * @dev : Called by only shareholders
-   * @params :
-    *  fromAddress{address}           Address of the function caller
-    *  _privateKey{string}          Private key of the function caller, used to sign the message
-   *  spender           address of the spender
-   *  amount          Amount to allow for the spender
-   * @returns :
-   *  transactionDetails : {}
-   */
-
-  async approveSender(spender, amount) {
-    try {
-      spender = ethers.utils.getAddress(spender)
-
-      const tx = await this.contractInst
-        .approve(spender, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function returns how much a spender has on a holders account
-   * @dev : Called by anyone
-   * @params : {
-   *  holder : "address of the account owner",
-   *  spender : "Address of spender"
-   * @returns {Number}    Spender allowance
-   */
-
-  async getAllowance(holder, spender) {
-    try {
-
-      holder = ethers.utils.getAddress(holder)
-      spender = ethers.utils.getAddress(spender)
-
-      const result = await this.contractInst.allowance(holder, spender)
-        
-      return  result.toNumber();
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows a spender, transfer from a holder's account
-   * @dev : Called by the spender account
-   * @params : {
-   *  holder{address} : "address of the account owner",
-   *  recipient{address} : "Address of recipient",
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async transferFrom(holder, recipient, amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-      recipient = ethers.utils.getAddress(recipient)
-
-      const tx = await this.contractInst
-        .transferFrom(holder, recipient, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails: tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
    * @description : This function returns how much a shareholder has in escrow
    * @dev : Called by anyone
    * @params : {
@@ -491,36 +409,6 @@ exports.Token = class {
       const result = await this.contractInst.totalInEscrow(holder)
         
       return  result.toNumber();
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
-   * @params : {
-   *  holder{address} : "address of the account owner"
-   *  amount{Number} : " Amount to withhold on loan"
-   *  loanId{Number} : " Unique idedntifier for the loan record"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async addToLoanEscrow(holder, amount, recordId) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-
-      const tx = await this.contractInst
-        .addToEscrow(holder, amount, recordId)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -593,6 +481,7 @@ exports.Token = class {
    *  holder{address} : "address of the shareholder"
    * }
    * @returns
+   *    shareholder {address}
         isWithhold {bool}
         tradable {number}
         allocated {number}
@@ -604,6 +493,7 @@ exports.Token = class {
     try {
 
       const {
+        shareholder,
         isWithhold,
         tradable,
         allocated,
@@ -613,6 +503,7 @@ exports.Token = class {
         
 
       return {
+        shareholder,
         isWithhold,
         tradable : tradable.toNumber(),
         allocated: allocated.toNumber(),
@@ -702,6 +593,7 @@ exports.Token = class {
   async getRecordByCat(holder, category, recordId) {
     try {
       const {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -723,6 +615,7 @@ exports.Token = class {
         
 
       return {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -744,7 +637,8 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async createSchedule(
@@ -783,7 +677,8 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async removeSchedule(scheduleId, reason) {
@@ -849,7 +744,8 @@ exports.Token = class {
    *  reason : "Reasone for minting to recipient account"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async mint(
@@ -901,7 +797,8 @@ exports.Token = class {
    *  recordId{Number} : "Index of record to move in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async makeTradable(holder, shareCat, recordId) {
@@ -944,7 +841,8 @@ exports.Token = class {
    *  recordId : "Index of record to withdraw in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async withdraw(

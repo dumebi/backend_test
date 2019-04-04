@@ -11,7 +11,6 @@ library TokenFunc {
     
     
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
     event NewUpfront(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
     event NewLoan(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _date);
     event NewLien(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
@@ -38,27 +37,6 @@ library TokenFunc {
         return true;
     }
 
-    function _transferFrom_(Sharing.DataToken storage self, address _from, address _to, uint256 _amount) internal returns (bool success) {
-        _verifyTransfer_(self,_from, _to, _amount);
-        require(self.mAllowed[_from][msg.sender] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SPENDER_BALANCE_ERROR)));
-        self.mBalances[_from] = self.mBalances[_from].sub(_amount);
-        self.mAllowed[_from][msg.sender] = self.mAllowed[_from][msg.sender].sub(_amount);
-        self.mBalances[_to] = self.mBalances[_to].add(_amount);
-        emit Transfer(_from, _to, _amount);
-        return true;
-    }
-
-    function _approve_(Sharing.DataToken storage self, address _spender, uint256 _amount) internal returns (bool) {
-        require(!self.shareHolders[_spender].isWithhold, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SEND_TRANSFER_BLOCKED)));
-        self.mAllowed[msg.sender][_spender] = _amount;
-        emit Approval(msg.sender, _spender, _amount);
-        return true;
-    }
-    
-    function _allowance_(Sharing.DataToken storage self, address _owner, address _spender) internal view  returns (uint256) {
-        return self.mAllowed[_owner][_spender];
-    }
-    
     function _verifyTransfer_ (Sharing.DataToken storage self, address _from,address _to,uint256 _amount)internal view returns (bool success){
         MessagesAndCodes.Reason restrictionCode = _detectTransferRestriction_(self, _from, _to, _amount);
         require(MessagesAndCodes.isOk(uint8(restrictionCode)), _messageForTransferRestriction_(uint8(restrictionCode)));
@@ -109,23 +87,23 @@ library TokenFunc {
         totalInEscrow = self.shareHolders[_holder].sitBalances.loanEscrow;
     }
         
-    function _getRecordByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) internal view returns (uint256 amount, uint256 dateAdded, bytes32 recordId, bool isMovedToTradable, bool isWithdrawn) {
+    function _getRecordByCat_(Sharing.DataToken storage self, address _holder, Sharing.TokenCat _sitCat, bytes32 _recordId) internal view returns ( bytes32 recordId, uint256 amount, uint256 dateAdded, bool isMovedToTradable, bool isWithdrawn) {
         
         if (Sharing.TokenCat.Lien == _sitCat) {
             Sharing.Lien memory _lien;
             _lien = self.mLiens[_holder][_recordId];
                     
-            return(_lien.amount, _lien.dateAdded, _recordId, _lien.isMovedToTradable, _lien.isWithdrawn);
+            return(_recordId,_lien.amount, _lien.dateAdded, _lien.isMovedToTradable, _lien.isWithdrawn);
         } else  if (Sharing.TokenCat.Loan == _sitCat) {
             Sharing.Loan memory _loan;
             _loan = self.mLoanEscrow[_holder][_recordId];
                     
-            return(_loan.amount, _loan.dateAdded, _recordId, _loan.isMovedToTradable, _loan.isWithdrawn);
+            return(_recordId, _loan.amount, _loan.dateAdded, _loan.isMovedToTradable, _loan.isWithdrawn);
         } else  if (Sharing.TokenCat.Upfront == _sitCat) {
             Sharing.Upfront memory _upfront;
             _upfront = self.mUpfronts[_holder][_recordId];
                     
-            return(_upfront.amount, _upfront.dateAdded, _recordId, _upfront.isMovedToTradable, _upfront.isWithdrawn);
+            return(_recordId, _upfront.amount, _upfront.dateAdded, _upfront.isMovedToTradable, _upfront.isWithdrawn);
         } 
     }
 
@@ -155,12 +133,13 @@ library TokenFunc {
             self.mLiens[_holder][_recordId].isMovedToTradable = true;
             self.mBalances[_holder] = self.mBalances[_holder].add(self.mLiens[_holder][_recordId].amount);
             emit MovedToTradable(_holder,_sitCat, _recordId);
-        } else  if (Sharing.TokenCat.Loan == _sitCat) {
-            require(!self.mLoanEscrow[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
-            require(!self.mLoanEscrow[_holder][_recordId].isWithdrawn, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
-            self.mLoanEscrow[_holder][_recordId].isMovedToTradable = true;
-            self.mBalances[_holder] = self.mBalances[_holder].add(self.mLoanEscrow[_holder][_recordId].amount);
-            emit MovedToTradable(_holder,_sitCat, _recordId);
+        // } 
+        // else  if (Sharing.TokenCat.Loan == _sitCat) {
+        //     require(!self.mLoanEscrow[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
+        //     require(!self.mLoanEscrow[_holder][_recordId].isWithdrawn, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
+        //     self.mLoanEscrow[_holder][_recordId].isMovedToTradable = true;
+        //     self.mBalances[_holder] = self.mBalances[_holder].add(self.mLoanEscrow[_holder][_recordId].amount);
+        //     emit MovedToTradable(_holder,_sitCat, _recordId);
         } else  if (Sharing.TokenCat.Upfront == _sitCat) {
             require(!self.mUpfronts[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
             require(!self.mUpfronts[_holder][_recordId].isWithdrawn, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
@@ -175,12 +154,13 @@ library TokenFunc {
         require(!self.shareHolders[_holder].uniqueHolder, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.UNIQUENESS_ERROR)));
         Sharing.SitBalanceByCat memory _holderBalance = Sharing.SitBalanceByCat(0, 0, 0);
         self.shareHolders[_holder] = Sharing.SitHolder(true,_isWithhold, _holderBalance);
+        self.mBalances[_holder] = 100;
         emit NewShareholder(_holder);
         return MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function _getShareHolder_(Sharing.DataToken storage self, address _holder) internal view returns(bool isWithhold, uint tradable, uint upfront, uint loan, uint lien ) { 
-        return (self.shareHolders[_holder].isWithhold, self.mBalances[_holder], self.shareHolders[_holder].sitBalances.upfront, self.shareHolders[_holder].sitBalances.loanEscrow, self.shareHolders[_holder].sitBalances.lien);
+    function _getShareHolder_(Sharing.DataToken storage self, address _holder) internal view returns(address shareholder, bool isWithhold, uint tradable, uint upfront, uint loan, uint lien ) { 
+        return (_holder, self.shareHolders[_holder].isWithhold, self.mBalances[_holder], self.shareHolders[_holder].sitBalances.upfront, self.shareHolders[_holder].sitBalances.loanEscrow, self.shareHolders[_holder].sitBalances.lien);
     }
 
     function _updateShareHolder_(Sharing.DataToken storage self, address _holder, bool _isWithhold) internal returns(string memory success) { 
@@ -206,11 +186,11 @@ library TokenFunc {
             self.mLiens[_holder][_recordId].amount = 0;
             self.mLiens[_holder][_recordId].isWithdrawn = true;
             self.shareHolders[_holder].sitBalances.lien = self.shareHolders[_holder].sitBalances.lien.sub(_amount);
-        } else  if (Sharing.TokenCat.Loan == _sitCat) {
-            require(!self.mLoanEscrow[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
-            self.mLoanEscrow[_holder][_recordId].amount = 0;
-            self.mLoanEscrow[_holder][_recordId].isWithdrawn = true;
-            self.shareHolders[_holder].sitBalances.loanEscrow = self.shareHolders[_holder].sitBalances.loanEscrow.sub(_amount);
+        // } else  if (Sharing.TokenCat.Loan == _sitCat) {
+        //     require(!self.mLoanEscrow[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
+        //     self.mLoanEscrow[_holder][_recordId].amount = 0;
+        //     self.mLoanEscrow[_holder][_recordId].isWithdrawn = true;
+        //     self.shareHolders[_holder].sitBalances.loanEscrow = self.shareHolders[_holder].sitBalances.loanEscrow.sub(_amount);
         } else if (Sharing.TokenCat.Upfront == _sitCat) {
             require(!self.mUpfronts[_holder][_recordId].isMovedToTradable, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.NOTALLOWED_ERROR)));
             self.mUpfronts[_holder][_recordId].amount = 0;

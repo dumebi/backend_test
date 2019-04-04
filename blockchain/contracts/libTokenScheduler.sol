@@ -11,7 +11,7 @@ library TokenScheduler  {
     event NewSchedule(bytes32 indexed _scheduleId, Sharing.ScheduleType _scheduleType, uint256 _amount, bytes _reason);
     event ScheduleRemoved(bytes32 indexed _scheduleId, address indexed _initiator, bytes _reason);
     event Minted(uint8 indexed _from, address indexed _holder, Sharing.TokenCat _sitCat, uint256 _amount, bytes32 _scheduleId , bytes _reason);
-    event Preloaded(address indexed _holder, uint256 _lien, uint256 _upfront, uint256 _loan, uint256 _tradable, bytes _reason);
+    event Preloaded(address indexed _holder, uint256 _upfront, uint256 _loan, uint256 _tradable, bytes _reason);
     
     function _createSchedule_ (Sharing.DataSchedule storage self, bytes32 _scheduleId, uint _amount, Sharing.ScheduleType _scheduleType, bytes memory _data) internal returns(string memory success ) {
         require(_amount > 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.ZERO_SCHEDULE_ERROR)));
@@ -71,7 +71,7 @@ library TokenScheduler  {
         success = MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
     
-    function _preloadToken_(Sharing.DataToken storage tokenFunc, uint8 _granularity, address _holder, uint _lien, uint _upfront, uint _loan, uint _tradable, bytes32 _idLien, bytes32 _idUpfront, bytes32 _idLoan, bytes memory _data) internal returns (string memory success) {
+    function _preloadToken_(Sharing.DataToken storage tokenFunc, uint8 _granularity, address _holder, uint _lien, uint _upfront, uint _tradable, bytes32 _idLien, bytes32 _idUpfront, bytes memory _data) internal returns (string memory success) {
 
         if (_lien > 0) {
             require(_lien % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
@@ -85,19 +85,19 @@ library TokenScheduler  {
             TokenFunc._addToUpfront (tokenFunc, _holder, _upfront, _idUpfront, now);
             tokenFunc.uTotalSupply = tokenFunc.uTotalSupply.add(_upfront);
         }
-        if (_loan > 0) {
-            require(_loan % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
-            tokenFunc.shareHolders[_holder].sitBalances.loanEscrow = tokenFunc.shareHolders[_holder].sitBalances.loanEscrow.add(_loan);
-            TokenFunc._addToLoanEscrow (tokenFunc, _holder, _loan, _idLoan, now);
-            tokenFunc.uTotalSupply = tokenFunc.uTotalSupply.add(_loan);
-        }
+        // if (_loan > 0) {
+        //     require(_loan % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
+        //     tokenFunc.shareHolders[_holder].sitBalances.loanEscrow = tokenFunc.shareHolders[_holder].sitBalances.loanEscrow.add(_loan);
+        //     TokenFunc._addToLoanEscrow (tokenFunc, _holder, _loan, _idLoan, now);
+        //     tokenFunc.uTotalSupply = tokenFunc.uTotalSupply.add(_loan);
+        // }
         if (_tradable > 0) {
              require(_tradable % _granularity == 0, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.TOKEN_GRANULARITY_ERROR)));
             tokenFunc.mBalances[_holder] = tokenFunc.mBalances[_holder].add(_tradable);
             tokenFunc.uTotalSupply = tokenFunc.uTotalSupply.add(_tradable);
         }
 
-        emit Preloaded(_holder, _lien, _upfront, _loan, _tradable,  _data);
+        emit Preloaded(_holder, _lien, _upfront, _tradable,  _data);
         success = MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.SUCCESS));
     }
 
