@@ -393,89 +393,6 @@ exports.Token = class {
   }
 
   /**
-   * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
-   * @dev : Called by only shareholders
-   * @params :
-    *  fromAddress{address}           Address of the function caller
-    *  _privateKey{string}          Private key of the function caller, used to sign the message
-   *  spender           address of the spender
-   *  amount          Amount to allow for the spender
-   * @returns :
-   *  transactionDetails : {}
-   */
-
-  async approveSender(spender, amount) {
-    try {
-      spender = ethers.utils.getAddress(spender)
-
-      const tx = await this.contractInst
-        .approve(spender, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function returns how much a spender has on a holders account
-   * @dev : Called by anyone
-   * @params : {
-   *  holder : "address of the account owner",
-   *  spender : "Address of spender"
-   * @returns {Number}    Spender allowance
-   */
-
-  async getAllowance(holder, spender) {
-    try {
-
-      holder = ethers.utils.getAddress(holder)
-      spender = ethers.utils.getAddress(spender)
-
-      const result = await this.contractInst.allowance(holder, spender)
-        
-      return  result.toNumber();
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows a spender, transfer from a holder's account
-   * @dev : Called by the spender account
-   * @params : {
-   *  holder{address} : "address of the account owner",
-   *  recipient{address} : "Address of recipient",
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async transferFrom(holder, recipient, amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-      recipient = ethers.utils.getAddress(recipient)
-
-      const tx = await this.contractInst
-        .transferFrom(holder, recipient, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails: tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
    * @description : This function returns how much a shareholder has in escrow
    * @dev : Called by anyone
    * @params : {
@@ -491,6 +408,34 @@ exports.Token = class {
       const result = await this.contractInst.totalInEscrow(holder)
         
       return  result.toNumber();
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used in for the exchange functionality
+   * @params : {
+   *  amount{Number} : " Amount to transfer"
+   * @returns :
+   * transactionDetails {object}
+   */
+
+  async addToEscrow(amount) {
+    try {
+      holder = ethers.utils.getAddress(holder)
+
+      const tx = await this.contractInst
+        .addToEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+          ok : true,
+        transactionDetails : tx
+      };
+
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -525,35 +470,6 @@ exports.Token = class {
       return this.errorHandler(error);
     }
   }
-
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
-   * @params : {
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async addToEscrow(amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-
-      const tx = await this.contractInst
-        .addToEscrow(amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
 
   /**
    * @description : This function allows the contract owner | admins add a shareholder
