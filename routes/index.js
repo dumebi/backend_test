@@ -41,11 +41,11 @@ router.get('/users/balance', middleware.isUser, middleware.fundAcctFromCoinbase,
 router.get('/users/transactions', middleware.isUser, TransactionController.user);
 // router.post('/users/fund', middleware.isUser, UserController.fund); // who handles payment?
 // router.post('/users/withdraw', middleware.isUser, UserController.withdraw);
-router.post('/users/exchange/buy', middleware.isUser, TokenController.buy);
-router.post('/users/exchange/sell', middleware.isUser, TokenController.sell);
+router.post('/users/exchange/buy', middleware.isUser, middleware.fundAcctFromCoinbase, middleware.initializeToken, TokenController.buy);
+router.post('/users/exchange/sell', middleware.isUser, middleware.fundAcctFromCoinbase, middleware.initializeToken, TokenController.sell);
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
-router.get('/users/exchange/cancel/:id', middleware.isUser, TokenController.cancel);
+router.get('/users/exchange/cancel/:id', middleware.isUser, middleware.fundAcctFromCoinbase, middleware.initializeToken, TokenController.cancel);
 // TODO: Add to tests
 router.get('/users/exchange/price', middleware.isUser, TokenController.getPrice);
 // TODO: Add to tests

@@ -108,19 +108,18 @@ exports.checkToken = async (req) => {
       };
     }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    // if (user_id && decryptedToken.id !== user_id) {
-    //   return {
-    //     status: 'failed',
-    //     data: Constants.UNAUTHORIZED,
-    //     message: 'Not authorized'
-    //   }
-    // }
-    // let dateNow = new Date()
-    // console.log(isExpiredToken)
-    return {
-      status: 'success',
-      data: decryptedToken
+    const user = await UserModel.findById(decryptedToken.data.id)
+    if(user){
+      return {
+        status: 'success',
+        data: decryptedToken
+      }
     }
+    return {
+      status: 'failed',
+      data: Constants.UNAUTHORIZED,
+      message: 'Invalid token'
+    };
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
       return {

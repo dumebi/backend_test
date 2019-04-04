@@ -194,8 +194,8 @@ const UserController = {
       const user = await UserModel.findById(token.data.id).populate('wallet')
 
       if (user) {
-        // TODO: get user balance from blockchain lib
-        const balance = await req.SIT.getBalance(user.address);
+        // DONE: get user balance from blockchain lib
+        const balance = await req.SIT.getShareholder(user.address);
         console.log('bal' + balance)
         
         return res.status(HttpStatus.OK).json({

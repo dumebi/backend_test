@@ -100,7 +100,7 @@ module.exports = {
     // Limit Buy token
     subscriber.consume('LIMIT_BUY', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      const result = await TokenController.limitBuy(data.token, data.price, data.user, data.amount)
+      const result = await TokenController.limitBuy(data.req, data.token, data.price, data.user, data.amount)
       console.log(result)
       ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
@@ -109,7 +109,7 @@ module.exports = {
     // Market Buy token
     subscriber.consume('MARKET_BUY', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      const result = await TokenController.marketBuy(data.token, data.user, data.amount)
+      const result = await TokenController.marketBuy(data.req, data.token, data.user, data.amount)
       console.log(result)
       ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
@@ -118,7 +118,7 @@ module.exports = {
     // Limit Sell token
     subscriber.consume('LIMIT_SELL', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      const result = await TokenController.limitSell(data.token, data.price, data.user, data.amount)
+      const result = await TokenController.limitSell(data.req, data.token, data.price, data.user, data.amount)
       console.log(result)
       ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);
@@ -127,7 +127,7 @@ module.exports = {
     // Market Sell token
     subscriber.consume('MARKET_SELL', async (msg) => {
       const data = JSON.parse(msg.content.toString());
-      const result = await TokenController.marketSell(data.token, data.user, data.amount)
+      const result = await TokenController.marketSell(data.req, data.token, data.user, data.amount)
       console.log(result)
       ioClient.emit('broadcast', { user: data.user, result })
       subscriber.acknowledgeMessage(msg);

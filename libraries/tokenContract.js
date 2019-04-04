@@ -617,7 +617,7 @@ exports.Token = class {
    * transactionDetails {object}
    */
 
-  async addToEscrow(holder, recipient, amount) {
+  async addToEscrow(holder, amount) {
     try {
       holder = ethers.utils.getAddress(holder)
 
@@ -635,32 +635,32 @@ exports.Token = class {
     }
   }
 
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
-   * @params : {
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
+  // /**
+  //  * @description : This function adds a shareholder shares to the escrow account
+  //  * @dev : Used in for the exchange functionality
+  //  * @params : {
+  //  *  amount{Number} : " Amount to transfer"
+  //  * @returns :
+  //  * transactionDetails {object}
+  //  */
 
-  async addToEscrow(amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
+  // async addToEscrow(amount) {
+  //   try {
+  //     holder = ethers.utils.getAddress(holder)
 
-      const tx = await this.contractInst
-        .addToEscrow(amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
+  //     const tx = await this.contractInst
+  //       .addToEscrow(amount)
+  //     await tx.wait();
+  //     console.log("tx >> ", tx)
 
-      return {
-        transactionDetails : tx
-      };
+  //     return {
+  //       transactionDetails : tx
+  //     };
 
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
+  //   } catch (error) {
+  //     return this.errorHandler(error);
+  //   }
+  // }
 
   /**
    * @description : This function adds a shareholder shares to the escrow account
