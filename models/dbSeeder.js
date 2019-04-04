@@ -7,7 +7,7 @@ console.log('This script seeds startup data into the db.');
 
 async function dbSeeder() {
   try {
-    const userMnemonic = await EthAccount.newMnemonic()
+    const userMnemonic = "priority camera link lucky cave rug federal shiver canoe elegant student illegal"
     const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
     const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
 

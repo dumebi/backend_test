@@ -22,7 +22,13 @@ yarn.lock
 Dockerfile
 
 # Externals
+<<<<<<< HEAD
 
 external/mongo
 external/rabbitmq
 external/redis
+=======
+external/mongo
+external/rabbitmq
+external/redis
+>>>>>>> oluchi

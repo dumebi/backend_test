@@ -3,10 +3,12 @@ const ScheduleGroupModel = require('../models/scheduleGroup');
 const UserModel = require('../models/user');
 const UserController = require('../controllers/user');
 const HttpStatus = require('../helpers/status');
+const publisher = require('../helpers/rabbitmq');
+const { fetch_single_schedule_on_blockchain, delete_schedule_on_blockchain } = require('../helpers/schedule');
+
 const {
   paramsNotValid, generateTransactionReference, checkToken
 } = require('../helpers/utils');
-
 
 const ScheduleController = {
   /**
@@ -76,9 +78,10 @@ const ScheduleController = {
   /**
    * Create Schedule
    * @description Create a schedule
-   * @param {string} group  User group
    * @param {string} name   Schedule name
+   * @param {string} group  User group
    * @param {string} amount Schedule amount
+   * @param {string} scheduleType Schedule amount
    * @param {string} date   Schedule amount
    * @param {string} status Schedule status
    *
@@ -86,6 +89,7 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
+<<<<<<< HEAD
       if (paramsNotValid(req.body.name, req.body.group, req.body.type, req.body.reason, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
@@ -107,8 +111,29 @@ const ScheduleController = {
         date: req.body.date,
         enabled: false,
         createdby: token.data.id
-      })
+=======
 
+      // Get Users
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
+      
+      const schedule = new ScheduleModel({
+          name: req.body.name,
+          group: req.body.group,
+          amount: req.body.amount,
+          schedule_type: req.body.scheduleType,
+          schedule_status: req.body.scheduleStatus,
+          date_created: new Date().now
+>>>>>>> oluchi
+      })
+  
+      await schedule.save()     
+       
+      await Promise.all([publisher.queue('CREATE_SCHEDULE_ON_BLOCKCHAIN', {
+        userId:user._id, scheduleId: schedule._id, amount: req.body.amount, scheduleType: req.body.scheduleType, reason: req.body.name, 
+      })])
+
+<<<<<<< HEAD
       const schedule = await _schedule.save()
       const groups = req.body.group;
       const createScheduleGropusPromise = groups.map( group => ScheduleGroupModel.create({ schedule: schedule._id, level: group.level, amount: group.amount }) )
@@ -120,6 +145,10 @@ const ScheduleController = {
       await publisher.queue('PROCESS_BLOCKCHAIN_SCHEDULE', { new_schedule })
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: new_schedule });
+=======
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule creation in progress' });
+
+>>>>>>> oluchi
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -136,27 +165,18 @@ const ScheduleController = {
    * Get Schedule
    * @description Enable a schedule
    * @param {string} schedule_id Schedule ID
-   * @return {object} schedule
+   * @return {object} schedule, onchainTX
    */
   async one(req, res, next) {
     try {
-      if (paramsNotValid(req.params.schedule_id)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
+      // Get Users
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
 
       const schedule = await ScheduleModel.findById(req.params.schedule_id)
       if (schedule) {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule gotten successfully', data: schedule });
+        const result = await fetch_single_schedule_on_blockchain(user._id, schedule._id)
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule gotten successfully', data: schedule, onchainTX: result });
       }
       return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });
     } catch (error) {
@@ -165,6 +185,87 @@ const ScheduleController = {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
         message: 'Could not enable schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * Delete Schedule
+   * @description Delete a schedule
+   * @param {string} schedule_id Schedule ID
+   */
+  async delete(req, res, next) {
+    try {
+      // Get Users
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
+
+      const schedule = await ScheduleModel.deleteOne({_id: req.params.schedule_id})
+      console.log(req.params.schedule_id);
+      
+      if (schedule) {
+        await delete_schedule_on_blockchain(user._id, req.params.schedule_id)
+        return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule deleted' });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'Schedule not found' });      
+      
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not delete schedule',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /* -----------------------------------------------------*/
+
+  /**
+    * Get Schedules
+    * @description Get all schedules
+    * @param {string} group   User group
+    * @param {string} to      To date
+    * @param {string} from    From date
+    * @param {string} status  Schedule status
+    * @return {object[]} schedules
+    */
+   async all(req, res, next) {
+    try {
+      const {
+        group, to, from, status
+      } = req.query
+
+      const query = { }
+      if (status) query.status = ScheduleModel.Status[status.toUpperCase()]
+      if (group) query.group = UserModel.UserGroup[group.toUpperCase()]
+
+      if (from && to == null) query.createdAt = { $gte: from }
+      if (to && from == null) query.createdAt = { $lt: to }
+      if (from && to) query.createdAt = { $lt: to, $gte: from }
+
+      const schedules = await ScheduleModel.find(query).sort({ createdAt: -1 })
+      // let schedules = {}
+      // const result = await getAsync('STTP_schedules');
+      // // console.log(result)
+      // if (result != null && JSON.parse(result).length > 0) {
+      //   schedules = JSON.parse(result);
+      // } else {
+      //   for (let index = 0; index < schedules.length; index++) {
+      //     schedules[schedules[index]._id] = schedules[index]
+      //   }
+      //   await client.set('STTP_schedules', JSON.stringify(schedules));
+      // }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedules retrieved', data: schedules });
+    } catch (error) {
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get schedules',
         devError: error
       }
       next(err)

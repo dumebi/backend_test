@@ -78,8 +78,9 @@ exports.Token = class {
       console.log('RuntimeError')
       return {
         ok: false,
-        reason: error.reason,
-        field: error.arg
+        message: error.reason,
+        field: error.arg,
+        error: error.data.stack
       }
     }
     //VM Revert error
@@ -87,14 +88,17 @@ exports.Token = class {
       console.log("32000")
       return {
         ok : false,
-        reason : error.data.stack,
-        field : error.arg
+        message : error.data.stack,
+        field : error.arg,
+        error: error.data.stack
       }
     }
     if (!error.reason) {
       return {
         ok: false,
-        reason: error.Error
+        message: error.reason,
+        field : {},
+        error : error
       }
     }
   }
@@ -114,7 +118,8 @@ exports.Token = class {
    *  newOwner{string} : "Address of new owner"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
   async transferOwnership(newOwner) {
     try {
@@ -126,6 +131,8 @@ exports.Token = class {
       console.loglog("tx  >> ", tx)
 
       return {
+          ok : true,
+        ok   : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -260,6 +267,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -286,6 +294,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
       
@@ -313,6 +322,7 @@ exports.Token = class {
       console.log("tx >>  ", tx)
 
       return {
+          ok : true,
         transactionDetails :tx
       };
     } catch (error) {
@@ -320,129 +330,6 @@ exports.Token = class {
     }
   }
 
-  /**
-   * @description : This function allows the contract owner / admin add an authorizer to the contract
-   * @dev : Can be called by either the Owner | Admins
-   * @params : {
-    *  authorizer{address} : "address of the account to be made an authhorizer",
-    *  type{string} : "What schedule type this authorizer is allowed to authorize, accepts string as 'Pay Scheme' or 'Upfront Scheme' schedule"
-   * }
-   * @returns
-        transactionDetails: {}
-   */
-  async addAuthorizer(authorizer, type) {
-    try {     
-      authorizer = ethers.utils.getAddress(authorizer)
-      
-      const tx = await this.contractTX.addAuthorizer(authorizer, type == 'Pay Scheme' ? 0 : 1)
-      await tx.wait()
-      console.log("tx >>  ", tx)
-
-      return {
-        transactionDetails :tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the contract owner / admin remove an authorizer from the contract
-   * @dev : Can be called by either the Owner | Admins
-   * @params : {
-   *  authorizer{address} : "address of the account to be removed as an authhorizer"
-   * }
-   * @returns
-   *  transactionDetails: {}
-   */
-  async removeAuthorizer(authorizer) {
-    try {
-      authorizer = ethers.utils.getAddress(authorizer)
-      
-      const tx = await this.contractTX.removeAuthorizer(authorizer)
-      await tx.wait()
-      console.log("tx >>  ", tx)
-
-      return {
-        transactionDetails :tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the contract owner / admin get details of an authorizer in the contract
-   * @dev : Can be called by either the Owner | Admins
-   * @params : {
-   *  authorizer{address} : "address of the account to be removed as an authhorizer",
-   * }
-   * @returns
-   *  authorizer{address}   Authorizer address
-   *  type{string}          Authorization type
-   */
-  async getAuthorizer(authorizer) {
-    try {
-
-      authorizer = ethers.utils.getAddress(authorizer)
-
-      const result = await this.contractInst.getAuthorizer(authorizer)
-        
-      return {
-        authorizer: result.authorizerAddr,
-        type: result.authorizerType === 0 ? 'Pay Scheme' : 'Upfront Scheme'
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the contract owner / admin get authorizers of a schedule, approved or not
-   * @dev : Can be called by either the Owner | Admins
-   * @params : {
-   *  scheduleId : "Unique schedule id",
-   *  authorizerId : "Unique position of authorizer in the schedule, always within [0,1,2]"
-   * }
-   * @returns
-   *  authorizer{address}             address of the authorizer
-   *  reason{string}            Reason for approval or rejection
-   */
-  async getScheduleAuthorizer(scheduleId, authorizerIndex) {
-    try {
-
-      const result = await this.contractInst.getScheduleAuthorizer(scheduleId, authorizerIndex)
-      const reason = await ethers.utils.parseBytes32String(result.reason);
-
-      return {
-        authorizer: result.authorizerAddress,
-        reason
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the contract owner / admin check if a shareholder is valid or not
-   * @dev : Can be called by either the Owner | Admins
-   * @params : {
-   *  holder : "address of the shareholder"
-   * }
-   * @returns {boolean}
-   */
-  async isValidShareholder(holder) {
-    try {
-      const result = await this.contractInst.isValid(holder)
-
-      return result;
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
 
   /**
    * @description : This function allows the contract owner / admin check if a shareholder is withheld from operations
@@ -497,90 +384,10 @@ exports.Token = class {
       console.log("tx >> ", tx)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
 
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows a shareholder approve an account to transfer a certain amount from his/her account
-   * @dev : Called by only shareholders
-   * @params :
-    *  fromAddress{address}           Address of the function caller
-    *  _privateKey{string}          Private key of the function caller, used to sign the message
-   *  spender           address of the spender
-   *  amount          Amount to allow for the spender
-   * @returns :
-   *  transactionDetails : {}
-   */
-
-  async approveSender(spender, amount) {
-    try {
-      spender = ethers.utils.getAddress(spender)
-
-      const tx = await this.contractInst
-        .approve(spender, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-        transactionDetails : tx
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function returns how much a spender has on a holders account
-   * @dev : Called by anyone
-   * @params : {
-   *  holder : "address of the account owner",
-   *  spender : "Address of spender"
-   * @returns {Number}    Spender allowance
-   */
-
-  async getAllowance(holder, spender) {
-    try {
-
-      holder = ethers.utils.getAddress(holder)
-      spender = ethers.utils.getAddress(spender)
-
-      const result = await this.contractInst.allowance(holder, spender)
-        
-      return  result.toNumber();
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows a spender, transfer from a holder's account
-   * @dev : Called by the spender account
-   * @params : {
-   *  holder{address} : "address of the account owner",
-   *  recipient{address} : "Address of recipient",
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async transferFrom(holder, recipient, amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-      recipient = ethers.utils.getAddress(recipient)
-
-      const tx = await this.contractInst
-        .transferFrom(holder, recipient, amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-        transactionDetails: tx
-      };
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -611,76 +418,22 @@ exports.Token = class {
    * @description : This function adds a shareholder shares to the escrow account
    * @dev : Used in for the exchange functionality
    * @params : {
-   *  holder{address} : "address of the account owner"
    *  amount{Number} : " Amount to transfer"
    * @returns :
    * transactionDetails {object}
    */
 
-  async addToEscrow(holder, recepient, amount) {
+  async addToLoanEscrow(holder, amount, recordId) {
     try {
       holder = ethers.utils.getAddress(holder)
 
       const tx = await this.contractInst
-        .addToEscrow(holder, amount)
+        .addToEscrow(holder, amount, recordId)
       await tx.wait();
       console.log("tx >> ", tx)
 
       return {
-        transactionDetails : tx
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  // /**
-  //  * @description : This function adds a shareholder shares to the escrow account
-  //  * @dev : Used in for the exchange functionality
-  //  * @params : {
-  //  *  amount{Number} : " Amount to transfer"
-  //  * @returns :
-  //  * transactionDetails {object}
-  //  */
-
-  // async addToEscrow(amount) {
-  //   try {
-  //     holder = ethers.utils.getAddress(holder)
-
-  //     const tx = await this.contractInst
-  //       .addToEscrow(amount)
-  //     await tx.wait();
-  //     console.log("tx >> ", tx)
-
-  //     return {
-  //       transactionDetails : tx
-  //     };
-
-  //   } catch (error) {
-  //     return this.errorHandler(error);
-  //   }
-  // }
-
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
-   * @params : {
-   *  amount{Number} : " Amount to transfer"
-   * @returns :
-   * transactionDetails {object}
-   */
-
-  async addToEscrow(amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-
-      const tx = await this.contractInst
-        .addToEscrow(amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
+          ok : true,
         transactionDetails : tx
       };
 
@@ -702,17 +455,17 @@ exports.Token = class {
 
   async addShareholder(
     holder,
-    isEnabled,
     isWithhold
   ) {
     try {
       holder = ethers.utils.getAddress(holder)
 
-      const tx = await this.contractTX.addShareholder(holder, isEnabled, isWithhold)
+      const tx = await this.contractTX.addShareholder(holder, isWithhold)
       await tx.wait();
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -727,7 +480,7 @@ exports.Token = class {
    *  holder{address} : "address of the shareholder"
    * }
    * @returns
-        isEnabled {bool}
+   *    shareholder {address}
         isWithhold {bool}
         tradable {number}
         allocated {number}
@@ -739,7 +492,7 @@ exports.Token = class {
     try {
 
       const {
-        isEnabled,
+        shareholder,
         isWithhold,
         tradable,
         allocated,
@@ -749,7 +502,7 @@ exports.Token = class {
         
 
       return {
-        isEnabled,
+        shareholder,
         isWithhold,
         tradable : tradable.toNumber(),
         allocated: allocated.toNumber(),
@@ -767,14 +520,13 @@ exports.Token = class {
    * @dev : Called Owner | Admin
    * @params : {
    *  holder : "address of the shareholder",
-   *  access : "Accepts bool, if holder is valid or not"
    *  withhold : "Accepts bool, if holder is withhold or not"
    * }
    * @returns
         transactionDetails {object}
    */
 
-  async updateShareholder(holder, access, withhold) {
+  async updateShareholder(holder, withhold) {
     try {
       holder = ethers.utils.getAddress(holder)
 
@@ -783,6 +535,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -812,41 +565,9 @@ exports.Token = class {
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-
-  /**
-   * @description : This function returns count of shareholder total records in any category
-   * @dev : Called anyone
-   * @params : {
-   *  holder{address} : "address of the shareholder",
-   *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
-   * }
-   * @returns {Number}    Total records in a share category for a particular shareholder
-   */
-
-  async totalRecordsPerCat(holder, category) {
-    try {
-      const result = await this.contractInst.totalRecordsByCat(
-          holder,
-          category === 'Tradable'
-            ? 0
-            : category === 'Lien'
-              ? 1
-              : category === 'Allocated'
-                ? 2
-                : category === 'Vesting'
-                  ? 3
-                  : '00'
-        )
-        
-
-      return result
     } catch (error) {
       return this.errorHandler(error);
     }
@@ -858,12 +579,12 @@ exports.Token = class {
    * @params : {
    *  holder{address} : "address of the shareholder",
    *  category{string} : "Token record category to pull from, accepts a string, any from ["Tradable" , "Lien", "Allocated", "Vesting" ],
-   *  recordId{Number} : "Index of the specific record to pull in this category, accepts a number"
+   *  recordId{String} : "Index of the specific record to pull in this category, accepts a number"
    * }
    * @returns
         amount{Number}                Amount,
         dateAdded{Date}               Date added,
-        duration {String}
+        recordId {String}
         isWithdrawn{Boolean}          This can mean lien period for Liens or dueDate for Allocated,
         isMovedToTradable{Boolean}    Weather or not the record has been moved to tradable
    */
@@ -871,6 +592,7 @@ exports.Token = class {
   async getRecordByCat(holder, category, recordId) {
     try {
       const {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -892,6 +614,7 @@ exports.Token = class {
         
 
       return {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -913,7 +636,8 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async createSchedule(
@@ -923,18 +647,20 @@ exports.Token = class {
     reason
   ) {
     try {
-
+      console.log("schedule id >> ", ethers.utils.formatBytes32String(scheduleId))
       const tx = await this.contractTX
         .createSchedule(
-          scheduleId,
+          ethers.utils.formatBytes32String(scheduleId),
           amount,
           scheduleType == 'Pay Scheme' ? 0 : 1,
-          ethers.utils.toHexString(reason)
+          ethers.utils.formatBytes32String (reason)
         )
-      await tx.wait()
-      console.log("tx >> ", tx)
+        console.log("tx before>> ", tx)
+      const result = await tx.wait()
+      console.log("tx adter>> ", tx, "result >> ", result)
 
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -950,17 +676,19 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async removeSchedule(scheduleId, reason) {
     try {
 
-      const tx = await this.contractInst.removeSchedule(scheduleId, ethers.utils.toHexString(reason))
+      const tx = await this.contractInst.removeSchedule(scheduleId, ethers.utils.formatBytes32String (reason))
       await tx.wait()
       console.log("tx >> ", tx)
   
       return {
+          ok : true,
         transactionDetails : tx
       };
     } catch (error) {
@@ -989,72 +717,14 @@ exports.Token = class {
         scheduleType,
         amount,
         activeAmount,
-        isActive,
-        isApproved,
-        isRejected
+        isActive
       } = await this.contractInst.getSchedule(scheduleId)
 
       return {
         scheduleType: scheduleType === 0 ? 'Pay Scheme' : 'Upfront Scheme',
         amount,
         activeAmount,
-        isActive,
-        isApproved,
-        isRejected
-      };
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the authorizer approve a schedule
-   * @dev : Called by only authorizers
-   * @params : {
-   *  scheduleId{Number} : "Unique schedule id",
-   *  reason{string} : "Reasone for approval"
-   * }
-   * @returns
-   *  transactionDetails : {}
-   */
-
-  async approveSchedule(scheduleId, reason) {
-    try {
-      
-      const tx = await this.contractTX.approveSchedule(scheduleId, ethers.utils.toHexString(reason))
-      await tx.wait()
-      console.log("tx >> ", tx)
-  
-      return {
-        transactionDetails : tx
-      };
-
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function allows the authorizer reject a schedule
-   * @dev : Called by only authorizers
-   * @params : {
-   *  scheduleId{Number} : "Unique schedule id",
-   *  reason{String} : "Reasone for approval"
-   * }
-   * @returns
-   *  transactionDetails : {}
-   */
-
-  async rejectSchedule(scheduleId, reason) {
-    try {
-      
-      const tx = await this.contractTX.rejectSchedule(scheduleId, ethers.utils.toHexString(reason))
-      await tx.wait()
-      console.log("tx >> ", tx)
-  
-      return {
-        transactionDetails : tx
+        isActive
       };
     } catch (error) {
       return this.errorHandler(error);
@@ -1069,11 +739,12 @@ exports.Token = class {
    *  recipient : "recipient account",
    *  amount : "How much to mint to recipient",
    *  shareCat : "Recipient share category to mint to",
-   *  duration(number) : "For Lien, this means the duration and for Allocated this is dueDate"
+   *  recordId(String) : "Unique id of record"
    *  reason : "Reasone for minting to recipient account"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async mint(
@@ -1095,18 +766,19 @@ exports.Token = class {
             ? 0
             : shareCat === 'Lien'
               ? 1
-              : shareCat === 'Allocated'
+              : shareCat === 'Upfront'
                 ? 2
-                : shareCat === 'Vesting'
+                : shareCat === 'Loan'
                   ? 3
                   : '00',
           duration,
-          ethers.utils.toHexString(reason)
+          ethers.utils.formatBytes32String (reason)
         )
         await tx.wait()
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -1124,7 +796,8 @@ exports.Token = class {
    *  recordId{Number} : "Index of record to move in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async makeTradable(holder, shareCat, recordId) {
@@ -1137,9 +810,9 @@ exports.Token = class {
             ? 0
             : shareCat === 'Lien'
               ? 1
-              : shareCat === 'Allocated'
+              : shareCat === 'Upfront'
                 ? 2
-                : shareCat === 'Vesting'
+                : shareCat === 'Loan'
                   ? 3
                   : '00',
           recordId
@@ -1148,6 +821,7 @@ exports.Token = class {
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
 
@@ -1166,7 +840,8 @@ exports.Token = class {
    *  recordId : "Index of record to withdraw in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async withdraw(
@@ -1186,18 +861,19 @@ exports.Token = class {
             ? 0
             : shareCat === 'Lien'
               ? 1
-              : shareCat === 'Allocated'
+              : shareCat === 'Upfront'
                 ? 2
-                : shareCat === 'Vesting'
+                : shareCat === 'Loan'
                   ? 3
                   : '00',
           recordId,
-          web3.utils.toHex(reason)
+          ethers.utils.formatBytes32String(reason)
         )
         await tx.wait()
         console.log("tx >> ", tx)
     
         return {
+          ok : true,
           transactionDetails : tx
         };
     } catch (error) {

@@ -1,0 +1,85 @@
+/**
+   * Withdraw Wallet
+   * @description Allow user withdraw from their wallet
+   * @param {object} wallet        user naira wallet
+   */
+  async withdraw(req, res, next) {
+    try {
+
+        
+
+        // Request Params
+        const userId = req.jwtUser
+        const walletId = req.params.id
+        const user = await User.findById(userId)
+        if (!user || user.wallet != walletId) {
+          return next({
+            http:HttpStatus.BAD_REQUEST,
+            status: 'failed',
+            message: 'Invalid user',
+            devError: {}
+          })
+        }
+        var transaction = await new TransactionModel() 
+        const wallet = await WalletModel.findById(user.wallet)
+
+        // Transaction params
+        const amount = req.body.amount
+        const remark = req.body.remark
+        const toAccount = wallet.active_account
+        const fromAccount = config.appNairaAccount
+
+        if (amount > wallet.balance) {
+          return next({
+            http: HttpStatus.PRECONDITION_FAILED,
+            status: 'failed',
+            message: 'Insufficient wallet balance!',
+            devError: wallet
+          })
+        }
+
+        // Call IBS Service
+        var referenceid = await crypto.randomBytes(10)
+        referenceid = referenceid.toString('hex')
+        const transferSuccess = await transfer(referenceid,fromAccount, toAccount, amount, remark)
+
+        if (!transferSuccess) {
+          return next({
+            http: HttpStatus.PRECONDITION_FAILED,
+            status: 'failed',
+            message: 'Wallet withdrawal failed!',
+            devError: wallet
+          })
+        }
+
+        transaction.user = user.id
+        transaction.from = fromAccount
+        transaction.to = toAccount
+        transaction.txHash = referenceid
+        transaction.amount = amount
+        transaction.type = TransactionModel.Type.WITHDRAW
+        transaction.status = TransactionModel.Status.COMPLETED
+        await transaction.save()
+
+        wallet.balance -= amount
+        wallet.transactions.push(transaction._id)
+        await wallet.save()
+
+        return res.status(HttpStatus.OK).json({ 
+          status: 'success', 
+          message: 'Wallet withdrawer successfully!', 
+          data: {wallet} 
+        });
+
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.SERVER_ERROR,
+        status: 'failed',
+        message: 'Could not withdraw from wallet!',
+        devError: error
+      }
+      next(err)
+    }
+
+  },
