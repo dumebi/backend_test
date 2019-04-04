@@ -118,7 +118,8 @@ exports.Token = class {
    *  newOwner{string} : "Address of new owner"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
   async transferOwnership(newOwner) {
     try {
@@ -422,36 +423,6 @@ exports.Token = class {
    * transactionDetails {object}
    */
 
-  async addToEscrow(amount) {
-    try {
-      holder = ethers.utils.getAddress(holder)
-
-      const tx = await this.contractInst
-        .addToEscrow(amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
-   * @params : {
-   *  holder{address} : "address of the account owner"
-   *  amount{Number} : " Amount to withhold on loan"
-   *  loanId{Number} : " Unique idedntifier for the loan record"
-   * @returns :
-   * transactionDetails {object}
-   */
-
   async addToLoanEscrow(holder, amount, recordId) {
     try {
       holder = ethers.utils.getAddress(holder)
@@ -509,6 +480,7 @@ exports.Token = class {
    *  holder{address} : "address of the shareholder"
    * }
    * @returns
+   *    shareholder {address}
         isWithhold {bool}
         tradable {number}
         allocated {number}
@@ -520,6 +492,7 @@ exports.Token = class {
     try {
 
       const {
+        shareholder,
         isWithhold,
         tradable,
         allocated,
@@ -529,6 +502,7 @@ exports.Token = class {
         
 
       return {
+        shareholder,
         isWithhold,
         tradable : tradable.toNumber(),
         allocated: allocated.toNumber(),
@@ -618,6 +592,7 @@ exports.Token = class {
   async getRecordByCat(holder, category, recordId) {
     try {
       const {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -639,6 +614,7 @@ exports.Token = class {
         
 
       return {
+        recordId,
         amount,
         dateAdded,
         duration,
@@ -660,7 +636,8 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for creating the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async createSchedule(
@@ -699,7 +676,8 @@ exports.Token = class {
    *  reason{String} : "Accepts a string, reason for removing the schedule"
    * }
    * @returns
-        transactionDetails : {}
+   *    ok : {boolean}
+        transactionDetails : {object}
    */
 
   async removeSchedule(scheduleId, reason) {
@@ -765,7 +743,8 @@ exports.Token = class {
    *  reason : "Reasone for minting to recipient account"
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async mint(
@@ -817,7 +796,8 @@ exports.Token = class {
    *  recordId{Number} : "Index of record to move in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async makeTradable(holder, shareCat, recordId) {
@@ -860,7 +840,8 @@ exports.Token = class {
    *  recordId : "Index of record to withdraw in the specified category",
    * }
    * @returns
-   *  transactionDetails : {}
+   *  ok : {boolean}
+   *  transactionDetails : {object}
    */
 
   async withdraw(
