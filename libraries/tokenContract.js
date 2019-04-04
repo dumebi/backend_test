@@ -617,7 +617,7 @@ exports.Token = class {
    * transactionDetails {object}
    */
 
-  async addToEscrow(holder, amount) {
+  async addToEscrow(holder, recepient, amount) {
     try {
       holder = ethers.utils.getAddress(holder)
 
