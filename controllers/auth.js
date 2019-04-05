@@ -133,6 +133,9 @@ const AuthController = {
       const jwtToken = createToken(user.email, user._id, user.type);
       user.token = jwtToken;
 
+      const shareholder = await req.SIT.addShareholder(user.address, false);
+      console.log('shareholder' + shareholder)
+
       const newUser = deepCopy(user)
 
       const link = `${config.host}/users/activate/${Buffer.from(user.email).toString('base64')}`
