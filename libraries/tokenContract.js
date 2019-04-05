@@ -521,8 +521,7 @@ exports.Token = class {
         shareholder,
         isWithhold,
         tradable,
-        allocated,
-        vesting,
+        upfront,
         lien
       } = await this.contractInst.getShareHolder(holder)
         
@@ -531,8 +530,7 @@ exports.Token = class {
         shareholder,
         isWithhold,
         tradable : tradable.toNumber(),
-        allocated: allocated.toNumber(),
-        vesting: vesting.toNumber(),
+        upfront: upfront.toNumber(),
         lien: lien.toNumber(),
       };
 
