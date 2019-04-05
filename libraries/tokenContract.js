@@ -396,17 +396,12 @@ exports.Token = class {
   /**
    * @description : This function returns how much a shareholder has in escrow
    * @dev : Called by anyone
-   * @params : {
-   *  holder : "address of the account owner"
-   * @returns {Number}    Spender allowance
+   * @returns {Number}    Total Shareholder's token in escrow
    */
 
-  async getTotalInEscrow(holder) {
+  async getTotalInEscrow() {
     try {
-
-      holder = ethers.utils.getAddress(holder)
-
-      const result = await this.contractInst.totalInEscrow(holder)
+      const result = await this.contractInst.totalInEscrow()
         
       return  result.toNumber();
     } catch (error) {
@@ -416,19 +411,19 @@ exports.Token = class {
 
   /**
    * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
+   * @dev : Used for the exchange functionality
    * @params : {
-   *  amount{Number} : " Amount to transfer"
+   *  amount{Number} : " Amount to add hold in escrow"
    * @returns :
+   * ok {boolean}
    * transactionDetails {object}
    */
 
   async addToLoanEscrow(holder, amount, recordId) {
     try {
-      holder = ethers.utils.getAddress(holder)
 
-      const tx = await this.contractInst
-        .addToEscrow(holder, amount, recordId)
+      const tx = await this.contractTX
+        .addToEscrow(amount)
       await tx.wait();
       console.log("tx >> ", tx)
 
@@ -442,6 +437,36 @@ exports.Token = class {
     }
   }
 
+  
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used for the exchange functionality
+   * @params : {
+   *  amount{Number} : " Amount to remove from escrow"
+   * @returns :
+   * ok {boolean}
+   * transactionDetails {object}
+   */
+
+  async removeFromEscrow(amount) {
+    try {
+
+      const tx = await this.contractTX
+        .removeFromEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+          ok : true,
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+
   /**
    * @description : This function allows the contract owner | admins add a shareholder
    * @dev : Called by Owner | Admins
@@ -450,6 +475,7 @@ exports.Token = class {
    *  isEnabled{boolean} : "accepts a boolean field, sets the shareholder to valid or not",
    *  isWithhold{boolean} : "accepts a boolean field, sets the shareholder to withhold or not"
    * @returns
+   * ok {boolean}
    * transactionDetails {object}
    */
 
@@ -475,7 +501,7 @@ exports.Token = class {
 
   /**
    * @description : This function returns a shareholder details
-   * @dev : Called anyone
+   * @dev : Called by anyone
    * @params : {
    *  holder{address} : "address of the shareholder"
    * }
@@ -517,12 +543,13 @@ exports.Token = class {
 
   /**
    * @description : This function updates a shareholder details
-   * @dev : Called Owner | Admin
+   * @dev : Called by Owner | Admin
    * @params : {
    *  holder : "address of the shareholder",
    *  withhold : "Accepts bool, if holder is withhold or not"
    * }
    * @returns
+   *    ok {boolean}
         transactionDetails {object}
    */
 
@@ -550,6 +577,7 @@ exports.Token = class {
    * @params : {
    *  holder{address} : "address of the shareholder",
    * @returns
+   *    ok {boolean}
         transactionDetails {object}
    */
 
@@ -582,9 +610,9 @@ exports.Token = class {
    *  recordId{String} : "Index of the specific record to pull in this category, accepts a number"
    * }
    * @returns
+        id {String}                   Id of the record
         amount{Number}                Amount,
         dateAdded{Date}               Date added,
-        recordId {String}
         isWithdrawn{Boolean}          This can mean lien period for Liens or dueDate for Allocated,
         isMovedToTradable{Boolean}    Weather or not the record has been moved to tradable
    */
@@ -592,7 +620,7 @@ exports.Token = class {
   async getRecordByCat(holder, category, recordId) {
     try {
       const {
-        recordId,
+        id,
         amount,
         dateAdded,
         duration,
@@ -614,7 +642,7 @@ exports.Token = class {
         
 
       return {
-        recordId,
+        id,
         amount,
         dateAdded,
         duration,
