@@ -399,11 +399,8 @@ exports.Token = class {
    * @returns {Number}    Total Shareholder's token in escrow
    */
 
-  async getTotalInEscrow(holder) {
+  async getTotalInEscrow() {
     try {
-
-      holder = ethers.utils.getAddress(holder)
-
       const result = await this.contractInst.totalInEscrow()
         
       return  result.toNumber();
@@ -414,7 +411,7 @@ exports.Token = class {
 
   /**
    * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used in for the exchange functionality
+   * @dev : Used for the exchange functionality
    * @params : {
    *  amount{Number} : " Amount to add hold in escrow"
    * @returns :
@@ -424,10 +421,38 @@ exports.Token = class {
 
   async addToEscrow(amount) {
     try {
-      holder = ethers.utils.getAddress(holder)
 
-      const tx = await this.contractInst
+      const tx = await this.contractTX
         .addToEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+          ok : true,
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used for the exchange functionality
+   * @params : {
+   *  amount{Number} : " Amount to remove from escrow"
+   * @returns :
+   * ok {boolean}
+   * transactionDetails {object}
+   */
+
+  async removeFromEscrow(amount) {
+    try {
+
+      const tx = await this.contractTX
+        .removeFromEscrow(amount)
       await tx.wait();
       console.log("tx >> ", tx)
 
