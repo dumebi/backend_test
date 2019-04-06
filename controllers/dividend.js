@@ -90,14 +90,6 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
       console.log(req.params.dividend_id)
       const dividend = await DividendModel.findById(req.params.dividend_id)
       if (dividend) {
@@ -133,19 +125,13 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
+      const userId = req.jwtUser
       const _dividend = new DividendModel({
         dividendId: generateTransactionReference(),
         name: req.body.name,
         date: new Date(req.body.date),
         enabled: false,
-        createdby: token.data.id
+        createdby: userId
       })
 
       const dividend = await _dividend.save()
@@ -186,17 +172,10 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const dividend = await DividendModel.findByIdAndUpdate(
         req.params.dividend_id,
-        { enabled: true, authorizedby: token.data.id },
+        { enabled: true, authorizedby: userId },
         { safe: true, multi: true, new: true }
       )
       if (dividend) {
@@ -236,17 +215,10 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const dividend = await DividendModel.findByIdAndUpdate(
         req.params.dividend_id,
-        { enabled: false, disabledby: token.data.id },
+        { enabled: false, disabledby: userId },
         { safe: true, multi: true, new: true }
       )
       if (dividend) {
@@ -289,13 +261,6 @@ const DividendController = {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
         })
       }
       delete req.body.dividendId

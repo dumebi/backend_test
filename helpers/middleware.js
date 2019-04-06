@@ -44,7 +44,7 @@ exports.isUser = async (req, res, next) => {
 }
 
 /**
- * Check Query originates from resource with  company or admin rights
+ * Check Query originates from resource with admin rights
  */
 exports.isAdmin = async (req, res, next) => {
   try {

@@ -109,7 +109,7 @@ exports.checkToken = async (req) => {
       };
     }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    console.log(decryptedToken)
+    // console.log(decryptedToken)
     const user = await UserModel.findById(decryptedToken.id)
     if(user){
       return {

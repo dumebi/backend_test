@@ -442,14 +442,8 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id).populate('wallet')
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).populate('wallet')
       
       const token = await TokenModel.findOne({ name: 'STTP' });
       const price = req.body.price;
@@ -505,14 +499,8 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
       const token = await TokenModel.findOne({ name: 'STTP' });
 
       const price = req.body.price;
@@ -566,14 +554,8 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id).populate('wallet');
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).populate('wallet');
       const offer = await OfferModel.findById(req.params.id);
 
       if (!offer) {
@@ -676,14 +658,8 @@ const TokenController = {
    */
   async userTrades(req, res, next) {
     try {
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
       const token = await TokenModel.findOne({ name: 'STTP' });
 
       const offers = await OfferModel.find({

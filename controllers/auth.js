@@ -10,6 +10,7 @@ const {
 const HttpStatus = require('../helpers/status');
 const { deepCopy } = require('../controllers/user');
 const publisher = require('../helpers/rabbitmq');
+const { Token } = require("../libraries/tokenContract");
 
 const AuthController = {
   /**
@@ -133,8 +134,12 @@ const AuthController = {
       const jwtToken = createToken(user.email, user._id, user.type);
       user.token = jwtToken;
 
-      const shareholder = await req.SIT.addShareholder(user.address, false);
-      console.log('shareholder' + shareholder)
+      const defaultUser = await UserModel.findOne({ email: 'admin@gmail.com' }).select('+privateKey')
+      console.log(defaultUser)
+      const userPrivateKey = await secure.decrypt(defaultUser.privateKey)
+      const sit = new Token('0x'+userPrivateKey);
+      const shareholder = await sit.addShareholder(user.address, false);
+      console.log('shareholder', shareholder)
 
       const newUser = deepCopy(user)
 
@@ -173,7 +178,7 @@ const AuthController = {
       const email = req.body.email;
       const password = req.body.password;
       const user = await UserModel.findOne({ email }, { mnemonic: 0, publicKey: 0, privateKey: 0 }).select('+password');
-      console.log("user >> ", user)
+      // console.log("user >> ", user)
       if (!user) { return res.status(404).json({ status: 'failed', message: 'User not found here' }); }
 
       if (!user.validatePassword(password)) {
@@ -365,14 +370,8 @@ const AuthController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id);
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId);
       if (!user) { return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'User not found here' }); }
       user.password = user.encrypt(req.body.password);
 

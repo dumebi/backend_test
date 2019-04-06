@@ -89,20 +89,13 @@ const ScheduleController = {
    */
   async create(req, res, next) {
     try {
-<<<<<<< HEAD
       if (paramsNotValid(req.body.name, req.body.group, req.body.type, req.body.reason, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
+      const userId = req.jwtUser
       const _schedule = new ScheduleModel({
         scheduleId: generateTransactionReference(),
         name: req.body.name,
@@ -110,21 +103,7 @@ const ScheduleController = {
         reason: req.body.reason,
         date: req.body.date,
         enabled: false,
-        createdby: token.data.id
-=======
-
-      // Get Users
-      const userId = req.jwtUser
-      const user = await UserModel.findById(userId)
-      
-      const schedule = new ScheduleModel({
-          name: req.body.name,
-          group: req.body.group,
-          amount: req.body.amount,
-          schedule_type: req.body.scheduleType,
-          schedule_status: req.body.scheduleStatus,
-          date_created: new Date().now
->>>>>>> oluchi
+        createdby: userId
       })
   
       await schedule.save()     
@@ -133,7 +112,6 @@ const ScheduleController = {
         userId:user._id, scheduleId: schedule._id, amount: req.body.amount, scheduleType: req.body.scheduleType, reason: req.body.name, 
       })])
 
-<<<<<<< HEAD
       const schedule = await _schedule.save()
       const groups = req.body.group;
       const createScheduleGropusPromise = groups.map( group => ScheduleGroupModel.create({ schedule: schedule._id, level: group.level, amount: group.amount }) )
@@ -145,10 +123,6 @@ const ScheduleController = {
       await publisher.queue('PROCESS_BLOCKCHAIN_SCHEDULE', { new_schedule })
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: new_schedule });
-=======
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule creation in progress' });
-
->>>>>>> oluchi
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -286,17 +260,10 @@ const ScheduleController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const schedule = await ScheduleModel.findByIdAndUpdate(
         req.params.schedule_id,
-        { enabled: true, authorizedby: token.data.id },
+        { enabled: true, authorizedby: userId },
         { safe: true, multi: true, new: true }
       )
       if (schedule) {
@@ -332,17 +299,10 @@ const ScheduleController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const schedule = await ScheduleModel.findByIdAndUpdate(
         req.params.schedule_id,
-        { enabled: false, disabledby: token.data.id },
+        { enabled: false, disabledby: userId },
         { safe: true, multi: true, new: true }
       )
       if (schedule) {
@@ -381,13 +341,6 @@ const ScheduleController = {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
         })
       }
       delete req.body.scheduleId

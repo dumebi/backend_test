@@ -90,13 +90,7 @@ const UserController = {
    */
   async update(req, res, next) {
     try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
+      const userId = req.jwtUser
       delete req.body.password
       delete req.body.type
       delete req.body.employment
@@ -108,7 +102,7 @@ const UserController = {
       delete req.body.vesting
       delete req.body.enabled
       const user = await UserModel.findByIdAndUpdate(
-        token.data.id,
+        userId,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )
@@ -144,14 +138,8 @@ const UserController = {
      */
   async bank(req, res, next) {
     try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id).select('+privateKey').populate('wallet')
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).select('+privateKey').populate('wallet')
 
       if (user) {
         console.log(user)
@@ -184,14 +172,8 @@ const UserController = {
      */
   async balance(req, res, next) {
     try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id).populate('wallet')
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).populate('wallet')
 
       if (user) {
         // DONE: get user balance from blockchain lib
@@ -227,14 +209,8 @@ const UserController = {
      */
   async transactions(req, res, next) {
     try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const user = await UserModel.findById(token.data.id)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
 
       if (user) {
         const transactions = TransactionModel.find({ user: user._id })
@@ -407,7 +383,7 @@ const UserController = {
    */
   async addUserOrUpdateCache(user) {
     try {
-      console.log(user)
+      // console.log(user)
       const sttpUsers = await getAsync('STTP_users');
       if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
         const users = JSON.parse(sttpUsers);

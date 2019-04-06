@@ -49,7 +49,7 @@ module.exports = {
     // Add to redis cache
     subscriber.consume('ADD_OR_UPDATE_USER_STTP_CACHE', (msg) => {
       const data = JSON.parse(msg.content.toString());
-      console.log('ADD_OR_UPDATE_USER_STTP_CACHE')
+      // console.log('ADD_OR_UPDATE_USER_STTP_CACHE')
       addUserOrUpdateCache(data.newUser)
       subscriber.acknowledgeMessage(msg);
     }, 3);

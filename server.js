@@ -17,7 +17,7 @@ require('./helpers/connection').socket();
 // require('./models/dbSeeder');
 
 
-require('./models/dbSeeder');
+// require('./models/dbSeeder');
 // redis-server --maxmemory 10mb --maxmemory-policy allkeys-lru
 // logger settings
 const appLogger = winston.createLogger({

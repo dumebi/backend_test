@@ -11,8 +11,7 @@ async function dbSeeder() {
     const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
     const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
 
-    const user = new UserModel(
-      {
+    const user = new UserModel({
         fname: 'Oluwadara',
         mname: 'Ayotunde',
         lname: 'Olayebi',
@@ -37,7 +36,8 @@ async function dbSeeder() {
     user.publicKey = publicKey
     user.address = Ethkeys.childAddress
 
-    await user.save()
+    const _user = await user.save()
+    console.log('saved', _user)
 
     // const userSavePromise = users.map(user => {
     //   User.create(user)

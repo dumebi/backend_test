@@ -2,7 +2,7 @@ FROM node AS base
 
 ENV JWT_SECRET="mysuperjwtsecret"
 # ENV GANACHE="http://10.0.12.71:8545"
-ENV GANACHE="http://192.168.8.100:8545"
+ENV GANACHE="http://192.168.8.101:8545"
 ENV GETH=""
 ENV MONGO_LAB_PROD_EXCHANGE="mongodb://sttp:WatmXGma0qBlH8VOsHKeKBY90SOvviMYAtqQcEpqTdHV5ZTEWSPt5U9Sp0MDIXIOIviDWH1ALbayYpWxD7zmYQ==@sttp.documents.azure.com:10255/?ssl=true"
 ENV MONGO_LAB_DEV_EXCHANGE="mongodb://mongo/STTP"
@@ -40,6 +40,6 @@ RUN node blockchain/deploy.js "SIT" "Sterling Investment Token" 1 "0x739cf050d51
 # CMD [ "sh", "-c", "TEST_CONTRACT_ADDRESS=cat contract.txt nodemon index.js" ]
 ENTRYPOINT ["npm", "run", "dev"]
 
-# docker run --network=external_default -v ${PWD}:/app -p 3000:3000 -it --name sttp_service -e TEST_CONTRACT_ADDRESS=0xD354da8D0A79D4C59a4889AEEBa374B306a925ae sttp
 # docker build -t sttp .
+# docker run --network=external_default -v ${PWD}:/app -p 3000:3000 -it --name sttp_service -e TEST_CONTRACT_ADDRESS=0xdeCd0116DA947B7f42179f26D0a31A31Fa0e371E sttp
 # docker start sttp_service
