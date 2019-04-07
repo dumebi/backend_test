@@ -410,7 +410,7 @@ exports.Token = class {
   }
   
   /**
-   * @description : This function adds a shareholder shares to the escrow account
+   * @description : This function removes a shareholder shares from the escrow account
    * @dev : Used for the exchange functionality, this function is to be called on the user's account and would fail with an UNAUTHORIZEd_ERROR if the user's account is on hold
    * @params : {
    *  amount{Number} : " Amount to remove from escrow"
@@ -439,7 +439,7 @@ exports.Token = class {
 
 
   /**
-   * @description : This function adds a shareholder shares to the escrow account
+   * @description : This function transfers a shareholder shares from the escrow account
    * @dev : Used for the exchange functionality, this function is to be called on the user's account and would fail with an UNAUTHORIZEd_ERROR if the user's account is on hold
    * @params : {
    *  recipient{Number} : " Account to transfer to"
