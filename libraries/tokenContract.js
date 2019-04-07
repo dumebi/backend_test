@@ -408,35 +408,6 @@ exports.Token = class {
       return this.errorHandler(error);
     }
   }
-
-  /**
-   * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used for the exchange functionality
-   * @params : {
-   *  amount{Number} : " Amount to add hold in escrow"
-   * @returns :
-   * ok {boolean}
-   * transactionDetails {object}
-   */
-
-  async addToLoanEscrow(holder, amount, recordId) {
-    try {
-
-      const tx = await this.contractTX
-        .addToEscrow(amount)
-      await tx.wait();
-      console.log("tx >> ", tx)
-
-      return {
-          ok : true,
-        transactionDetails : tx
-      };
-
-    } catch (error) {
-      return this.errorHandler(error);
-    }
-  }
-
   
   /**
    * @description : This function adds a shareholder shares to the escrow account

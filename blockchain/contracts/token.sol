@@ -49,6 +49,7 @@
     
         event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
         event Transfer(address indexed _from, address indexed _to, uint256 _amount);
+        event TransferFromEscrow(address indexed _from, address indexed _to, uint256 _amount);
         event NewUpfront(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
         event NewLoan(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _date);
         event NewLien(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
@@ -134,8 +135,12 @@
         //   return TokenFunc._addToLoanEscrow_(tokenFunc, _holder, _amount, _loanId);
         // }
             
-       function removeFromEscrow(uint _amount) public onlyValidShareHolder returns(uint totalInEscrow) {
+        function removeFromEscrow(uint _amount) public onlyValidShareHolder returns(uint totalInEscrow) {
             return TokenFunc._removeFromEscrow_(tokenFunc,msg.sender, _amount);
+        }
+        
+        function transferFromEscrow(address _recipient, uint _amount) public onlyValidShareHolder returns(uint totalInEscrow) {
+            return TokenFunc._transferFromEscrow_(tokenFunc,msg.sender, _amount, _recipient);
         }
         
         function totalInEscrow() public view returns(uint total) {
