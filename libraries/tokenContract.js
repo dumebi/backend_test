@@ -411,7 +411,7 @@ exports.Token = class {
   
   /**
    * @description : This function adds a shareholder shares to the escrow account
-   * @dev : Used for the exchange functionality
+   * @dev : Used for the exchange functionality, this function is to be called on the user's account and would fail with an UNAUTHORIZEd_ERROR if the user's account is on hold
    * @params : {
    *  amount{Number} : " Amount to remove from escrow"
    * @returns :
@@ -424,6 +424,36 @@ exports.Token = class {
 
       const tx = await this.contractTX
         .removeFromEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+          ok : true,
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+
+  /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev : Used for the exchange functionality, this function is to be called on the user's account and would fail with an UNAUTHORIZEd_ERROR if the user's account is on hold
+   * @params : {
+   *  recipient{Number} : " Account to transfer to"
+   *  amount{Number} : " Amount to transfer from escrow"
+   * @returns :
+   * ok {boolean}
+   * transactionDetails {object}
+   */
+
+  async transferFromEscrow(recipient, amount) {
+    try {
+
+      const tx = await this.contractTX
+        .transferFromEscrow(recipient, amount)
       await tx.wait();
       console.log("tx >> ", tx)
 
