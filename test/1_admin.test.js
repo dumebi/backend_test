@@ -456,7 +456,7 @@ async function dbSeeder() {
     user.address = Ethkeys.childAddress
 
     const _user = await user.save()
-    console.log('saved', _user)
+    // console.log('saved', _user)
 
     // const userSavePromise = users.map(user => {
     //   User.create(user)

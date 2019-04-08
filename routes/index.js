@@ -59,11 +59,8 @@ router.post('/users/exchange/sell', middleware.isUser, middleware.fundAcctFromCo
 router.get('/users/exchange/buybook', middleware.isUser, TokenController.buyOrderBook);
 router.get('/users/exchange/sellbook', middleware.isUser, TokenController.sellOrderBook);
 router.get('/users/exchange/cancel/:id', middleware.isUser, middleware.fundAcctFromCoinbase, middleware.initializeToken, TokenController.cancel);
-// TODO: Add to tests
 router.get('/users/exchange/price', middleware.isUser, TokenController.getPrice);
-// TODO: Add to tests
 router.get('/users/exchange/trades', middleware.isUser, TokenController.userTrades);
-// TODO: Add to tests
 router.get('/users/exchange/trades/all', middleware.isUser, TokenController.allTrades);
 // router.post('/users/buy-back', middleware.isUser, UserController.buyBack);
 

@@ -171,8 +171,46 @@ describe('User Test', () => {
         done()
       })
   }).timeout(10000)
+  
+  it('Sell a token { LIMIT }', (done) => {
+    const amount = 14
+    const price = 200
+    api
+      .post('users/exchange/sell')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user2_jwt}`)
+      .send({
+        price,
+        amount
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Sell order is being processed')
+        done()
+      })
+  }).timeout(10000)
 
-  it('Buy a token', (done) => {
+  it('Sell a token { MARKET }', (done) => {
+    const amount = 14
+    const price = 200
+    api
+      .post('users/exchange/sell')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${user2_jwt}`)
+      .send({
+        price,
+        amount
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Sell order is being processed')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Buy a token { LIMIT }', (done) => {
     const amount = 74
     const price = 200
     api
@@ -191,13 +229,12 @@ describe('User Test', () => {
       })
   }).timeout(10000)
 
-  it('Sell a token', (done) => {
-    const amount = 14
-    const price = 200
+  it('Buy a token { MARKET }', (done) => {
+    const amount = 74
     api
-      .post('users/exchange/sell')
+      .post('users/exchange/buy')
       .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${user2_jwt}`)
+      .set('authorization', `Bearer ${user_jwt}`)
       .send({
         price,
         amount
@@ -205,7 +242,7 @@ describe('User Test', () => {
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('Sell order is being processed')
+        expect(res.body.message).to.equal('Buy order is being processed')
         done()
       })
   }).timeout(10000)

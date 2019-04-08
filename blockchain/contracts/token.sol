@@ -155,7 +155,7 @@
             success = TokenFunc._addShareholder_(tokenFunc, _holder, _isWithhold);
         }
         
-        function getShareHolder(address _holder) public view returns(address shareholder, bool isWithhold, uint tradable, uint upfront, uint loan, uint lien ) { 
+        function getShareHolder(address _holder) public view returns(address shareholder, bool isWithhold, uint tradable, uint upfront, uint lien ) { 
             return TokenFunc._getShareHolder_(tokenFunc, _holder);
         }
     
