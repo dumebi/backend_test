@@ -11,6 +11,7 @@ library TokenFunc {
     
     
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
+    event TransferFromEscrow(address indexed _from, address indexed _to, uint256 _amount);
     event NewUpfront(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
     event NewLoan(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _date);
     event NewLien(address indexed _to, uint _amount, bytes32 _recordId, uint indexed _dateAdded);
@@ -72,6 +73,15 @@ library TokenFunc {
         require(self.mExchangeEscrow[_holder] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
         self.mExchangeEscrow[_holder] = self.mExchangeEscrow[_holder].sub(_amount);
         self.mBalances[_holder] = self.mBalances[_holder].add(_amount);
+        totalInEscrow = self.mExchangeEscrow[_holder];
+    }
+    
+    function _transferFromEscrow_(Sharing.DataToken storage self, address _holder, uint _amount, address _recipient) internal returns(uint totalInEscrow) {
+      
+        require(self.mExchangeEscrow[_holder] >= _amount, MessagesAndCodes.appCode(uint8(MessagesAndCodes.Reason.INSUFFICIENT_FUND_ERROR)));
+        self.mExchangeEscrow[_holder] = self.mExchangeEscrow[_holder].sub(_amount);
+        self.mBalances[_recipient] = self.mBalances[_recipient].add(_amount);
+        emit TransferFromEscrow(_holder, _recipient, _amount);
         totalInEscrow = self.mExchangeEscrow[_holder];
     }
     
