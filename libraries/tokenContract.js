@@ -394,6 +394,34 @@ exports.Token = class {
   }
 
   /**
+   * @description : This function adds a shareholder shares to the escrow account
+   * @dev :Used for the exchange functionality, this function is to be called on the user's account and would fail with an UNAUTHORIZEd_ERROR if the user's account is on hold
+   * @params : {
+   *  amount{Number} : " Amount to hold in escrow"
+   * @returns :
+   * ok {boolean}
+   * transactionDetails {object}
+   */
+
+  async addToEscrow(amount) {
+    try {
+
+      const tx = await this.contractTX
+        .addToEscrow(amount)
+      await tx.wait();
+      console.log("tx >> ", tx)
+
+      return {
+          ok : true,
+        transactionDetails : tx
+      };
+
+    } catch (error) {
+      return this.errorHandler(error);
+    }
+  }
+
+  /**
    * @description : This function returns how much a shareholder has in escrow
    * @dev : Called by anyone
    * @returns {Number}    Total Shareholder's token in escrow
