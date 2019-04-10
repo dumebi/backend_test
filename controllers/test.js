@@ -1,4 +1,5 @@
 const { Token } = require("../libraries/tokenContract.js");
+const ethUser = require("../libraries/ethUser.js");
 const token = new Token("0xb2ac9122bafc15cec45e364f13118963628857462045d74f2e45c0e3aa21f6d8");
 
 
@@ -62,7 +63,7 @@ module.exports = {
       // })
       // const bal1 = await ethUser.balance("0xc3a96259891bc4efab334bfe9e98ed194a3bb836")
       // const transfered = await ethUser.transfer("0xc3a96259891bc4efab334bfe9e98ed194a3bb836","2","0xfbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e")
-      // const bal = await ethUser.balance("0x368eb314285235b7f692fbf14d075760e957848e")
+      const bal = await ethUser.balance("0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7")
       // const result1 = {
       //   bal1,
       //   bal,
@@ -172,7 +173,8 @@ module.exports = {
       //   "Lien"
       // );
 
-      return res.send({result1, result2, result3, result7});
+      return res.send({bal});
+      // return res.send({result1, result2, result3, result7});
       // const result1 = await token.getRecordByCat(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0x1f08822bb986329241ba2cfe4209167506483c4f",

@@ -114,10 +114,13 @@ exports.fundAcctFromCoinbase = async (req, res, next) => {
     const user = await UserModel.findById(userId)
     
     const etherBalance = await ethUser.balance(user.address)
-    if (etherBalance <= "90000") {
+    console.log("etherBalance >>", etherBalance)
+    if (etherBalance >= 90000) {
+      console.log("9000")
       return next()
     }
     const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
+    console.log("transfered >>", transfered)
     return next()
 
   } catch (err) {
