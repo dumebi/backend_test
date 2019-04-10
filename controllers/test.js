@@ -61,18 +61,18 @@ module.exports = {
       //     to: "0x54A86D02D6A034F8B3F327Cb424B29BF949575b1",
       //     value: 50
       // })
-      // const bal1 = await ethUser.balance("0xc3a96259891bc4efab334bfe9e98ed194a3bb836")
+      const bal1 = await ethUser.balance("0xD950f4EFBa70Af10eEf2d8EA19Cc539acD2D3eBa")
       // const transfered = await ethUser.transfer("0xc3a96259891bc4efab334bfe9e98ed194a3bb836","2","0xfbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e")
-      const bal = await ethUser.balance("0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7")//0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7 0x735C0Ef15D2812A1927428bD40D607c40d264414
+      const bal = await ethUser.balance("0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7")//0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7 0xD950f4EFBa70Af10eEf2d8EA19Cc539acD2D3eBa
       // const result1 = {
       //   bal1,
       //   bal,
       //   // // transact
       //   transfered
       // }
-      // const result2 = await token.getShareholder(
-      //   "0x8c96f26c8a98ee00a372e0b8c8853096447714c4"
-      // );
+      const result1 = await token.getShareholder(
+        "0xD950f4EFBa70Af10eEf2d8EA19Cc539acD2D3eBa"
+      );
 
       // const result3 = await token.updateShareholder(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -173,7 +173,7 @@ module.exports = {
       //   "Lien"
       // );
 
-      return res.send({bal});
+      return res.send({bal, bal1, result1});
       // return res.send({result1, result2, result3, result7});
       // const result1 = await token.getRecordByCat(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
