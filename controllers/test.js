@@ -1,5 +1,6 @@
 const { Token } = require("../libraries/tokenContract.js");
-const token = new Token("0x2b3365232f7996ab3bd6abd5c577b86a41f37149cf71114267d1eb17ff8fe1f8");
+const ethUser = require("../libraries/ethUser.js");
+const token = new Token("0xb2ac9122bafc15cec45e364f13118963628857462045d74f2e45c0e3aa21f6d8");
 
 
 module.exports = {
@@ -29,9 +30,9 @@ module.exports = {
       // const result1 = await token.getTokenbase();
       // const result5 = await token.getTotalSupply();
       // const result6 = await token.getTokenbaseBal(result1);
-      const result7 = await token.getBalance(
-        "0x69210aa0db2606e7efd29fb4e77a215d8b682c76"
-      );
+      // const result7 = await token.getBalance(
+      //   "0x69210aa0db2606e7efd29fb4e77a215d8b682c76"
+      // );
       // ========================== Authorizer Activity ========================
       // const result1 = await token.addAuthorizer(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -62,7 +63,7 @@ module.exports = {
       // })
       // const bal1 = await ethUser.balance("0xc3a96259891bc4efab334bfe9e98ed194a3bb836")
       // const transfered = await ethUser.transfer("0xc3a96259891bc4efab334bfe9e98ed194a3bb836","2","0xfbdc971e37ab5410f32ae9a3580d7283c3a20869c243d63cb499e988326c466e")
-      // const bal = await ethUser.balance("0x368eb314285235b7f692fbf14d075760e957848e")
+      const bal = await ethUser.balance("0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7")//0xC26e9c39465c497f8DFb6821b11ac63a53e2d3E7 0x735C0Ef15D2812A1927428bD40D607c40d264414
       // const result1 = {
       //   bal1,
       //   bal,
@@ -100,9 +101,9 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   1
       // );
-      const result1 = await token.addToEscrow(50);
-      const result2 = await token.getTotalInEscrow();
-      const result3 = await token.removeFromEscrow(20);
+      // const result1 = await token.addToEscrow(50);
+      // const result2 = await token.getTotalInEscrow();
+      // const result3 = await token.removeFromEscrow(20);
       // const result4 = await token.approveSchedule(
       //   "3c10300074f325d4ccd979a21a494a7d9042371b707dda64320817375b160097",
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
@@ -172,7 +173,8 @@ module.exports = {
       //   "Lien"
       // );
 
-      return res.send({result1, result2, result3, result7});
+      return res.send({bal});
+      // return res.send({result1, result2, result3, result7});
       // const result1 = await token.getRecordByCat(
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   "0x1f08822bb986329241ba2cfe4209167506483c4f",
