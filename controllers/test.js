@@ -1,5 +1,5 @@
 const { Token } = require("../libraries/tokenContract.js");
-const token = new Token("0x2b3365232f7996ab3bd6abd5c577b86a41f37149cf71114267d1eb17ff8fe1f8");
+const token = new Token("0xb2ac9122bafc15cec45e364f13118963628857462045d74f2e45c0e3aa21f6d8");
 
 
 module.exports = {
@@ -29,9 +29,9 @@ module.exports = {
       // const result1 = await token.getTokenbase();
       // const result5 = await token.getTotalSupply();
       // const result6 = await token.getTokenbaseBal(result1);
-      const result7 = await token.getBalance(
-        "0x69210aa0db2606e7efd29fb4e77a215d8b682c76"
-      );
+      // const result7 = await token.getBalance(
+      //   "0x69210aa0db2606e7efd29fb4e77a215d8b682c76"
+      // );
       // ========================== Authorizer Activity ========================
       // const result1 = await token.addAuthorizer(
       //   "c32214f0887908a8607c9db7d79b87531ae939a40056c3a7858f532d3f8408de",
@@ -100,9 +100,9 @@ module.exports = {
       //   "0xbb723b459f84c24665a89159d94701321864e5d0",
       //   1
       // );
-      const result1 = await token.addToEscrow(50);
-      const result2 = await token.getTotalInEscrow();
-      const result3 = await token.removeFromEscrow(20);
+      // const result1 = await token.addToEscrow(50);
+      // const result2 = await token.getTotalInEscrow();
+      // const result3 = await token.removeFromEscrow(20);
       // const result4 = await token.approveSchedule(
       //   "3c10300074f325d4ccd979a21a494a7d9042371b707dda64320817375b160097",
       //   "0x45d2387c6c99c49b859feffbc029d7e605106298",
