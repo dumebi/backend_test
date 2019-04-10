@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
 const Constants = require('./status')
+const UserModel = require('../models/user.js');
 require('dotenv').config();
 
 exports.config = {
@@ -108,20 +109,21 @@ exports.checkToken = async (req) => {
       };
     }
     const decryptedToken = await jwt.verify(token, this.config.jwt);
-    // if (user_id && decryptedToken.id !== user_id) {
-    //   return {
-    //     status: 'failed',
-    //     data: Constants.UNAUTHORIZED,
-    //     message: 'Not authorized'
-    //   }
-    // }
-    // let dateNow = new Date()
-    // console.log(isExpiredToken)
-    return {
-      status: 'success',
-      data: decryptedToken
+    // console.log(decryptedToken)
+    const user = await UserModel.findById(decryptedToken.id)
+    if(user){
+      return {
+        status: 'success',
+        data: decryptedToken
+      }
     }
+    return {
+      status: 'failed',
+      data: Constants.UNAUTHORIZED,
+      message: 'Invalid token'
+    };
   } catch (error) {
+    console.log(error)
     if (error.name === 'TokenExpiredError') {
       return {
         status: 'failed',

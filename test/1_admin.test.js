@@ -5,6 +5,10 @@ const supertest = require('supertest')
 const { config } = require('../helpers/utils');
 const WalletModel = require('../models/wallet');
 
+const User = require('../models/user');
+const EthAccount = require('../libraries/ethUser.js');
+const secure = require('../helpers/encryption.js');
+const UserModel = require('../models/user');
 
 const api = supertest(`${config.host}`)
 console.log(`${config.host}`)
@@ -22,12 +26,8 @@ describe('Admin Test', () => {
     // await setTimeout(done, 20000);
     await mongoose.connect(config.mongo, { useNewUrlParser: true });
     await mongoose.connection.db.dropDatabase();
+    await dbSeeder();
   })
-
-  // req.body.fname, req.body.lname, req.body.email, req.body.phone,
-  //       req.body.sex, req.body.dob, req.body.password, req.body.vesting,
-  //       req.body.type, req.body.employment, req.body.group, req.body.account, req.body.staffId
-
   it('Should create a user', (done) => {
     const fname = 'John'
     const lname = 'Doe'
@@ -78,7 +78,7 @@ describe('Admin Test', () => {
         user_id = res.body.data._id
         done()
       })
-  }).timeout(10000)
+  }).timeout(30000)
 
   it('Should create another user', (done) => {
     const fname = 'John2'
@@ -135,7 +135,7 @@ describe('Admin Test', () => {
   it('Should create a admin', (done) => {
     const fname = 'Admin'
     const lname = 'Admin'
-    const email = 'admin@gmail.com'
+    const email = 'testadmin@gmail.com'
     const phone = '2348184364720'
     const sex = 'Male'
     const dob = '15-01-1992'
@@ -244,7 +244,7 @@ describe('Admin Test', () => {
       .post('users/login')
       .set('Accept', 'application/json')
       .send({
-        email: 'admin@gmail.com',
+        email: 'testadmin@gmail.com',
         password: 'John'
       })
       .expect(200)
@@ -423,3 +423,53 @@ describe('Admin Test', () => {
       })
   }).timeout(10000)
 })
+
+async function dbSeeder() {
+  try {
+    const userMnemonic = "priority camera link lucky cave rug federal shiver canoe elegant student illegal"
+    const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
+    const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
+
+    const user = new UserModel({
+        fname: 'Oluwadara',
+        mname: 'Ayotunde',
+        lname: 'Olayebi',
+        email: 'admin@gmail.com',
+        phone: '09088994563',
+        sex: 'Female',
+        type: User.UserType.ADMIN,
+        staffId: '004502',
+        // houseAddress: 'Head Office, Marina',
+        employment: User.EmploymentStatus.EMPLOYED,
+        group: User.UserGroup.ET,
+        beneficiary: 'Dara',
+        activated: true,
+        enabled: true,
+        password: '12345678',
+        vesting: false
+      })
+
+    const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
+    user.mnemonic = mnemonic
+    user.privateKey = privateKey
+    user.publicKey = publicKey
+    user.address = Ethkeys.childAddress
+
+    const _user = await user.save()
+    // console.log('saved', _user)
+
+    // const userSavePromise = users.map(user => {
+    //   User.create(user)
+    // })
+    // const newUsers = await Promise.all(userSavePromise)
+    // console.log(newUsers)
+
+    // for (let i = 0; i < users.length; i++) {
+    //   const saveUser = new User(users[i]);
+    //   result = await saveUser.save()
+    //   // console.log('result >>> ',result, '\n')
+    // }
+  } catch (error) {
+    console.log('error >>> ', error)
+  }
+}

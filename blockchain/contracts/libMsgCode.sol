@@ -22,8 +22,8 @@ library MessagesAndCodes {
         MOVE_LIEN_ERROR,
         UNVERIFIED_HOLDER_ERROR,
         ZERO_SCHEDULE_ERROR,
-        SCHEDULE_APPROVED_ERROR,
-        SCHEDULE_REJECTED_ERROR
+        INVALID_MINT_ERROR
+        
     }
     
 
@@ -66,12 +66,9 @@ library MessagesAndCodes {
             return "UNVERIFIED_HOLDER_ERROR";
         }else if(_code == uint8(Reason.ZERO_SCHEDULE_ERROR)){
             return "ZERO_SCHEDULE_ERROR";
-        }else if(_code == uint8(Reason.SCHEDULE_APPROVED_ERROR)){
-            return "SCHEDULE_APPROVED_ERROR";
-        }else if(_code == uint8(Reason.SCHEDULE_REJECTED_ERROR)){
-            return "SCHEDULE_REJECTED_ERROR";
+        }else if(_code == uint8(Reason.INVALID_MINT_ERROR)){
+            return "INVALID_MINT_ERROR";
         }
-
     }
 
     function isFailure(uint8 _code) internal pure returns (bool) {

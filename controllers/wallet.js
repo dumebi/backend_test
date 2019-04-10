@@ -442,9 +442,6 @@ const walletController = {
    */
   async withdraw(req, res, next) {
     try {
-
-        
-
         // Request Params
         const userId = req.jwtUser
         const walletId = req.params.id

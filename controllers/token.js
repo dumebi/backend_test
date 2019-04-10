@@ -8,8 +8,11 @@ const TransactionModel = require('../models/transaction');
 const {
   paramsNotValid, sendMail, createToken, config, checkToken
 } = require('../helpers/utils');
+const { Token } = require("../libraries/tokenContract");
 const HttpStatus = require('../helpers/status');
 const publisher = require('../helpers/rabbitmq');
+
+const secure = require('../helpers/encryption.js');
 
 
 const TokenController = {
@@ -74,42 +77,49 @@ const TokenController = {
    * @param {object} buyer  Buyer object
    */
   async marketBuy(token, buyer, amount) {
-    let result;
-    const sellOffers = await OfferModel.find({
-      token, type: 'Sell', sold: false, user: { $ne: buyer }
-    }).sort('price');
-    if (sellOffers.length > 0) {
-      const lowestSellOffer = sellOffers[0];
-      if (lowestSellOffer.amount < amount) {
-        // DONE: Process that transaction, call market buy with remaining amount
-        result = await TokenController.processSale(token, lowestSellOffer.amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+    try {
+      let result;
+      const sellOffers = await OfferModel.find({
+        token, type: 'Sell', sold: false, user: { $ne: buyer }
+      }).sort('price');
+      if (sellOffers.length > 0) {
+        const lowestSellOffer = sellOffers[0];
+        if (lowestSellOffer.amount < amount) {
+          // DONE: Process that transaction, call market buy with remaining amount
+          result = await TokenController.processSale(token, lowestSellOffer.amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
 
-        const newamount = amount - lowestSellOffer.amount
-        // DONE: call market buy for the new amount
-        result = await TokenController.marketBuy(token, buyer, newamount)
-      } else if (lowestSellOffer.amount === amount) {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
-      } else {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+          const newamount = amount - lowestSellOffer.amount
+          // DONE: call market buy for the new amount
+          result = await TokenController.marketBuy(token, buyer, newamount)
+        } else if (lowestSellOffer.amount === amount) {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+        } else {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
 
-        // DONE: post a limit sell order for the seller
-        if (result.status === 'success') {
-          const newamount = lowestSellOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
+          if (result.status === 'success') {
+            const newamount = lowestSellOffer.amount - amount
+            // DONE: post a limit sell order for the seller
+            await TokenController.limitSell(token, lowestSellOffer.price, lowestSellOffer.user, newamount)
+          }
         }
+      } else {
+        // DONE: post buy limit order
+        const tokenPrice = await TokenModel.findOne({ name: 'STTP' });
+        result = await TokenController.limitBuy(token, tokenPrice.price, buyer, amount)
       }
-    } else {
-      // DONE: post buy limit order
-      const tokenPrice = await TokenModel.findOne({ name: 'STTP' });
-      result = await TokenController.limitBuy(token, tokenPrice.price, buyer, amount)
+      return result
+    } catch (error) {
+      console.log(error)
+      return {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error processing market buy',
+        error
+      }
     }
-    // await Promise.all([publisher.queue('MARKET_BUY_PROCESSED', {
-    //   result, buyer
-    // })])
-    return result
   },
 
   /**
@@ -121,45 +131,52 @@ const TokenController = {
    * @param {object} seller Seller object
    */
   async marketSell(token, seller, amount) {
-    let result;
-    const buyOffers = await OfferModel.find({
-      token, type: 'Buy', sold: false, user: { $ne: seller }
-    }).sort('-price');
-    if (buyOffers.length > 0) {
-      const highestBuyOffer = buyOffers[0];
-      if (highestBuyOffer.amount < amount) {
-        // DONE: Process that transaction, call market sell with remaining amount
-        result = await TokenController.processSale(token, highestBuyOffer.amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
+    try {
+      let result;
+      const buyOffers = await OfferModel.find({
+        token, type: 'Buy', sold: false, user: { $ne: seller }
+      }).sort('-price');
+      if (buyOffers.length > 0) {
+        const highestBuyOffer = buyOffers[0];
+        if (highestBuyOffer.amount < amount) {
+          // DONE: Process that transaction, call market sell with remaining amount
+          result = await TokenController.processSale(token, highestBuyOffer.amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
 
-        if (result.status === 'success') {
-          const newamount = amount - highestBuyOffer.amount
-          // DONE: call market buy for the new amount
-          result = await TokenController.marketSell(token, seller, newamount)
-        }
-      } else if (highestBuyOffer.amount === amount) {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
-      } else {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
+          if (result.status === 'success') {
+            const newamount = amount - highestBuyOffer.amount
+            // DONE: call market buy for the new amount
+            result = await TokenController.marketSell(token, seller, newamount)
+          }
+        } else if (highestBuyOffer.amount === amount) {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
+        } else {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, highestBuyOffer.user, seller, highestBuyOffer.price, highestBuyOffer)
 
-        // DONE: post a limit sell order for the seller
-        if (result.status === 'success') {
-          const newamount = highestBuyOffer.amount - amount
           // DONE: post a limit sell order for the seller
-          await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
+          if (result.status === 'success') {
+            const newamount = highestBuyOffer.amount - amount
+            // DONE: post a limit sell order for the seller
+            await TokenController.limitBuy(token, token.price, highestBuyOffer.user, newamount)
+          }
         }
+      } else {
+        // DONE: post sell limit order
+        const tokenPrice = await TokenModel.findOne({ name: 'STTP' });
+        console.log(tokenPrice)
+        result = await TokenController.limitSell(token, tokenPrice.price, seller, amount)
       }
-    } else {
-      // DONE: post sell limit order
-      const tokenPrice = await TokenModel.findOne({ name: 'STTP' });
-      console.log(tokenPrice)
-      result = await TokenController.limitSell(token, tokenPrice.price, seller, amount)
+      return result
+    } catch (error) {
+      console.log(error)
+      return {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error processing market sell',
+        error
+      }
     }
-    // await Promise.all([publisher.queue('MARKET_SELL_PROCESSED', {
-    //   result, seller
-    // })])
-    return result
   },
 
   /**
@@ -171,7 +188,8 @@ const TokenController = {
    * @param {object} seller Offer Seller
    */
   async limitSell(token, price, seller, amount) {
-    console.log(price, amount, token)
+    try {
+      console.log(price, amount, token)
     let result;
     const buyOffers = await OfferModel.find({
       token,
@@ -206,8 +224,12 @@ const TokenController = {
         }
       }
     } else {
-      // TODO: Deduct tokens from user
-
+      // DONE: Deduct tokens from user
+      const tokenSeller = await UserModel.findById(seller).select('+privateKey').populate('wallet');
+      const privateKey = await secure.decrypt(tokenSeller.privateKey)
+      const sit = new Token('0x'+privateKey);
+      const escrow = await sit.addToEscrow(amount);
+      console.log('escrow ',escrow)
       // DONE: Add sell offer
       const offer = new OfferModel({
         type: 'Sell',
@@ -223,10 +245,16 @@ const TokenController = {
         message: 'Sell process completed successfully'
       }
     }
-    // await Promise.all([publisher.queue('LIMIT_SELL_PROCESSED', {
-    //   result, seller
-    // })])
     return result
+    } catch (error) {
+      console.log(error)
+      return {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error processing limit sell',
+        error
+      }
+    }
   },
 
   /**
@@ -238,68 +266,75 @@ const TokenController = {
    * @param {object} seller Offer Buyer
    */
   async limitBuy(token, price, buyer, amount) {
-    let result;
-    const sellOffers = await OfferModel.find({
-      token, type: 'Sell', sold: false, price, user: { $ne: buyer }
-    }).sort('amount');
-    if (sellOffers.length > 0) {
-      const lowestSellOffer = sellOffers[0];
-      if (lowestSellOffer.amount < amount) {
-        // DONE: Process that transaction, call limit sell with remaining amount
-        result = await TokenController.processSale(token, lowestSellOffer.amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+    try {
+      let result;
+      const sellOffers = await OfferModel.find({
+        token, type: 'Sell', sold: false, price, user: { $ne: buyer }
+      }).sort('amount');
+      if (sellOffers.length > 0) {
+        const lowestSellOffer = sellOffers[0];
+        if (lowestSellOffer.amount < amount) {
+          // DONE: Process that transaction, call limit sell with remaining amount
+          result = await TokenController.processSale(token, lowestSellOffer.amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
 
-        if (result.status === 'success') {
-          const newamount = amount - lowestSellOffer.amount
-          // DONE: call limit buy for the new amount
-          result = await TokenController.limitBuy(token, price, buyer, newamount)
+          if (result.status === 'success') {
+            const newamount = amount - lowestSellOffer.amount
+            // DONE: call limit buy for the new amount
+            result = await TokenController.limitBuy(token, price, buyer, newamount)
+          }
+        } else if (lowestSellOffer.amount === amount) {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+        } else {
+          // DONE: Process that transaction
+          result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+
+          if (result.status === 'success') {
+            const newamount = lowestSellOffer.amount - amount
+            // DONE: post a limit sell order for the seller
+            result = await TokenController.limitSell(token, price, lowestSellOffer.user, newamount)
+          }
         }
-      } else if (lowestSellOffer.amount === amount) {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
       } else {
-        // DONE: Process that transaction
-        result = await TokenController.processSale(token, amount, buyer, lowestSellOffer.user, lowestSellOffer.price, lowestSellOffer)
+        // DONE: check buyer has enough cash
+        buyer = await UserModel.findById(buyer).populate('wallet');
+        const total_funds_required = parseInt(amount * price, 10)
+        if (buyer.wallet.balance < total_funds_required) {
+          result = {
+            http: HttpStatus.BAD_REQUEST,
+            status: 'failed',
+            message: 'Not enough funds'
+          }
+        } else {
+          // DONE: Deduct cash from user
+          buyer.wallet.balance -= total_funds_required
 
-        if (result.status === 'success') {
-          const newamount = lowestSellOffer.amount - amount
-          // DONE: post a limit sell order for the seller
-          result = await TokenController.limitSell(token, price, lowestSellOffer.user, newamount)
+          // DONE: Add buy offer
+          const offer = new OfferModel({
+            type: 'Buy',
+            amount,
+            price,
+            user: buyer,
+            token,
+          })
+          await Promise.all([offer.save(), buyer.wallet.save()])
+          result = {
+            http: HttpStatus.OK,
+            status: 'success',
+            message: 'Buy process completed successfully'
+          }
         }
       }
-    } else {
-      // DONE: check buyer has enough cash
-      buyer = await UserModel.findById(buyer).populate('wallet');
-      const total_funds_required = parseInt(amount * price, 10)
-      if (buyer.wallet.balance < total_funds_required) {
-        result = {
-          http: HttpStatus.BAD_REQUEST,
-          status: 'failed',
-          message: 'Not enough funds'
-        }
-      } else {
-        // DONE: Deduct cash from user
-        buyer.wallet.balance -= total_funds_required
-
-        // DONE: Add buy offer
-        const offer = new OfferModel({
-          type: 'Buy',
-          amount,
-          price,
-          user: buyer,
-          token,
-        })
-        await Promise.all([offer.save(), buyer.wallet.save()])
-        result = {
-          http: HttpStatus.OK,
-          status: 'success',
-          message: 'Buy process completed successfully'
-        }
+      return result
+    } catch (error) {
+      console.log(error)
+      return {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Error processing limit buy',
+        error
       }
     }
-    // await Promise.all([publisher.queue('LIMIT_BUY_PROCESSED', {
-    //   result, buyer
-    // })])
-    return result
   },
 
   /**
@@ -314,19 +349,23 @@ const TokenController = {
    */
   async processSale(token, amount, buyer, seller, price, offer) {
     try {
-      // TODO: check seller has enough tokens
-      seller = await UserModel.findById(seller).populate('wallet');
-      const enoughTokens = true;
-      // DONE: check buyer has enough cash
-      buyer = await UserModel.findById(buyer).populate('wallet');
-      const total_funds_required = parseInt(amount * price, 10)
-      if (!enoughTokens) {
+      // Token Function
+      seller = await UserModel.findById(seller).select('+privateKey').populate('wallet');
+      const privateKey = await secure.decrypt(seller.privateKey)
+      const sit = new Token('0x'+privateKey);
+      const balance = await sit.getShareholder(seller.address);
+      // DONE: check seller has enough tokens
+      if (balance < amount) {
         return {
           http: HttpStatus.BAD_REQUEST,
           status: 'failed',
           message: 'Not enough tokens'
         }
       }
+
+      // DONE: check buyer has enough cash
+      buyer = await UserModel.findById(buyer).populate('wallet');
+      const total_funds_required = parseInt(amount * price, 10)
       if (buyer.wallet.balance < total_funds_required) {
         return {
           http: HttpStatus.BAD_REQUEST,
@@ -352,8 +391,9 @@ const TokenController = {
       })
       // transaction.save()
 
-      // TODO: Transfer tokens from seller to buyer
-      const transfer = '';
+      // DONE: Transfer tokens from seller escrow to buyer
+      const transfer = sit.transferFromEscrow(buyer.address, amount);
+      console.log('transfer ',transfer)
       // DONE: log token transfer transaction
       const sellTransaction = new TransactionModel({
         user: seller._id,
@@ -368,8 +408,13 @@ const TokenController = {
       })
 
       // DONE: set token current price as the new buy price
+      token = await TokenModel.findOne({ name: 'STTP' });
+      const high = token.price < price ? price : token.price
+      const low = token.price > price ? price : token.price
+      const vol = amount + token.vol
 
-      await Promise.all([TokenModel.findOneAndUpdate({ _id: token }, { price }), buyer.wallet.save(), seller.wallet.save(), buyTransaction.save(), sellTransaction.save(), OfferModel.findOneAndUpdate({ _id: offer._id }, { sold: true })])
+      const [newToken, buyerWallet, sellerWallet, buyTrans, sellTrans, newOffer] = await Promise.all([TokenModel.findOneAndUpdate({ _id: token }, { price, high, low, vol }), buyer.wallet.save(), seller.wallet.save(), buyTransaction.save(), sellTransaction.save(), OfferModel.findOneAndUpdate({ _id: offer._id }, { sold: true })])
+      console.log('Processed Sale ', newToken, buyerWallet, sellerWallet, buyTrans, sellTrans, newOffer)
       return {
         http: HttpStatus.OK,
         status: 'success',
@@ -380,7 +425,7 @@ const TokenController = {
       return {
         http: HttpStatus.BAD_REQUEST,
         status: 'failed',
-        message: 'Could not get buy order book',
+        message: 'Could not get process exchange transaction',
         devError: error
       }
     }
@@ -400,14 +445,14 @@ const TokenController = {
       const buyOffers = await OfferModel.find({ token: token._id, type: 'Buy', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Buy order book gotten successfully', data: buyOffers });
     } catch (error) {
-      // console.log('error >> ', error)
-      // const err = {
-      //   http: HttpStatus.BAD_REQUEST,
-      //   status: 'failed',
-      //   message: 'Could not get buy order book',
-      //   devError: error
-      // }
-      // next(err)
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get buy order book',
+        devError: error
+      }
+      next(err)
     }
   },
 
@@ -425,14 +470,14 @@ const TokenController = {
       const sellOffers = await OfferModel.find({ token: token._id, type: 'Sell', sold: false }, { type: 0, token: 0, sold: 0 }).sort('price');
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Sell order book gotten successfully', data: sellOffers });
     } catch (error) {
-      // console.log('error >> ', error)
-      // const err = {
-      //   http: HttpStatus.BAD_REQUEST,
-      //   status: 'failed',
-      //   message: 'Could not get sell order book',
-      //   devError: error
-      // }
-      // next(err)
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not get sell order book',
+        devError: error
+      }
+      next(err)
     }
   },
 
@@ -450,24 +495,25 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id)
-      // TODO: check if users exist
-      // console.log('usertoken')
-      // console.log(user)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).populate('wallet')
+      
       const token = await TokenModel.findOne({ name: 'STTP' });
       const price = req.body.price;
       const amount = req.body.amount;
+
+      const _price = price ? price : token.price
+      const total_price = _price * amount
+
+      // DONE: check if user has enough funds
+      if (user.wallet.balance < total_price ) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'You do not have enough funds to process this request' });
+      }
+
       if (price) {
         if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_BUY', {
-            token: token._id, price, user: user._id, amount
+            SIT: req.SIT, token: token._id, price, user: user._id, amount
           })])
         } else {
           return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Buy price is not within token price range' });
@@ -475,7 +521,7 @@ const TokenController = {
         // result = await TokenController.limitBuy(token._id, price, user._id, amount)
       } else {
         await Promise.all([publisher.queue('MARKET_BUY', {
-          token: token._id, user: user._id, amount
+          SIT: req.SIT, token: token._id, user: user._id, amount
         })])
       }
       // result = await TokenController.marketBuy(token._id, user._id, amount)
@@ -506,24 +552,24 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
       const token = await TokenModel.findOne({ name: 'STTP' });
 
       const price = req.body.price;
       const amount = req.body.amount;
 
+      // DONE: check if user has enough tokens to sell
+      const balance = await req.SIT.getShareholder(user.address);
+      if (balance < amount) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'You do not have enough tokens to process this request' });
+      }
+      // console.log('bal' + balance)
 
       if (price) {
         if (parseInt(price, 10) <= parseInt(token.max, 10) && parseInt(price, 10) >= parseInt(token.min, 10)) {
           await Promise.all([publisher.queue('LIMIT_SELL', {
-            token: token._id, price, user: user._id, amount
+            SIT: req.SIT, token: token._id, price, user: user._id, amount
           })])
         } else {
           return res.status(HttpStatus.BAD_REQUEST).json({ status: 'failed', message: 'Sell price is not within token price range' });
@@ -531,7 +577,7 @@ const TokenController = {
         // result = await TokenController.limitSell(token._id, price, user._id, amount)
       } else {
         await Promise.all([publisher.queue('MARKET_SELL', {
-          token: token._id, user: user._id, amount
+          SIT: req.SIT, token: token._id, user: user._id, amount
         })])
       }
       // result = await TokenController.marketSell(token._id, user._id, amount)
@@ -561,14 +607,8 @@ const TokenController = {
           message: 'some parameters were not supplied'
         })
       }
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id).populate('wallet');
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId).populate('wallet');
       const offer = await OfferModel.findById(req.params.id);
 
       if (!offer) {
@@ -589,13 +629,15 @@ const TokenController = {
         // DONE: Delete the offer
         await OfferModel.findByIdAndRemove(offer._id);
       } else if (offer.type === 'Sell') {
-        const total_funds = offer.amount * offer.price
+        // const total_funds = offer.amount * offer.price
 
-        // TODO: Credit user back the tokens
+        // DONE: Credit user back the tokens
+        const credit = req.SIT.removeFromEscrow(offer.amount)
+        console.log(credit)
 
 
         // DONE: Delete the offer
-        // await OfferModel.findByIdAndRemove(offer._id);
+        await OfferModel.findByIdAndRemove(offer._id);
       }
 
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Order has been removed successfully' });
@@ -670,14 +712,8 @@ const TokenController = {
    */
   async userTrades(req, res, next) {
     try {
-      const usertoken = await checkToken(req);
-      if (usertoken.status === 'failed') {
-        return res.status(usertoken.data).json({
-          status: 'failed',
-          message: usertoken.message
-        })
-      }
-      const user = await UserModel.findById(usertoken.data.id)
+      const userId = req.jwtUser
+      const user = await UserModel.findById(userId)
       const token = await TokenModel.findOne({ name: 'STTP' });
 
       const offers = await OfferModel.find({

@@ -44,7 +44,7 @@ exports.isUser = async (req, res, next) => {
 }
 
 /**
- * Check Query originates from resource with  company or admin rights
+ * Check Query originates from resource with admin rights
  */
 exports.isAdmin = async (req, res, next) => {
   try {
@@ -59,6 +59,7 @@ exports.isAdmin = async (req, res, next) => {
       token.data.type === Object.values(UserModel.UserType)[1]
       || token.data.type === Object.values(UserModel.UserType)[2]
     ) {
+      req.jwtUser = token.data.id
       next()
     } else {
       return res.status(HttpStatus.UNAUTHORIZED).json({
@@ -109,14 +110,14 @@ exports.isSuperAdmin = async (req, res, next) => {
  */
 exports.fundAcctFromCoinbase = async (req, res, next) => {
   try {
-    const token = await checkToken(req);
-    const user = await UserModel.findById(token.data.id)
+    const userId = req.jwtUser
+    const user = await UserModel.findById(userId)
     
     const etherBalance = await ethUser.balance(user.address)
     if (etherBalance <= "90000") {
       return next()
     }
-    const transfered = await ethUser.transfer(user.address,"3000000000",config.coinbaseKey)
+    const transfered = await ethUser.transfer(user.address, "3000000000", config.coinbaseKey)
     return next()
 
   } catch (err) {
@@ -129,16 +130,29 @@ exports.fundAcctFromCoinbase = async (req, res, next) => {
 }
 
 /**
+   * Token Contract
+   */
+  const _initializeToken = async (userId) => {
+    try {
+      const user = await UserModel.findById(userId).select('+privateKey')
+      const privateKey = await secure.decrypt(user.privateKey)
+      const sit = new Token('0x'+privateKey);
+      return sit
+  
+    } catch (error) {
+      console.log("err >> ", error)
+      throw error
+    }
+  }
+  exports._initializeToken = _initializeToken
+
+/**
  * Initialize Token Contract
  */
 exports.initializeToken = async (req, res, next) => {
   try {
     const token = await checkToken(req);
-    const user = await UserModel.findById(token.data.id).select('+privateKey')
-    
-    const privateKey = await secure.decrypt(user.privateKey)
-    const sit = new Token('0x'+privateKey);
-    
+    const sit = await _initializeToken(token.data.id)
     req.SIT = sit
 
     return next()
@@ -151,3 +165,4 @@ exports.initializeToken = async (req, res, next) => {
     })
   }
 }
+

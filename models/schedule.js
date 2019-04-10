@@ -6,8 +6,12 @@ const {
 
 const UserModel = require('../models/user');
 
+const ScheduleType = Object.freeze({
+  PAY_SCHEME: 'Pay Scheme',
+  UPFRONT_SCHEME: 'Upfront Scheme'
+})
+
 const ScheduleStatus = Object.freeze({
-  PENDING: 'Pending',
   COMPLETED: 'Completed',
   TERMINATED: 'Terminated',
   INPROGRESS: 'In Progress'
@@ -16,25 +20,21 @@ const ScheduleStatus = Object.freeze({
 const ScheduleSchema = new Schema({
   scheduleId: { type: Schema.Types.Number, unique: true, dropDups: true },
   name: { type: Schema.Types.String },
-  group: {
-    type: Schema.Types.String, enum: Object.values(UserModel.UserGroup), default: UserModel.UserGroup.ENTRYLEVEL, required: true
-  },
-  amount: { type: Schema.Types.String },
+  reason: { type: Schema.Types.String },
+  type: { type: Schema.Types.String },
   date: { type: Schema.Types.Date },
   enabled: { type: Schema.Types.Boolean, default: false },
   status: {
     type: Schema.Types.String,
     enum: Object.values(ScheduleStatus),
-    default: ScheduleStatus.PENDING,
+    default: ScheduleStatus.INPROGRESS,
     required: true
   },
-  createdby: { type: Schema.ObjectId, ref: 'User', required: true },
-  authorizedby: { type: Schema.ObjectId, ref: 'User' },
-  disabledby: { type: Schema.ObjectId, ref: 'User' },
-}, { timestamps: true }, { toObject: { virtuals: true }, toJSON: { virtuals: true } })
+  date_created: { type: Schema.Types.Date } 
+})
 
 ScheduleSchema.statics.Status = ScheduleStatus
 
 const Schedule = model('Schedule', ScheduleSchema)
 
-module.exports = Schedule
+module.exports = Schedule 

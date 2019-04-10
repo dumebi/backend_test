@@ -51,16 +51,8 @@ const TransactionController = {
      */
   async user(req, res, next) {
     try {
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      // const user = await UserModel.findById()
-
-      const transactions = await TransactionModel.find({ user: token.data.id })
+      const userId = req.jwtUser
+      const transactions = await TransactionModel.find({ user: userId })
       if (transactions) {
         return res.status(HttpStatus.OK).json({
           status: 'success',

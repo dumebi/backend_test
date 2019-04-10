@@ -12,7 +12,7 @@
   "scripts": {
     "start": "NODE_ENV=production node index.js",
     "dev": "nodemon index.js",
-    "test": "NODE_ENV=development mocha test/*.test.js --timeout 120000 --reporter spec --exit --full-trace"
+    "test": "NODE_ENV=development nyc mocha test/*.test.js --timeout 120000 --reporter spec --exit --full-trace"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -36,7 +36,7 @@
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "dotenv": "^6.2.0",
-    "ethereumjs-util": "^6.0.0",
+    "ethereumjs-util": "^6.1.0",
     "ethereumjs-wallet": "^0.6.2",
     "etherlime": "^1.0.5",
     "ethers": "^4.0.27",

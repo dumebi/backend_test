@@ -1,5 +1,7 @@
 const DividendModel = require('../models/dividend');
+const DividendGroupModel = require('../models/dividendGroup');
 const UserModel = require('../models/user');
+const UserController = require('../controllers/user');
 const HttpStatus = require('../helpers/status');
 const {
   paramsNotValid, generateTransactionReference, checkToken
@@ -18,9 +20,16 @@ const DividendController = {
     */
   async all(req, res, next) {
     try {
+      let { page, count } = req.query
       const {
         group, to, from, status
       } = req.query
+
+      page = parseInt(page, 10)
+      count = parseInt(count, 10)
+
+      page = req.query.page == null || page <= 0 ? 1 : page
+      count = req.query.count == null || count <= 0 ? 50 : count
 
       const query = { }
       if (status) query.status = DividendModel.Status[status.toUpperCase()]
@@ -30,8 +39,29 @@ const DividendController = {
       if (to && from == null) query.createdAt = { $lt: to }
       if (from && to) query.createdAt = { $lt: to, $gte: from }
 
-      const dividends = await DividendModel.find(query).sort({ createdAt: -1 })
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'dividends retrieved', data: dividends });
+      // const dividends = await DividendModel.find(query).sort({ createdAt: -1 })
+      // return res.status(HttpStatus.OK).json({ status: 'success', message: 'dividends retrieved', data: dividends });
+      const [dividends, dividendCount] = await Promise.all([DividendModel.find(query).sort({ createdAt: -1 }).skip((page - 1) * count).limit(count), DividendModel.count(query)]);
+      const allDividendsPromise = dividends.map(dividend => DividendGroupModel.find({ dividend: dividend._id }))
+      const DividendGroups = await Promise.all(allDividendsPromise);
+      const new_dividends = UserController.deepCopy(dividends)
+      for (let index = 0; index < dividends.length; index++) {
+        // const dividend = ;
+        const DividendGroup = DividendGroups[index]
+        console.log('dividend items')
+        console.log(DividendGroup)
+        new_dividends[index].groups = DividendGroup
+      }
+      console.log(dividends.length)
+      if (new_dividends) {
+        return res.status(HttpStatus.OK).json({
+          status: 'success',
+          message: 'User dividends retrieved',
+          data: new_dividends,
+          count: dividendCount
+        });
+      }
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'dividends retrieved', data: [] });
     } catch (error) {
       const err = {
         http: HttpStatus.BAD_REQUEST,
@@ -60,14 +90,6 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
       console.log(req.params.dividend_id)
       const dividend = await DividendModel.findById(req.params.dividend_id)
       if (dividend) {
@@ -97,32 +119,33 @@ const DividendController = {
    */
   async create(req, res, next) {
     try {
-      if (paramsNotValid(req.body.name, req.body.group, req.body.amount, req.body.date)) {
+      if (paramsNotValid(req.body.name, req.body.group, req.body.date)) {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-      const dividend = new DividendModel({
+      const userId = req.jwtUser
+      const _dividend = new DividendModel({
         dividendId: generateTransactionReference(),
         name: req.body.name,
-        group: req.body.group,
-        amount: req.body.amount,
         date: new Date(req.body.date),
         enabled: false,
-        createdby: token.data.id
+        createdby: userId
       })
 
-      await dividend.save()
+      const dividend = await _dividend.save()
+      const groups = req.body.group;
+      const createDividendGropusPromise = groups.map( group => DividendGroupModel.create({ dividend: dividend._id, level: group.level, amount: group.amount }) )
+      const DividendGroups = await Promise.all(createDividendGropusPromise);
 
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Dividend created successfully', data: dividend });
+      const new_dividend = UserController.deepCopy(dividend)
+      new_dividend.group = DividendGroups
+      // TODO: create blockchain dividend
+
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Schedule created successfully', data: new_dividend });
+
+      // return res.status(HttpStatus.OK).json({ status: 'success', message: 'Dividend created successfully', data: dividend });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -149,17 +172,10 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const dividend = await DividendModel.findByIdAndUpdate(
         req.params.dividend_id,
-        { enabled: true, authorizedby: token.data.id },
+        { enabled: true, authorizedby: userId },
         { safe: true, multi: true, new: true }
       )
       if (dividend) {
@@ -199,17 +215,10 @@ const DividendController = {
           message: 'some parameters were not supplied'
         })
       }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
-        })
-      }
-
+      const userId = req.jwtUser
       const dividend = await DividendModel.findByIdAndUpdate(
         req.params.dividend_id,
-        { enabled: false, disabledby: token.data.id },
+        { enabled: false, disabledby: userId },
         { safe: true, multi: true, new: true }
       )
       if (dividend) {
@@ -252,13 +261,6 @@ const DividendController = {
         return res.status(HttpStatus.PRECONDITION_FAILED).json({
           status: 'failed',
           message: 'some parameters were not supplied'
-        })
-      }
-      const token = await checkToken(req);
-      if (token.status === 'failed') {
-        return res.status(token.data).json({
-          status: 'failed',
-          message: token.message
         })
       }
       delete req.body.dividendId
