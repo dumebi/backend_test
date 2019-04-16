@@ -193,13 +193,11 @@ describe('User Test', () => {
 
   it('Sell a token { MARKET }', (done) => {
     const amount = 14
-    const price = 200
     api
       .post('users/exchange/sell')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${user2_jwt}`)
       .send({
-        price,
         amount
       })
       .expect(200)
@@ -236,7 +234,6 @@ describe('User Test', () => {
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${user_jwt}`)
       .send({
-        price,
         amount
       })
       .expect(200)
@@ -299,12 +296,6 @@ describe('User Test', () => {
         expect(res.body.status).to.equal('success')
         expect(res.body.message).to.equal('Token price gotten successfully')
         expect(res.body.data).to.be.instanceof(Object)
-        expect(res.body.price).to.equal(200)
-        expect(res.body.high).to.equal(0)
-        expect(res.body.open).to.equal(0)
-        expect(res.body.close).to.equal(0)
-        expect(res.body.low).to.equal(0)
-        expect(res.body.vol).to.equal(0)
         done()
       })
   }).timeout(10000)

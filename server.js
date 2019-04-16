@@ -74,4 +74,6 @@ app.use((err, req, res, next) => {
   res.status(httpErr || 500).json(err);
 });
 
+require('./helpers/cron')
+
 module.exports = app;

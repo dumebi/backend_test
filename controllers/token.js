@@ -2,7 +2,7 @@ const TokenModel = require('../models/token');
 // const BookModel = require('../models/book');
 const OfferModel = require('../models/offer');
 const UserModel = require('../models/user');
-// const WalletModel = require('../models/wallet');
+const OHLVCModel = require('../models/ohlvc');
 const TransactionModel = require('../models/transaction');
 // const { sendUserToken, sendUserSignupEmail } = require('../helpers/emails');
 const {
@@ -32,6 +32,27 @@ const TokenController = {
       })
       newToken = await newToken.save();
       return res.status(HttpStatus.OK).json({ status: 'success', message: 'Token created successfully', data: newToken });
+    } catch (error) {
+      console.log('error >> ', error)
+      const err = {
+        http: HttpStatus.BAD_REQUEST,
+        status: 'failed',
+        message: 'Could not initialize token',
+        devError: error
+      }
+      next(err)
+    }
+  },
+
+  /**
+   * OHLVC
+   * @description get OHLVC details of a token
+   * @return {object} token
+   */
+  async ohlvc(req, res, next) {
+    try {
+      const ohlvc = await OHLVCModel.find();
+      return res.status(HttpStatus.OK).json({ status: 'success', message: 'ohlvc details gotten successfully', data: ohlvc });
     } catch (error) {
       console.log('error >> ', error)
       const err = {
@@ -229,7 +250,8 @@ const TokenController = {
       const privateKey = await secure.decrypt(tokenSeller.privateKey)
       const sit = new Token('0x'+privateKey);
       const escrow = await sit.addToEscrow(amount);
-      console.log('escrow ',escrow)
+      console.log('Add to escrow')
+      console.log('escrow ', escrow)
       // DONE: Add sell offer
       const offer = new OfferModel({
         type: 'Sell',
@@ -392,8 +414,9 @@ const TokenController = {
       // transaction.save()
 
       // DONE: Transfer tokens from seller escrow to buyer
-      const transfer = sit.transferFromEscrow(buyer.address, amount);
-      console.log('transfer ',transfer)
+      const transfer = await sit.transferFromEscrow(buyer.address, amount);
+      console.log('Transfer from escrow')
+      console.log('transfer ', transfer)
       // DONE: log token transfer transaction
       const sellTransaction = new TransactionModel({
         user: seller._id,
@@ -413,8 +436,10 @@ const TokenController = {
       const low = token.price > price ? price : token.price
       const vol = amount + token.vol
 
-      const [newToken, buyerWallet, sellerWallet, buyTrans, sellTrans, newOffer] = await Promise.all([TokenModel.findOneAndUpdate({ _id: token }, { price, high, low, vol }), buyer.wallet.save(), seller.wallet.save(), buyTransaction.save(), sellTransaction.save(), OfferModel.findOneAndUpdate({ _id: offer._id }, { sold: true })])
-      console.log('Processed Sale ', newToken, buyerWallet, sellerWallet, buyTrans, sellTrans, newOffer)
+      console.log('high low vol', high, low, vol)
+
+      const [newToken, buyerWallet, sellerWallet, buyTrans, sellTrans, newOffer] = await Promise.all([TokenModel.findOneAndUpdate({ _id: token._id }, { price, high, low, vol }), buyer.wallet.save(), seller.wallet.save(), buyTransaction.save(), sellTransaction.save(), OfferModel.findOneAndUpdate({ _id: offer._id }, { sold: true })])
+      console.log('new token ', newToken, 'buyer wallet ', buyerWallet, 'seller wallet ', sellerWallet, 'buy trans ', buyTrans, 'sell trans ', sellTrans, 'new offer ', newOffer)
       return {
         http: HttpStatus.OK,
         status: 'success',
@@ -633,6 +658,7 @@ const TokenController = {
 
         // DONE: Credit user back the tokens
         const credit = req.SIT.removeFromEscrow(offer.amount)
+        console.log('credit')
         console.log(credit)
 
 

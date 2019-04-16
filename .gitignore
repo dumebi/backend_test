@@ -25,3 +25,4 @@ Dockerfile
 external/mongo
 external/rabbitmq
 external/redis
+external/ganache_data
