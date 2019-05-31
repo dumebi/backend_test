@@ -74,15 +74,21 @@ exports.sendMail = (params, callback) => {
   });
 };
 
-exports.generateTransactionReference = () => {
-  // 463309364588305
-  let text = '';
-  const possible = '0123456789';
-  for (let i = 0; i < 15; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-  return ''.concat(text);
-};
+exports.generateTransactionReference = (x) => {
+  let text = ''
+  const possible = '0123456789'
+  for (let i = 0; i < (x || 15); i++) text += possible.charAt(Math.floor(Math.random() * possible.length))
+  return ''.concat(text)
+}
 
-exports.paramsNotValid = (...args) => args.map(param => param !== undefined && param != null && param !== '').includes(false);
+const paramsNotValid = (...args) => args
+  .map(param => param !== undefined && param != null && param !== '')
+  .includes(false)
+exports.paramsNotValid = paramsNotValid
+
+exports.paramsNotValidChecker = (...args) => args.map(
+  param => `${param} : ${param !== undefined && param != null && param !== ''}`
+)
 
 /**
  * Check token was sent
@@ -142,11 +148,28 @@ exports.checkToken = async (req) => {
 /**
  * Create Jwt token
  */
-exports.createToken = (email, id, type) => {
+exports.createToken = (email, id) => {
   try {
-    const jwtToken = jwt.sign({ email, id, type }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
+    const jwtToken = jwt.sign({ email, id }, this.config.jwt, { expiresIn: 60 * 60 * 24 });
     return jwtToken
   } catch (error) {
     return false;
   }
 };
+
+
+exports.handleError = (res, code, message, err) => {
+  return res.status(parseInt(code, 10)).json({
+    status: 'failed',
+    message,
+    err
+  })
+}
+
+exports.handleSuccess = (res, code, message, data) => {
+  return res.status(parseInt(code, 10)).json({
+    status: 'success',
+    message,
+    data
+  })
+}

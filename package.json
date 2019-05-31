@@ -26,8 +26,8 @@
   "dependencies": {
     "amqplib": "^0.5.3",
     "axios": "^0.18.0",
-    "bcrypt-nodejs": "0.0.3",
-    "bip39": "^2.5.0",
+    "bcryptjs": "^2.4.3",
+    "bunyan": "^1.8.12",
     "compression": "^1.7.3",
     "connect-flash": "^0.1.1",
     "connect-history-api-fallback": "^1.5.0",
@@ -36,10 +36,6 @@
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "dotenv": "^6.2.0",
-    "ethereumjs-util": "^6.1.0",
-    "ethereumjs-wallet": "^0.6.2",
-    "etherlime": "^1.0.5",
-    "ethers": "^4.0.27",
     "express": "4.16.4",
     "express-handlebars": "^3.0.0",
     "express-session": "^1.15.6",
@@ -56,10 +52,6 @@
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
     "redis-await": "^1.0.6",
-    "serve-static": "^1.13.2",
-    "socket.io": "^2.2.0",
-    "socket.io-client": "^2.2.0",
-    "solc": "^0.5.2",
-    "winston": "^3.1.0"
+    "serve-static": "^1.13.2"
   }
 }

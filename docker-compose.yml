@@ -2,34 +2,37 @@ version: '3'
 services:
   redis:
     image: 'redis:latest'
-    container_name: redis
+    restart: always
+    # container_name: comflo-redis
+    networks:
+      - comflo
     ports:
       - 6379:6379
     volumes:
-      - ./redis:/data
+      - ./external/redis:/data
+
   mongo:
     image: 'mongo:latest'
-    container_name: mongodb
+    restart: always
+    # container_name: comflo-mongodb
+    networks:
+      - comflo
     ports:
       - 27017:27017
     volumes:
-      - ./mongo:/data
-  rabbitMQ:
+      - ./external/mongo:/data
+
+  rabbitmq:
     image: 'rabbitmq:latest'
-    container_name: rabbitmq
+    restart: always
+    # container_name: comflo-rabbitmq
+    networks:
+      - comflo
     ports:
       - 5672:5672
     volumes:
-      - ./rabbitmq:/data
-  ganachecli:
-    image: trufflesuite/ganache-cli:latest
-    command: ganache-cli --db=/ganache_data -m "priority camera link lucky cave rug federal shiver canoe elegant student illegal" -h 0.0.0.0 -a 10 -e 10000000000000000 -s 20
-    ports:
-      - 8545:8545
-    environment:
-          - DOCKER=true
-    volumes:
-      - ./ganache_data:/ganache_data
+      - ./external/rabbitmq:/data
+
   # api:
   #   build: 
   #     # dockerfile: Dockerfile.dev

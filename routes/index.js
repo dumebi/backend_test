@@ -1,13 +1,11 @@
 const express = require('express');
 const AuthController = require('../controllers/auth')
-const shareController = require('../controllers/share')
 const UserController = require('../controllers/user');
 const TransactionController = require('../controllers/transaction');
 const ScheduleController = require('../controllers/schedule');
 const DividendController = require('../controllers/dividend');
 const TokenController = require('../controllers/token');
 const middleware = require('../helpers/middleware')
-const testController = require("../controllers/test");
 const walletController = require("../controllers/wallet");
 const sanitize = require("../helpers/sanitization.js");
 const validate = require("../helpers/validation.js");
@@ -17,35 +15,11 @@ const router = express.Router();
 /**
  * Auth Routes
  */
-// router.get('/users/token', AuthController.token);
 router.post('/users/create', AuthController.addUsers);
 router.post('/users/login', AuthController.login);
 router.post('/users/send-token', AuthController.sendToken);
 router.patch('/users/reset-pass', AuthController.resetPass);
 router.patch('/users/change-pass', middleware.isUser, AuthController.changePass);
-router.patch('/users/activate/:id', AuthController.activate);
-router.patch('/users/deactivate/:id', middleware.isAdmin, AuthController.deactivate);
-
-/**
- * Shares
- */
-router.get('/shares/get-lien/:id', middleware.isUser, shareController.getLien)
-router.post('/shares/lien', middleware.isUser, validate.lien, shareController.createLien)
-
-router.get('/shares/get-upfront/:id', middleware.isUser, shareController.getUpfront)
-router.post('/shares/upfront', middleware.isUser, shareController.createUpfront)
-
-router.get('/shares/get-loan/:id', middleware.isUser, shareController.getLoan)
-router.get('/shares/loan', middleware.isUser, shareController.createLoan)
-
-router.get("/test", testController.sample);
-
-/**
- * User Model routes
- */
-router.get('/users/type', middleware.isAdmin, AuthController.types);
-router.get('/users/group', middleware.isAdmin, AuthController.groups);
-router.get('/users/employment-status', middleware.isAdmin, AuthController.employment);
 
 /**
  * User Exchange Routes

@@ -1,9 +1,9 @@
 const UserModel = require('../models/user.js');
-const TransactionModel = require('../models/transaction');
+// const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
 const { getAsync, client } = require('../helpers/redis');
 const {
-  paramsNotValid, checkToken
+  paramsNotValid, createToken, config, handleError, handleSuccess, paramsNotValidChecker
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
 
@@ -11,7 +11,7 @@ const UserController = {
 
   /**
    * Get Users.
-   * @description This returns all users in the STTP Ecosystem.
+   * @description This returns all users in the Premier League Ecosystem.
    * @return {object[]} users
    */
   async all(req, res, next) {
@@ -28,15 +28,9 @@ const UserController = {
         }
         await client.set('STTP_users', JSON.stringify(users));
       }
-      return res.status(HttpStatus.OK).json({ status: 'success', message: 'Users retrieved', data: users });
+      return handleSuccess(res, HttpStatus.OK, 'Users retrieved', users)
     } catch (error) {
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Could not get users',
-        devError: error
-      }
-      next(err)
+      return handleError(res, HttpStatus.BAD_REQUEST, 'Could not get users', error)
     }
   },
 
@@ -49,43 +43,24 @@ const UserController = {
   async one(req, res, next) {
     try {
       if (paramsNotValid(req.params.id)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.params.id), null)
       }
       const _id = req.params.id;
       const user = await UserModel.findById(_id);
 
       if (user) {
-        return res.status(HttpStatus.OK).json({ status: 'success', message: 'User retrieved', data: user });
+        return handleSuccess(res, HttpStatus.OK, 'User retrieved', user)
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ status: 'failed', message: 'User not found' });
+      return handleError(res, HttpStatus.NOT_FOUND,  'User not found', null)
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user',
-        devError: error
-      }
-      next(err)
+      return handleError(res, HttpStatus.BAD_REQUEST, 'Error getting user', error)
     }
   },
 
   /**
    * Update User
    * @description This returns the transactions on all wallets of a user
-   * @param {string} fname        First name
-   * @param {string} mname        Middle name
-   * @param {string} lname        Last name
-   * @param {string} phone        Phone number
-   * @param {string} sex          Sex
-   * @param {string} dob          Date of birth
-   * @param {string} state        State of residence
-   * @param {string} city         City of residence
-   * @param {string} country      Country of residence
-   * @param {string} beneficiary  Next of kin
+   * @param {string} username     Username
    * @return {object} user
    */
   async update(req, res, next) {
@@ -93,14 +68,8 @@ const UserController = {
       const userId = req.jwtUser
       delete req.body.password
       delete req.body.type
-      delete req.body.employment
-      delete req.body.group
-      delete req.body.address
-      delete req.body.enabled
       delete req.body.token
       delete req.body.recover_token
-      delete req.body.vesting
-      delete req.body.enabled
       const user = await UserModel.findByIdAndUpdate(
         userId,
         { $set: req.body },
@@ -108,271 +77,12 @@ const UserController = {
       )
       if (user) {
         const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          data: newUser
-        })
+        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_PREMIER_CACHE', { newUser })])
+        return handleSuccess(res, HttpStatus.OK, 'User has been updated', newUser)
       }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
+      return handleError(res, HttpStatus.NOT_FOUND, 'User not found', null)
     } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error updating user',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Get User Bank
-     * @description This returns the bank details of a user
-     * @return {object} bank
-     */
-  async bank(req, res, next) {
-    try {
-      const userId = req.jwtUser
-      const user = await UserModel.findById(userId).select('+privateKey').populate('wallet')
-
-      if (user) {
-        console.log(user)
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User bank gotten successfully',
-          data: user.wallet.bank
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user bank details',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Get User Balance
-     * @description This returns the balance from all wallets of a user
-     * @return {object} balance
-     */
-  async balance(req, res, next) {
-    try {
-      const userId = req.jwtUser
-      const user = await UserModel.findById(userId).populate('wallet')
-
-      if (user) {
-        // DONE: get user balance from blockchain lib
-        const balance = await req.SIT.getShareholder(user.address);
-        console.log('bal' + balance)
-        
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User balance gotten successfully',
-          data: { naira: user.wallet.balance, sit: 0 }
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user balance',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Get User Transactions
-     * @description This returns the transactions on all wallets of a user
-     * @return {object} balance
-     */
-  async transactions(req, res, next) {
-    try {
-      const userId = req.jwtUser
-      const user = await UserModel.findById(userId)
-
-      if (user) {
-        const transactions = TransactionModel.find({ user: user._id })
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          message: 'User transactions gotten successfully',
-          data: transactions
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error getting user transactions',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Change User Type
-     * @description This updates a user's type and permissions
-     * @param {string}  id    User's ID
-     * @param {string}  type  User type
-     * @return {object} user
-     */
-  async changeType(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.id, req.body.type)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const _id = req.params.id;
-      const user = await UserModel.findByIdAndUpdate(
-        _id,
-        { type: req.body.type },
-        { safe: true, multi: true, new: true }
-      )
-      if (user) {
-        const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          data: newUser
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error updating user type',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Change User Group
-     * @description This updates a user's group and Access level
-     * @param {string}  id     User's ID
-     * @param {string}  group  User group
-     * @return {object} user
-     */
-  async changeGroup(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.id, req.body.group)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const _id = req.params.id;
-      const user = await UserModel.findByIdAndUpdate(
-        _id,
-        { group: req.body.group },
-        { safe: true, multi: true, new: true }
-      )
-
-      if (user) {
-        const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          data: newUser
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error updating user group',
-        devError: error
-      }
-      next(err)
-    }
-  },
-
-  /**
-     * Change User Employment Status
-     * @description This updates a user's employment status
-     * @param {string}  id          User's ID
-     * @param {string}  employment  User employment status
-     * @return {object} user
-     */
-  async changeEmployment(req, res, next) {
-    try {
-      if (paramsNotValid(req.params.id, req.body.employment)) {
-        return res.status(HttpStatus.PRECONDITION_FAILED).json({
-          status: 'failed',
-          message: 'some parameters were not supplied'
-        })
-      }
-      const _id = req.params.id;
-      const user = await UserModel.findByIdAndUpdate(
-        _id,
-        { employment: req.body.employment },
-        { safe: true, multi: true, new: true }
-      )
-
-      if (user) {
-        const newUser = UserController.deepCopy(user)
-        await Promise.all([publisher.queue('ADD_OR_UPDATE_USER_STTP_CACHE', { newUser })])
-
-        return res.status(HttpStatus.OK).json({
-          status: 'success',
-          data: newUser
-        })
-      }
-      return res.status(HttpStatus.NOT_FOUND).json({
-        status: 'failed',
-        message: 'User not found',
-      })
-    } catch (error) {
-      console.log('error >> ', error)
-      const err = {
-        http: HttpStatus.BAD_REQUEST,
-        status: 'failed',
-        message: 'Error updating user employment status',
-        devError: error
-      }
-      next(err)
+      return handleError(res, HttpStatus.BAD_REQUEST, 'Error updating user', error)
     }
   },
 
@@ -397,7 +107,7 @@ const UserController = {
 
   /**
    * Deep Copy
-   * @description copy mongo object into  a user object
+   * @description copy mongo object into a user object
    * @param user User object
    */
   deepCopy(user) {
