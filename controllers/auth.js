@@ -35,7 +35,7 @@ const AuthController = {
 
       const newUser = deepCopy(user)
 
-      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_PREMIER_CACHE', { newUser }), publisher.queue('SEND_USER_SIGNUP_EMAIL', { user })])
+      await Promise.all([user.save(), publisher.queue('ADD_OR_UPDATE_USER_PREMIER_CACHE', { newUser }), publisher.queue('SEND_USER_PREMIER_SIGNUP_EMAIL', { user })])
       return handleSuccess(res, HttpStatus.OK, 'User created successfully', newUser)
     } catch (error) {
       handleError(res, HttpStatus.BAD_REQUEST, 'Could not create user', error)
@@ -96,7 +96,7 @@ const AuthController = {
       });
       user.recover_token = user.encrypt(token);
 
-      await Promise.all([user.save(), publisher.queue('SEND_USER_TOKEN_EMAIL', { user, token })])
+      await Promise.all([user.save(), publisher.queue('SEND_USER_PREMIER_TOKEN_EMAIL', { user, token })])
       return handleSuccess(res, HttpStatus.OK, 'Token sent', null)
     } catch (error) {
       return handleError(res, HttpStatus.BAD_REQUEST, 'Error getting user', error)

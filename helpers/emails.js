@@ -12,7 +12,7 @@ exports.emailBody = (partialBody) => {
             <meta name="description" content="">
             <meta name="author" content="">
             <link href="https://fonts.googleapis.com/css?family=Muli:200" rel="stylesheet">
-            <title>Sterling Exchange</title>
+            <title>Premier League</title>
         </head>
 
         <body style="max-width: 600px;margin: 10px auto;padding: 70px;border: 1px solid #ccc;background: #ffffff;color: #4e4e4e;font-family: Muli;">
@@ -23,7 +23,7 @@ exports.emailBody = (partialBody) => {
                 ${partialBody}
                 <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
                     Cheers, <br>
-                    The Sterling Exchange Team
+                    The Premier League Team
                 </p>
             </div>
         </body>
@@ -45,7 +45,7 @@ exports.sendUserToken = (user, token) => {
             Token: <strong>${token}</strong>
         </p>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
-            If you are having any issues signing up, contact <strong>Sterling Support</strong>
+            If you are having any issues signing up, contact <strong>Premier League Support</strong>
         </p>
     `;
   const body = this.emailBody(partialBody);
@@ -58,13 +58,13 @@ exports.sendUserToken = (user, token) => {
  */
 exports.sendUserSignupEmail = (user, link) => {
   const partialBody = `
-        <h3>Welcome to the Sterling Token Portal</h3>
+        <h3>Welcome to the Premier League Portal</h3>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
             We are so glad to have you here ${user.fname}.<br>
         </p>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
             Get started immediately by activating your account, click <a href='${link}'>here</a> <br> 
-            For further questions, you can contact <strong>Sterling Support</strong>
+            For further questions, you can contact <strong>Premier League Support</strong>
         </p>
     `;
   const body = this.emailBody(partialBody);

@@ -2,39 +2,31 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
 const Constants = require('./status')
 const UserModel = require('../models/user.js');
+const {
+  paramsNotValid, handleError, handleSuccess
+} = require('../helpers/utils');
 require('dotenv').config();
 
 exports.config = {
   jwt: process.env.JWT_SECRET,
-  blockchain: '',
   mongo: '',
   host: '',
   amqp_url: '',
-  port: '',
-  appNairaAccount: '',
-  contract:  '',
-  coinbaseKey:''
+  port: ''
 }
 
 if (process.env.NODE_ENV === 'development') {
-  this.config.blockchain = process.env.GANACHE
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
-  this.config.contract = process.env.TEST_CONTRACT_ADDRESS
-  this.config.appNairaAccount = process.env.TEST_APP_ESCROW_ACCOUNT
-  this.config.coinbaseKey = process.env.COINBASE_KEY
 } else {
-  this.config.blockchain = process.env.GETH
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'STTP'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
-  this.config.contract = process.env.CONTRACT_ADDRESS
-  this.config.appNairaAccount = process.env.APP_ESCROW_ACCOUNT
 }
 
 exports.sendMail = (params, callback) => {
@@ -43,6 +35,7 @@ exports.sendMail = (params, callback) => {
   const body = params.body;
   const subject = params.subject;
   if (email == null || body == null || subject == null) {
+    return handleError(res, HttpStatus.BAD_REQUEST, 'the required parameters were not supplied', null)
     return {
       status: 'failed',
       err: 'the required parameters were not supplied'
@@ -59,7 +52,7 @@ exports.sendMail = (params, callback) => {
   });
 
   const mailOptions = {
-    from: 'Sterling Support <support@sterlingbankng.com>',
+    from: 'Premier League Support <support@premierleague.com>',
     to: email,
     subject,
     html: body

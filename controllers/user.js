@@ -1,9 +1,8 @@
 const UserModel = require('../models/user.js');
-// const TransactionModel = require('../models/transaction');
 const HttpStatus = require('../helpers/status');
 const { getAsync, client } = require('../helpers/redis');
 const {
-  paramsNotValid, createToken, config, handleError, handleSuccess, paramsNotValidChecker
+  paramsNotValid, handleError, handleSuccess, paramsNotValidChecker
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
 
@@ -17,7 +16,7 @@ const UserController = {
   async all(req, res, next) {
     try {
       let users = {}
-      const result = await getAsync('STTP_users');
+      const result = await getAsync('premier_users');
       // console.log(result)
       if (result != null && JSON.parse(result).length > 0) {
         users = JSON.parse(result);
@@ -26,7 +25,7 @@ const UserController = {
         for (let index = 0; index < users.length; index++) {
           users[users[index]._id] = users[index]
         }
-        await client.set('STTP_users', JSON.stringify(users));
+        await client.set('premier_users', JSON.stringify(users));
       }
       return handleSuccess(res, HttpStatus.OK, 'Users retrieved', users)
     } catch (error) {
@@ -91,14 +90,14 @@ const UserController = {
    * @description Add or Update redis user caching
    * @param user User object
    */
-  async addUserOrUpdateCache(user) {
+  async addOrUpdateCache(object, key) {
     try {
       // console.log(user)
-      const sttpUsers = await getAsync('STTP_users');
-      if (sttpUsers != null && JSON.parse(sttpUsers).length > 0) {
-        const users = JSON.parse(sttpUsers);
-        users[user._id] = user
-        await client.set('STTP_users', JSON.stringify(users));
+      const premierObject = await getAsync(key);
+      if (premierObject != null && JSON.parse(premierObject).length > 0) {
+        const objects = JSON.parse(premierObject);
+        objects[object._id] = object
+        await client.set(key, JSON.stringify(objects));
       }
     } catch (err) {
       console.log(err)
@@ -115,10 +114,6 @@ const UserController = {
       let newUser = JSON.stringify(user)
       newUser = JSON.parse(newUser)
       delete newUser.password;
-      delete newUser.mnemonic;
-      delete newUser.privateKey;
-      delete newUser.publicKey;
-
       return newUser;
     } catch (err) {
       console.log(err)
