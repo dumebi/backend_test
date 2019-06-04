@@ -9,9 +9,9 @@ const UserSchema = new Schema(
   {
     // Personal Details
     username: { type: Schema.Types.String },
+    email: { type: Schema.Types.String },
     // Access levels
     type: { type: Schema.Types.String, enum: Object.values(UserType), default: UserType.USER, required: true },
-    employment: { type: Schema.Types.String, enum: Object.values(Employment), default: Employment.EMPLOYED, required: true },
     // Authentication
     // activated: { type: Schema.Types.Boolean, required: true },
     password: { type: Schema.Types.String, required: true, select: false },

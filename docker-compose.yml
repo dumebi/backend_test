@@ -3,9 +3,9 @@ services:
   redis:
     image: 'redis:latest'
     restart: always
-    # container_name: comflo-redis
+    # container_name: test-redis
     networks:
-      - comflo
+      - test
     ports:
       - 6379:6379
     volumes:
@@ -14,9 +14,9 @@ services:
   mongo:
     image: 'mongo:latest'
     restart: always
-    # container_name: comflo-mongodb
+    # container_name: test-mongodb
     networks:
-      - comflo
+      - test
     ports:
       - 27017:27017
     volumes:
@@ -25,46 +25,50 @@ services:
   rabbitmq:
     image: 'rabbitmq:latest'
     restart: always
-    # container_name: comflo-rabbitmq
+    # container_name: test-rabbitmq
     networks:
-      - comflo
+      - test
     ports:
       - 5672:5672
     volumes:
       - ./external/rabbitmq:/data
 
-  # api:
+  # backend:
+  #   container_name: test-backend
+  #   restart: always
   #   build: 
-  #     # dockerfile: Dockerfile.dev
+  #     dockerfile: Dockerfile
   #     context: .
   #   volumes:
+  #     - .:/app
   #     - /app/node_modules
-  #     - ./:/app
   #   environment:
-  #     - JWT_SECRET="mysuperjwtsecret"
-  #     - GANACHE="http://192.168.22.83:8545"
+  #     - JWT_SECRET=mysuperjwtsecret
+  #     - APP_NAME="backend_test"
+  #     - MONGO_DB_PROD=mongodb+srv://dikejude49:dyke2010@comflo-test-d5lj1.mongodb.net/comflo-app
+  #     - MONGO_DB_PROD_ALTMALL=mongodb+srv://dikejude49:dyke2010@altmall-prod-a6qxd.mongodb.net/altmall
+  #     - MONGO_DB_DEV=mongodb://localhost:27017/test
+  #     - NODE_ENV=production
   #     - REDIS_URL=redis://redis
-  #     - MONGO_LAB_PROD_EXCHANGE="mongodb://sttp:WatmXGma0qBlH8VOsHKeKBY90SOvviMYAtqQcEpqTdHV5ZTEWSPt5U9Sp0MDIXIOIviDWH1ALbayYpWxD7zmYQ==@sttp.documents.azure.com:10255/?ssl=true"
-  #     - MONGO_LAB_DEV_EXCHANGE="mongodb://mongo/STTP"
-  #     - AMQP_URL=amqp://rabbitMQ
-  #     - TEST_CONTRACT_ADDRESS=""
-  #     - CONTRACT_ADDRESS=""
-  #     - TEST_APP_NAIRA_ACCOUNT="0029614344"
-  #     - APP_NAIRA_ACCOUNT=""
-  #     - CONTRACT_OWNER_KEY="0xb2ac9122bafc15cec45e364f13118963628857462045d74f2e45c0e3aa21f6d8"
-  #     - TARGET_SERVER_HOST=""
-  #     - TARGET_SERVER_USER=""
-  #     - NODE_ENV="development"
-  #     - ENCRYPTION_KEY="573rl1ng573rl1ng3ncry973ncry97ng"
-  #     - PORT=3000
-  #   restart: on-failure
-  #   depends_on:
+  #     - AMQP_URL=amqp://rabbitmq
+  #     - PORT=8082
+  #   links:
   #     - rabbitmq
-  #   links: 
-  #       - rabbitmq
-  #   healthcheck:
-  #     test: ["CMD-SHELL", 'mysqladmin ping']
-  #     interval: 10s
-  #     timeout: 2s
-  #     retries: 10
-    
+  #     # - wvganachecli
+  #   depends_on:
+  #     - mongo
+  #     - redis
+  #     - rabbitmq
+  #     # - ganachecli
+  #   networks:
+  #     - test
+  #   # command: npm run truffle && npm run start
+  #   command: >
+  #     sh -c "npm run truffle &&
+  #            npm run dev"
+  #   ports:
+  #     - 8082:8082
+
+networks:
+  test:
+    driver: bridge

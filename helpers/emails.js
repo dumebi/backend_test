@@ -39,7 +39,7 @@ exports.emailBody = (partialBody) => {
  */
 exports.sendUserToken = (user, token) => {
   const partialBody = `
-        <h3>Hi ${user.fname},</h3>
+        <h3>Hi ${user.username},</h3>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
             Find below a one-time token to complete your registration. <br>
             Token: <strong>${token}</strong>
@@ -60,10 +60,9 @@ exports.sendUserSignupEmail = (user, link) => {
   const partialBody = `
         <h3>Welcome to the Premier League Portal</h3>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
-            We are so glad to have you here ${user.fname}.<br>
+            We are so glad to have you here ${user.username}.<br>
         </p>
         <p style="margin-bottom: 2em;line-height: 26px;font-size: 14px;">
-            Get started immediately by activating your account, click <a href='${link}'>here</a> <br> 
             For further questions, you can contact <strong>Premier League Support</strong>
         </p>
     `;

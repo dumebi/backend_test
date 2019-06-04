@@ -13,24 +13,29 @@ const AuthController = {
    * Create User
    * @description Create a user
    * @param {string} username        Username
+   * @param {string} email           email
    * @param {string} password        Password
    * @return {object} user
    */
   async addUsers(req, res, next) {
     try {
-      if (paramsNotValid(req.body.username, req.body.password)) {
-        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.username, req.body.password), null)
+      if (paramsNotValid(req.body.email, req.body.email, req.body.password)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.email, req.body.email, req.body.password), null)
       }
 
-      const userFound = await UserModel.findOne({ username })
-      if (userFound) { return handleError(res, HttpStatus.BAD_REQUEST, 'Username already exists', null) }
+      const userFound = await UserModel.findOne({ email: req.body.email })
+      if (userFound) { return handleError(res, HttpStatus.BAD_REQUEST, 'email already exists', null) }
+
+      const usernameFound = await UserModel.findOne({ username: req.body.username })
+      if (usernameFound) { return handleError(res, HttpStatus.BAD_REQUEST, 'username already exists', null) }
 
       const user = new UserModel({
         username: req.body.username,
+        email: req.body.email,
         password: req.body.password
       })
 
-      const jwtToken = createToken(user.username, user._id);
+      const jwtToken = createToken(user.email, user._id);
       user.token = jwtToken;
 
       const newUser = deepCopy(user)
@@ -45,19 +50,19 @@ const AuthController = {
   /**
    * User Login
    * @description Login a user
-   * @param {string} username
+   * @param {string} email
    * @param {string} password
    * @return {object} user
    */
   async login(req, res, next) {
     try {
-      if (paramsNotValid(req.body.username, req.body.password)) {
-        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.username, req.body.password), 'some parameters were not supplied')
+      if (paramsNotValid(req.body.email, req.body.password)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, 'some parameters were not supplied', paramsNotValidChecker(req.body.email, req.body.password))
       }
 
-      const username = req.body.username;
+      const email = req.body.email;
       const password = req.body.password;
-      const user = await UserModel.findOne({ username }).select('+password');
+      const user = await UserModel.findOne({ email }).select('+password');
       if (!user) { return handleError(res, HttpStatus.NOT_FOUND, 'User not found here', null) }
 
       if (!user.validatePassword(password)) {
@@ -78,16 +83,16 @@ const AuthController = {
   /**
      * User Send Token
      * @description Send a forgot password token to a user
-     * @param {string} username
+     * @param {string} email
      * @return {null}
      */
   async sendToken(req, res, next) {
     try {
-      if (paramsNotValid(req.body.username)) {
-        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.username), 'some parameters were not supplied')
+      if (paramsNotValid(req.body.email)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, 'some parameters were not supplied',  paramsNotValidChecker(req.body.email))
       }
-      const username = req.body.username;
-      const user = await UserModel.findOne({ username });
+      const email = req.body.email;
+      const user = await UserModel.findOne({ email });
       if (!user) { return handleError(res, HttpStatus.NOT_FOUND, 'User not found here', null) }
 
       const token = randomstring.generate({
@@ -106,21 +111,21 @@ const AuthController = {
   /**
      * Reset User Password
      * @description Resets a user password
-     * @param {string} username
+     * @param {string} email
      * @param {string} password
      * @param {string} token
      * @return {object} user
      */
   async resetPass(req, res, next) {
     try {
-      if (paramsNotValid(req.body.username, req.body.password, req.body.token)) {
-        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.username, req.body.password, req.body.token), 'some parameters were not supplied')
+      if (paramsNotValid(req.body.email, req.body.password, req.body.token)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, 'some parameters were not supplied', paramsNotValidChecker(req.body.email, req.body.password, req.body.token))
       }
-      const username = req.body.username;
+      const email = req.body.email;
       const password = req.body.password;
       const token = req.body.token;
 
-      const user = await UserModel.findOne({username}).select('+recover_token');
+      const user = await UserModel.findOne({email}).select('+recover_token');
       if (!user) { return handleError(res, HttpStatus.NOT_FOUND, 'User not found here', null) }
       if (!user.validateToken(token)) { return handleError(res, HttpStatus.UNAUTHORIZED, 'Wrong Token', null)}
 
@@ -144,7 +149,7 @@ const AuthController = {
   async changePass(req, res, next) {
     try {
       if (paramsNotValid(req.body.password)) {
-        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.password), 'some parameters were not supplied')
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, 'some parameters were not supplied', paramsNotValidChecker(req.body.password))
       }
       const userId = req.jwtUser
       const user = await UserModel.findById(userId);

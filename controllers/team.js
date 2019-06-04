@@ -6,12 +6,46 @@ const {
 } = require('../helpers/utils');
 const publisher = require('../helpers/rabbitmq');
 
-const UserController = {
-
+const TeamController = {
   /**
-   * Get Users.
+   * Create Team
+   * @description Create a team
+   * @param {string} name 
+   * @param {string} logo      
+   * @param {string} owner
+   * @param {string} manager
+   * @param {string} stadium
+   * @param {string} established
+   * @return {object} team
+   */
+  async create(req, res, next) {
+    try {
+      if (paramsNotValid(req.body.name, req.body.logo, req.body.owner, req.body.manager, req.body.stadium, req.body.established)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.body.name, req.body.logo, req.body.owner, req.body.manager, req.body.stadium, req.body.established), null)
+      }
+
+      const teamFound = await TeamModel.findOne({ name: req.body.name })
+      if (teamFound) { return handleError(res, HttpStatus.BAD_REQUEST, 'team already exists', null) }
+
+      const team = new TeamModel({
+        name: req.body.name,
+        logo: req.body.logo,
+        owner: req.body.owner,
+        manager: req.body.manager,
+        stadium: req.body.stadium,
+        established: req.body.established,
+      })
+
+      await Promise.all([team.save(), publisher.queue('ADD_OR_UPDATE_TEAM_PREMIER_CACHE', { team })])
+      return handleSuccess(res, HttpStatus.OK, 'Team created successfully', team)
+    } catch (error) {
+      handleError(res, HttpStatus.BAD_REQUEST, 'Could not create team', error)
+    }
+  },
+  /**
+   * Get Teams.
    * @description This returns all teams in the Premier League Ecosystem.
-   * @return {object[]} users
+   * @return {object[]} teams
    */
   async all(req, res, next) {
     try {
@@ -25,16 +59,16 @@ const UserController = {
         for (let index = 0; index < allTeams.length; index++) {
           teams[allTeams[index]._id] = allTeams[index]
         }
-        await client.set('STTP_users', JSON.stringify(teams));
+        await client.set('premier_teams', JSON.stringify(teams));
       }
-      return handleSuccess(res, HttpStatus.OK, 'Users retrieved', teams)
+      return handleSuccess(res, HttpStatus.OK, 'Teams retrieved', Object.values(teams))
     } catch (error) {
-      return handleError(res, HttpStatus.BAD_REQUEST, 'Could not get users', error)
+      return handleError(res, HttpStatus.BAD_REQUEST, 'Could not get teams', error)
     }
   },
 
   /**
-     * Get User
+     * Get Team
      * @description This returns a team details in thw Premier League Ecosystem.
      * @param   {string}  id  Team's ID
      * @return  {object}  team
@@ -48,7 +82,7 @@ const UserController = {
       const team = await TeamModel.findById(_id);
 
       if (team) {
-        return handleSuccess(res, HttpStatus.OK, 'Team retrieved', user)
+        return handleSuccess(res, HttpStatus.OK, 'Team retrieved', team)
       }
       return handleError(res, HttpStatus.NOT_FOUND,  'Team not found', null)
     } catch (error) {
@@ -110,4 +144,4 @@ const UserController = {
   }
 };
 
-module.exports = UserController;
+module.exports = TeamController;

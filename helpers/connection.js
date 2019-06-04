@@ -56,7 +56,7 @@ module.exports = {
       const mailparams = {
         email: data.user.email,
         body: userTokenMailBody,
-        subject: 'Activate your account'
+        subject: 'Welcome to premier'
       };
       sendMail(mailparams, (error, result) => {
         console.log(error)

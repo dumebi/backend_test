@@ -2,9 +2,6 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken')
 const Constants = require('./status')
 const UserModel = require('../models/user.js');
-const {
-  paramsNotValid, handleError, handleSuccess
-} = require('../helpers/utils');
 require('dotenv').config();
 
 exports.config = {
@@ -35,7 +32,6 @@ exports.sendMail = (params, callback) => {
   const body = params.body;
   const subject = params.subject;
   if (email == null || body == null || subject == null) {
-    return handleError(res, HttpStatus.BAD_REQUEST, 'the required parameters were not supplied', null)
     return {
       status: 'failed',
       err: 'the required parameters were not supplied'
@@ -113,7 +109,7 @@ exports.checkToken = async (req) => {
     if(user){
       return {
         status: 'success',
-        data: decryptedToken
+        data: user
       }
     }
     return {
@@ -152,6 +148,7 @@ exports.createToken = (email, id) => {
 
 
 exports.handleError = (res, code, message, err) => {
+  console.log(message, err)
   return res.status(parseInt(code, 10)).json({
     status: 'failed',
     message,

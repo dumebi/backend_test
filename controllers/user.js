@@ -64,13 +64,15 @@ const UserController = {
    */
   async update(req, res, next) {
     try {
-      const userId = req.jwtUser
+      if (paramsNotValid(req.params.id)) {
+        return handleError(res, HttpStatus.PRECONDITION_FAILED, paramsNotValidChecker(req.params.id), null)
+      }
+      const _id = req.params.id;
       delete req.body.password
-      delete req.body.type
       delete req.body.token
       delete req.body.recover_token
       const user = await UserModel.findByIdAndUpdate(
-        userId,
+        _id,
         { $set: req.body },
         { safe: true, multi: true, new: true }
       )
