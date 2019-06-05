@@ -102,7 +102,7 @@ const AuthController = {
       user.recover_token = user.encrypt(token);
 
       await Promise.all([user.save(), publisher.queue('SEND_USER_PREMIER_TOKEN_EMAIL', { user, token })])
-      return handleSuccess(res, HttpStatus.OK, 'Token sent', null)
+      return handleSuccess(res, HttpStatus.OK, 'Token sent', token)
     } catch (error) {
       return handleError(res, HttpStatus.BAD_REQUEST, 'Error getting user', error)
     }

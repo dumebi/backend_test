@@ -46,7 +46,7 @@ exports.sendMail = (params, callback) => {
     service: 'SendPulse',
     auth: {
       user: 'dikejude49@gmail.com',
-      pass: 'dyke2010'
+      pass: 'eBessFBkE2XM'
     }
   });
 
