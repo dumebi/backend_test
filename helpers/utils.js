@@ -15,14 +15,14 @@ exports.config = {
 
 if (process.env.NODE_ENV === 'development') {
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
-  this.config.host = `http://https://vast-reef-55707.herokuapp.com/v1/`
-  this.config.db = 'STTP'
+  this.config.host = `http://localhost:${process.env.PORT}/v1/`
+  this.config.db = 'backend_test'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
   
 } else {
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
-  this.config.host = `http://localhost:${process.env.PORT}/v1/`
+  this.config.host = `http://https://vast-reef-55707.herokuapp.com/v1/`
   this.config.db = 'backend_test'
   this.config.amqp_url = `${process.env.CLOUDAMQP_URL}`
   this.config.port = `${process.env.PORT}`
@@ -41,9 +41,9 @@ exports.sendMail = (params, callback) => {
     };
   }
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    service: 'Gmail',
+    // host: 'smtp.gmail.com',
+    // port: 465,
+    service: 'SendPulse',
     auth: {
       user: 'dikejude49@gmail.com',
       pass: 'dyke2010'

@@ -17,3 +17,5 @@ exports.wallet = async (req, res, next) => {
       })
   }
 }
+
+// https://accounts.google.com/signin/continue?sarp=1&scc=1&plt=AKgnsbuqaU6vkoOVxtGNBQCrw-hrt0D5cQH8KcWKYaGjjoOoEoyImEx7CTrgz3bq1F5WQphVCDfdzQwuTyuu2vadnZh-307UJn5Xf_ayd0Lzb056fA2QkTBzTByEBeDJ6r2GD2a7kv0E

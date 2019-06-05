@@ -56,6 +56,7 @@ describe('Admin Test', () => {
       })
       .expect(200)
       .end((err, res) => {
+        console.log()
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
         expect(res.body.data.email).to.equal(email)
