@@ -2,12 +2,11 @@
 const mongoose = require('mongoose');
 const expect = require('chai').expect
 const supertest = require('supertest')
+const http = require('http');
+const app = require('../server')
+require('dotenv').config();
 const { config } = require('../helpers/utils');
-const WalletModel = require('../models/wallet');
 
-const User = require('../models/user');
-const EthAccount = require('../libraries/ethUser.js');
-const secure = require('../helpers/encryption.js');
 const UserModel = require('../models/user');
 
 const api = supertest(`${config.host}`)
@@ -18,239 +17,434 @@ describe('Admin Test', () => {
   let user2_id = ''
   let admin_id = ''
   let admin_jwt = ''
-  const token = ''
+  const admin_token = ''
+  let team_id = ''
+  let team2_id = ''
+  let team3_id = ''
+  let fixture_id = ''
+  let fixture2_id = ''
 
   before(async () => {
+    const port = process.env.PORT || 8080;
+    app.set('port', port);
+    /**
+     * Create HTTP server.
+     */
+    const server = http.createServer(app);
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+    server.listen(port);
     console.log(config.mongo);
     // this.timeout(13000); // A very long environment setup.
     // await setTimeout(done, 20000);
     await mongoose.connect(config.mongo, { useNewUrlParser: true });
     await mongoose.connection.db.dropDatabase();
-    await dbSeeder();
+    // await dbSeeder();
   })
   it('Should create a user', (done) => {
-    const fname = 'John'
-    const lname = 'Doe'
-    const email = 'johndoe@gmail.com'
-    const phone = '2348184364720'
-    const sex = 'Male'
-    const dob = '15-01-1992'
+    const username = 'oneguylykdat'
+    const email = 'email@mail.com'
     const password = 'John'
-    const vesting = true
-    const type = 'User'
-    const employment = 'Employed'
-    const group = 'Senior Executive'
-    const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/create')
+      .post('users/signup')
       .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${token}`)
       .send({
-        fname,
-        lname,
+        username,
         email,
-        phone,
-        sex,
-        dob,
-        password,
-        vesting,
-        type,
-        employment,
-        group,
-        staffId
+        password
       })
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
         expect(res.body.data.email).to.equal(email)
-        expect(res.body.data.fname).to.equal(fname)
-        expect(res.body.data.lname).to.equal(lname)
-        expect(res.body.data.phone).to.equal(phone)
-        expect(res.body.data.sex).to.equal(sex)
-        expect(res.body.data.dob).to.equal(dob)
-        expect(res.body.data.vesting).to.equal(vesting)
+        expect(res.body.data.username).to.equal(username)
+        expect(res.body.data.password).to.not.equal(password)
+        admin_id = res.body.data._id
+        admin_jwt = res.body.data.token
+        done()
+      })
+  }).timeout(30000)
+
+  it('Should make a user an admin', (done) => {
+    const type = 'Admin'
+    api
+      .patch('users/'+ admin_id)
+      .set('Accept', 'application/json')
+      .send({
+        type
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
         expect(res.body.data.type).to.equal(type)
-        expect(res.body.data.employment).to.equal(employment)
-        expect(res.body.data.group).to.equal(group)
-        expect(res.body.data.staffId).to.equal(staffId)
+        done()
+      })
+  }).timeout(30000)
+
+  it('Should create user 2', (done) => {
+    const username = 'oneguylykdat2'
+    const email = 'email2@mail.com'
+    const password = 'John'
+    api
+      .post('users/signup')
+      .set('Accept', 'application/json')
+      .send({
+        username,
+        email,
+        password
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.email).to.equal(email)
+        expect(res.body.data.username).to.equal(username)
         expect(res.body.data.password).to.not.equal(password)
         user_id = res.body.data._id
         done()
       })
   }).timeout(30000)
 
-  it('Should create another user', (done) => {
-    const fname = 'John2'
-    const lname = 'Doe2'
-    const email = 'johndoe2@gmail.com'
-    const phone = '2348184364721'
-    const sex = 'Male'
-    const dob = '15-01-1992'
+  it('Should create user 3', (done) => {
+    const username = 'oneguylykdat3'
+    const email = 'email3@mail.com'
     const password = 'John'
-    const vesting = true
-    const type = 'User'
-    const employment = 'Employed'
-    const group = 'Senior Executive'
-    const staffId = `${Math.floor(Math.random() * 1000000)}`
     api
-      .post('users/create')
+      .post('users/signup')
       .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${token}`)
       .send({
-        fname,
-        lname,
+        username,
         email,
-        phone,
-        sex,
-        dob,
-        password,
-        vesting,
-        type,
-        employment,
-        group,
-        staffId
+        password
       })
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
         expect(res.body.data.email).to.equal(email)
-        expect(res.body.data.fname).to.equal(fname)
-        expect(res.body.data.lname).to.equal(lname)
-        expect(res.body.data.phone).to.equal(phone)
-        expect(res.body.data.sex).to.equal(sex)
-        expect(res.body.data.dob).to.equal(dob)
-        expect(res.body.data.vesting).to.equal(vesting)
-        expect(res.body.data.type).to.equal(type)
-        expect(res.body.data.employment).to.equal(employment)
-        expect(res.body.data.group).to.equal(group)
-        expect(res.body.data.staffId).to.equal(staffId)
+        expect(res.body.data.username).to.equal(username)
         expect(res.body.data.password).to.not.equal(password)
         user2_id = res.body.data._id
         done()
       })
-  }).timeout(10000)
+  }).timeout(30000)
 
-  it('Should create a admin', (done) => {
-    const fname = 'Admin'
-    const lname = 'Admin'
-    const email = 'testadmin@gmail.com'
-    const phone = '2348184364720'
-    const sex = 'Male'
-    const dob = '15-01-1992'
-    const password = 'John'
-    const vesting = true
-    const type = 'Admin'
-    const employment = 'Employed'
-    const group = 'Executive Trainee'
-    const staffId = `${Math.floor(Math.random() * 1000000)}`
+  it('Should create a team', (done) => {
+    const name = 'Manchester United'
+    const logo = 'https://www.google.com/search?q=manches+logo&tbm=isch&source=iu&ictx=1&fir=b5a9FnMdJJqEBM%253A%252CHSrEjIMMKy9whM%252C_&vet=1&usg=AI4_-kSa_ZPsBLpE5wyYTdYT7IgXv4bUUw&sa=X&ved=2ahUKEwjVm5OG3s_iAhWSXRUIHfAHB8wQ9QEwAHoECAMQBA#imgrc=b5a9FnMdJJqEBM:'
+    const owner = 'Family'
+    const manager = 'Ole Gunner'
+    const stadium = 'Old Trafford'
+    const established = '15-09-1970'
     api
-      .post('users/create')
+      .post('teams')
       .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${token}`)
+      .set('authorization', `Bearer ${admin_jwt}`)
       .send({
-        fname,
-        lname,
-        email,
-        phone,
-        sex,
-        dob,
-        password,
-        vesting,
-        type,
-        employment,
-        group,
-        staffId
+        name,
+        logo,
+        owner,
+        manager,
+        stadium,
+        established
       })
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.email).to.equal(email)
-        expect(res.body.data.fname).to.equal(fname)
-        expect(res.body.data.lname).to.equal(lname)
-        expect(res.body.data.phone).to.equal(phone)
-        expect(res.body.data.sex).to.equal(sex)
-        expect(res.body.data.dob).to.equal(dob)
-        expect(res.body.data.vesting).to.equal(vesting)
-        expect(res.body.data.type).to.equal(type)
-        expect(res.body.data.employment).to.equal(employment)
-        expect(res.body.data.group).to.equal(group)
-        expect(res.body.data.staffId).to.equal(staffId)
-        expect(res.body.data.password).to.not.equal(password)
-        admin_jwt = res.body.data.token;
-        user_address = res.body.data.address;
-        user_wallet = res.body.data.wallet;
-        admin_id = res.body.data._id;
+        expect(res.body.data.name).to.equal(name)
+        expect(res.body.data.logo).to.equal(logo)
+        expect(res.body.data.owner).to.equal(owner)
+        expect(res.body.data.manager).to.equal(manager)
+        expect(res.body.data.stadium).to.equal(stadium)
+        expect(res.body.data.established).to.equal(established)
+        team_id = res.body.data._id
         done()
       })
   }).timeout(10000)
 
-  it('Should deactivate a user', (done) => {
+  it('Should create a team 2', (done) => {
+    const name = 'Chelsea'
+    const logo = 'https://www.google.com/search?q=chelsea+logo&tbm=isch&source=iu&ictx=1&fir=3JHzUrQWDhSUwM%253A%252CLDRCRbVndXOvZM%252C_&vet=1&usg=AI4_-kTRtK0Nczlc4tsfi1_ihJceeDhZsA&sa=X&ved=2ahUKEwjLsJuv1c_iAhWt1lkKHXSBA7QQ9QEwAXoECAMQBA#imgrc=3JHzUrQWDhSUwM:'
+    const owner = 'Roman Abrahimovic'
+    const manager = 'Sarri Ball'
+    const stadium = 'Stamford Bridge'
+    const established = '15-09-1860'
     api
-      .patch(`users/deactivate/${admin_id}`)
+      .post('teams')
       .set('Accept', 'application/json')
       .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('User deactivated')
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should activate a admin', (done) => {
-    api
-      .patch(`users/activate/${admin_id}`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('User activated')
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should activate a user', (done) => {
-    api
-      .patch(`users/activate/${user_id}`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('User activated')
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should activate a user', (done) => {
-    api
-      .patch(`users/activate/${user2_id}`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('User activated')
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should signin an admin ', (done) => {
-    api
-      .post('users/login')
-      .set('Accept', 'application/json')
       .send({
-        email: 'testadmin@gmail.com',
-        password: 'John'
+        name,
+        logo,
+        owner,
+        manager,
+        stadium,
+        established
       })
       .expect(200)
       .end((err, res) => {
         expect(res.body.status).to.equal('success')
         expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.name).to.equal(name)
+        expect(res.body.data.logo).to.equal(logo)
+        expect(res.body.data.owner).to.equal(owner)
+        expect(res.body.data.manager).to.equal(manager)
+        expect(res.body.data.stadium).to.equal(stadium)
+        expect(res.body.data.established).to.equal(established)
+        team2_id = res.body.data._id
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should create a team 3', (done) => {
+    const name = 'Liverpool'
+    const logo = 'https://www.google.com/search?q=liverpool+logo&tbm=isch&source=iu&ictx=1&fir=pJe3l4xbQc_flM%253A%252C-ACJmZ9iiBFn6M%252C_&vet=1&usg=AI4_-kQftzYQ45bNZhAtV6jULWpKjNzXtQ&sa=X&ved=2ahUKEwiE0Z-x3c_iAhU8WhUIHfh7CDMQ9QEwAXoECAMQBA#imgrc=pJe3l4xbQc_flM:'
+    const owner = 'Another man'
+    const manager = 'Jurgen Klopp'
+    const stadium = 'Anfield'
+    const established = '15-09-1870'
+    api
+      .post('teams')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        name,
+        logo,
+        owner,
+        manager,
+        stadium,
+        established
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.name).to.equal(name)
+        expect(res.body.data.logo).to.equal(logo)
+        expect(res.body.data.owner).to.equal(owner)
+        expect(res.body.data.manager).to.equal(manager)
+        expect(res.body.data.stadium).to.equal(stadium)
+        expect(res.body.data.established).to.equal(established)
+        team3_id = res.body.data._id
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should get all teams', (done) => {
+    api
+      .get('teams')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Teams retrieved')
+        expect(res.body.data).to.have.lengthOf.above(0)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should get team 1', (done) => {
+    api
+      .get('teams/'+team_id)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data._id).to.equal(team_id)
+        done()
+      })
+  }).timeout(10000)
+  
+  it('Should update team 1', (done) => {
+    const established = '15-09-1890'
+    api
+      .patch('teams/'+team_id)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        established
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.established).to.equal(established)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should delete team 1', (done) => {
+    api
+      .delete('teams/'+team_id)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Team has been removed')
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should create a fixture 1', (done) => {
+    const home = team_id
+    const away = team2_id
+    const date = '10-12-2019'
+    api
+      .post('fixtures')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        home,
+        away,
+        date
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.home.team).to.equal(home)
+        expect(res.body.data.home.score).to.equal(0)
+        expect(res.body.data.away.team).to.equal(away)
+        expect(res.body.data.away.score).to.equal(0)
+        expect(res.body.data.date).to.equal(date)
+        fixture_id = res.body.data._id
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should create a fixture 2', (done) => {
+    const home = team_id
+    const away = team3_id
+    const date = '9-12-2019'
+    api
+      .post('fixtures')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        home,
+        away,
+        date
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.home.team).to.equal(home)
+        expect(res.body.data.home.score).to.equal(0)
+        expect(res.body.data.away.team).to.equal(away)
+        expect(res.body.data.away.score).to.equal(0)
+        expect(res.body.data.date).to.equal(date)
+        fixture2_id = res.body.data._id
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should create a fixture 3', (done) => {
+    const home = team2_id
+    const away = team3_id
+    const date = '11-12-2019'
+    api
+      .post('fixtures')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        home,
+        away,
+        date
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.home.team).to.equal(home)
+        expect(res.body.data.home.score).to.equal(0)
+        expect(res.body.data.away.team).to.equal(away)
+        expect(res.body.data.away.score).to.equal(0)
+        expect(res.body.data.date).to.equal(date)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should get all fixtures', (done) => {
+    api
+      .get('fixtures')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Fixtures retrieved')
+        expect(res.body.data).to.have.lengthOf.above(0)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should get fixture 1', (done) => {
+    api
+      .get('fixtures/'+fixture_id)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data._id).to.equal(fixture_id)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should update fixture 1 scores', (done) => {
+    const home = 1
+    const away = 0
+    api
+      .patch('fixtures/'+fixture_id+'/scores')
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        home,
+        away
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.home.score).to.equal(home)
+        expect(res.body.data.away.score).to.equal(away)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should update fixture 1', (done) => {
+    const status = 'Completed'
+    api
+      .patch('fixtures/'+fixture_id)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .send({
+        status
+      })
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.data._id).to.have.lengthOf.above(0)
+        expect(res.body.data.status).to.equal(status)
+        done()
+      })
+  }).timeout(10000)
+
+  it('Should delete fixture 1', (done) => {
+    api
+      .delete('fixtures/'+fixture_id)
+      .set('Accept', 'application/json')
+      .set('authorization', `Bearer ${admin_jwt}`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.body.status).to.equal('success')
+        expect(res.body.message).to.equal('Fixture has been removed')
         done()
       })
   }).timeout(10000)
@@ -280,196 +474,5 @@ describe('Admin Test', () => {
         done()
       })
   }).timeout(10000)
-
-  it('Should get all user types', (done) => {
-    api
-      .get('users/type')
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Array)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should get all user groups', (done) => {
-    api
-      .get('users/group')
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Array)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should get all user employment statuses', (done) => {
-    api
-      .get('users/employment-status')
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Array)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should update a user group', (done) => {
-    const group = 'Senior Executive'
-    api
-      .patch(`users/${user_id}/group`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .send({
-        group
-      })
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Object)
-        expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.group).to.equal(group)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should update a user type', (done) => {
-    const type = 'User'
-    api
-      .patch(`users/${user_id}/type`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .send({
-        type
-      })
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Object)
-        expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.type).to.equal(type)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should update a user employment status', (done) => {
-    const employment = 'Employed'
-    api
-      .patch(`users/${user_id}/employment-status`)
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .send({
-        employment
-      })
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Object)
-        expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.employment).to.equal(employment)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Set fee for everyone', async () => {
-    await WalletModel.updateMany({}, { balance: 100000 });
-  }).timeout(20000)
-
-  it('Should initialize SIT token', (done) => {
-    api
-      .get('admin/token')
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.data).to.be.instanceof(Object)
-        expect(res.body.data._id).to.have.lengthOf.above(0)
-        expect(res.body.data.name).to.equal('STTP')
-        expect(res.body.data.min).to.equal(0)
-        expect(res.body.data.max).to.equal(0)
-        expect(res.body.data.high).to.equal(0)
-        expect(res.body.data.low).to.equal(0)
-        expect(res.body.data.vol).to.equal(0)
-        expect(res.body.data.price).to.equal(0)
-        done()
-      })
-  }).timeout(10000)
-
-  it('Should update a price of token', (done) => {
-    const price = 200
-    const min = 100
-    const max = 300
-    api
-      .patch('admin/token/')
-      .set('Accept', 'application/json')
-      .set('authorization', `Bearer ${admin_jwt}`)
-      .send({
-        price,
-        min,
-        max
-      })
-      .expect(200)
-      .end((err, res) => {
-        expect(res.body.status).to.equal('success')
-        expect(res.body.message).to.equal('Token price has been set successfully')
-        done()
-      })
-  }).timeout(10000)
 })
 
-async function dbSeeder() {
-  try {
-    const userMnemonic = "priority camera link lucky cave rug federal shiver canoe elegant student illegal"
-    const mnemonicSeed = await EthAccount.generateSeed(userMnemonic)
-    const Ethkeys = await EthAccount.generateKeys(mnemonicSeed)
-
-    const user = new UserModel({
-        fname: 'Oluwadara',
-        mname: 'Ayotunde',
-        lname: 'Olayebi',
-        email: 'admin@gmail.com',
-        phone: '09088994563',
-        sex: 'Female',
-        type: User.UserType.ADMIN,
-        staffId: '004502',
-        // houseAddress: 'Head Office, Marina',
-        employment: User.EmploymentStatus.EMPLOYED,
-        group: User.UserGroup.ET,
-        beneficiary: 'Dara',
-        activated: true,
-        enabled: true,
-        password: '12345678',
-        vesting: false
-      })
-
-    const [mnemonic, privateKey, publicKey] = await Promise.all([secure.encrypt(userMnemonic), secure.encrypt(Ethkeys.childPrivKey), secure.encrypt(Ethkeys.childPubKey)])
-    user.mnemonic = mnemonic
-    user.privateKey = privateKey
-    user.publicKey = publicKey
-    user.address = Ethkeys.childAddress
-
-    const _user = await user.save()
-    // console.log('saved', _user)
-
-    // const userSavePromise = users.map(user => {
-    //   User.create(user)
-    // })
-    // const newUsers = await Promise.all(userSavePromise)
-    // console.log(newUsers)
-
-    // for (let i = 0; i < users.length; i++) {
-    //   const saveUser = new User(users[i]);
-    //   result = await saveUser.save()
-    //   // console.log('result >>> ',result, '\n')
-    // }
-  } catch (error) {
-    console.log('error >>> ', error)
-  }
-}

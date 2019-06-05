@@ -93,16 +93,13 @@ const FixtureController = {
   
       const fixtures = all[0]
       const fixturesCount = all[1]
-      return res.status(HttpStatus.OK).json({
-        status: 'success',
-        data: fixtures,
-        meta: {
-          page,
-          perPage: count,
-          total: fixturesCount,
-          pageCount: Math.ceil(fixturesCount / count)
-        }
-      })
+      fixtures.meta = {
+        page,
+        perPage: count,
+        total: fixturesCount,
+        pageCount: Math.ceil(fixturesCount / count)
+      }
+      return handleSuccess(res, HttpStatus.OK, 'Fixtures retrieved', fixtures)
     } catch (error) {
       return handleError(res, HttpStatus.BAD_REQUEST, error)
     }
@@ -227,10 +224,7 @@ const FixtureController = {
       }
       const _id = req.params.id;
       const fixture = await FixtureModel.findByIdAndRemove(
-          {$or: [
-            { _id },
-            { fixture_id: _id }
-        ]},
+          { _id },
         { safe: true, multi: true, new: true }
       )
       if (fixture) {
