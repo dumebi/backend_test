@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === 'development') {
   
 } else {
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
-  this.config.host = `http://https://vast-reef-55707.herokuapp.com/v1/`
+  this.config.host = `https://vast-reef-55707.herokuapp.com/v1/`
   this.config.db = 'backend_test'
   this.config.amqp_url = `${process.env.CLOUDAMQP_URL}`
   this.config.port = `${process.env.PORT}`
