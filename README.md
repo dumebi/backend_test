@@ -53,3 +53,9 @@ Bonus points for use of `web caching`.
 # NB:
 
 Please send an email to acknowledge the receipt of this document.
+
+## Live Postman Docs 
+https://documenter.getpostman.com/view/788782/S1TYVG5V?version=latest#a65440cc-56bd-4142-b837-69628b587a52
+
+## Backend 
+https://vast-reef-55707.herokuapp.com/v1/
