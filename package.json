@@ -47,6 +47,7 @@
     "node-cron": "^2.0.3",
     "nodemailer": "^4.6.4",
     "nodemon": "^1.18.10",
+    "nyc": "^13.3.0",
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
     "redis-await": "^1.0.6",

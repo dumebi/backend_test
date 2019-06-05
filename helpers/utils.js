@@ -15,7 +15,7 @@ exports.config = {
 
 if (process.env.NODE_ENV === 'development') {
   this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
-  this.config.host = `http://localhost:${process.env.PORT}/v1/`
+  this.config.host = `http://https://vast-reef-55707.herokuapp.com/v1/`
   this.config.db = 'STTP'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
