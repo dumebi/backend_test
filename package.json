@@ -6,8 +6,8 @@
     "test": "test"
   },
   "engines": {
-    "node": "10.4.0",
-    "npm": "6.4.1"
+    "node": "11.8.0",
+    "npm": "6.8.0"
   },
   "scripts": {
     "start": "NODE_ENV=production node index.js",
@@ -47,7 +47,6 @@
     "node-cron": "^2.0.3",
     "nodemailer": "^4.6.4",
     "nodemon": "^1.18.10",
-    "nyc": "^13.3.0",
     "randomstring": "^1.1.5",
     "redis": "^2.8.0",
     "redis-await": "^1.0.6",
