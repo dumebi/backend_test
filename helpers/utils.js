@@ -13,15 +13,17 @@ exports.config = {
   redis: ''
 }
 
+console.log(process.env.MONGO_LAB_DEV, process.env.MONGO_LAB_PROD)
+
 if (process.env.NODE_ENV === 'development') {
-  this.config.mongo = process.env.MONGO_LAB_DEV_EXCHANGE
+  this.config.mongo = `${process.env.MONGO_LAB_PROD}`
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
   this.config.db = 'backend_test'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
   
 } else {
-  this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
+  this.config.mongo = `${process.env.MONGO_LAB_PROD}`
   this.config.host = `https://vast-reef-55707.herokuapp.com/v1/`
   this.config.db = 'backend_test'
   this.config.amqp_url = `${process.env.CLOUDAMQP_URL}`

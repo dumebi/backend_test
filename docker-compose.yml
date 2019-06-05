@@ -33,41 +33,36 @@ services:
     volumes:
       - ./external/rabbitmq:/data
 
-  # backend:
-  #   container_name: test-backend
-  #   restart: always
-  #   build: 
-  #     dockerfile: Dockerfile
-  #     context: .
-  #   volumes:
-  #     - .:/app
-  #     - /app/node_modules
-  #   environment:
-  #     - JWT_SECRET=mysuperjwtsecret
-  #     - APP_NAME="backend_test"
-  #     - MONGO_DB_PROD=mongodb+srv://dikejude49:dyke2010@comflo-test-d5lj1.mongodb.net/comflo-app
-  #     - MONGO_DB_PROD_ALTMALL=mongodb+srv://dikejude49:dyke2010@altmall-prod-a6qxd.mongodb.net/altmall
-  #     - MONGO_DB_DEV=mongodb://localhost:27017/test
-  #     - NODE_ENV=production
-  #     - REDIS_URL=redis://redis
-  #     - AMQP_URL=amqp://rabbitmq
-  #     - PORT=8082
-  #   links:
-  #     - rabbitmq
-  #     # - wvganachecli
-  #   depends_on:
-  #     - mongo
-  #     - redis
-  #     - rabbitmq
-  #     # - ganachecli
-  #   networks:
-  #     - test
-  #   # command: npm run truffle && npm run start
-  #   command: >
-  #     sh -c "npm run truffle &&
-  #            npm run dev"
-  #   ports:
-  #     - 8082:8082
+  backend:
+    container_name: test-backend
+    restart: always
+    build: 
+      dockerfile: Dockerfile
+      context: .
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - JWT_SECRET=mysuperjwtsecret
+      - APP_NAME="backend_test"
+      - MONGO_LAB_PROD=mongodb+srv://dikejude49:dyke2010@cluster0-edqiz.mongodb.net/backend_test
+      #MONGO_DB_DEV_ALTMALL="mongodb+srv://dikejude49:dyke2010@cluster0-edqiz.mongodb.net/altmall-test"
+      - MONGO_LAB_DEV=mongo://mongodb/backend_test
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis
+      - AMQP_URL=amqp://rabbitmq
+      - PORT=3050
+    links:
+      - rabbitmq
+    depends_on:
+      - mongo
+      - redis
+      - rabbitmq
+    networks:
+      - test
+    command: npm run dev
+    ports:
+      - 3050:3050
 
 networks:
   test:

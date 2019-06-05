@@ -1,5 +1,15 @@
 # Software Developer Application Test
 
+## Live Postman Docs 
+https://documenter.getpostman.com/view/788782/S1TYVG5V?version=latest#a65440cc-56bd-4142-b837-69628b587a52
+
+## Backend 
+https://vast-reef-55707.herokuapp.com/v1/
+
+## BUILD 
+To run locally, type `docker-compose up --build`
+
+
 Create a API that serves the latest scores of fixtures of matches in a “**Mock Premier League**”
 
 # User Roles
@@ -53,9 +63,3 @@ Bonus points for use of `web caching`.
 # NB:
 
 Please send an email to acknowledge the receipt of this document.
-
-## Live Postman Docs 
-https://documenter.getpostman.com/view/788782/S1TYVG5V?version=latest#a65440cc-56bd-4142-b837-69628b587a52
-
-## Backend 
-https://vast-reef-55707.herokuapp.com/v1/

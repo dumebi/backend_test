@@ -25,16 +25,16 @@ describe('Admin Test', () => {
   let fixture2_id = ''
 
   before(async () => {
-    const port = process.env.PORT || 8080;
-    app.set('port', port);
-    /**
-     * Create HTTP server.
-     */
-    const server = http.createServer(app);
-    /**
-     * Listen on provided port, on all network interfaces.
-     */
-    server.listen(port);
+    // const port = process.env.PORT || 8080;
+    // app.set('port', port);
+    // /**
+    //  * Create HTTP server.
+    //  */
+    // const server = http.createServer(app);
+    // /**
+    //  * Listen on provided port, on all network interfaces.
+    //  */
+    // server.listen(port);
     console.log(config.mongo);
     // this.timeout(13000); // A very long environment setup.
     // await setTimeout(done, 20000);
