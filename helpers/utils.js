@@ -9,7 +9,8 @@ exports.config = {
   mongo: '',
   host: '',
   amqp_url: '',
-  port: ''
+  port: '',
+  redis: ''
 }
 
 if (process.env.NODE_ENV === 'development') {
@@ -18,12 +19,14 @@ if (process.env.NODE_ENV === 'development') {
   this.config.db = 'STTP'
   this.config.amqp_url = `${process.env.AMQP_URL}`
   this.config.port = `${process.env.PORT}`
+  
 } else {
   this.config.mongo = process.env.MONGO_LAB_PROD_EXCHANGE
   this.config.host = `http://localhost:${process.env.PORT}/v1/`
-  this.config.db = 'STTP'
-  this.config.amqp_url = `${process.env.AMQP_URL}`
+  this.config.db = 'backend_test'
+  this.config.amqp_url = `${process.env.CLOUDAMQP_URL}`
   this.config.port = `${process.env.PORT}`
+  this.config.redis = `${process.env.REDIS_URL}`
 }
 
 exports.sendMail = (params, callback) => {
